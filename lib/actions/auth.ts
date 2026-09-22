@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // Auth Actions — Server Actions (App Router)
 // All domain validation and session logic lives here.
 // These run SERVER-SIDE only — never expose to client directly.
@@ -199,15 +199,40 @@ export async function signIn(formData: FormData) {
         await supabaseAdmin.from('leave_balances').insert(inserts)
     }
 
+    const requestedPortal = ((formData.get('portal') as string) || 'staff').toLowerCase()
+    const { data: loginRoles } = await supabaseAdmin
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', data.user.id)
+    const roles = new Set((loginRoles || []).map((r: any) => r.role))
+
+    // The portal selector never grants privileges: it only selects which existing role is required.
+    const allowed = requestedPortal === 'admin'
+        ? roles.has('admin')
+        : requestedPortal === 'responsible'
+            ? (roles.has('responsible_lead') || roles.has('admin'))
+            : (roles.has('employee') || roles.has('responsible_lead') || roles.has('admin'))
+
+    if (!allowed) {
+        await supabase.auth.signOut()
+        return { error: `Dit account heeft geen toegang tot de ${requestedPortal} portal.`, code: 'wrong_portal' }
+    }
+
+    if (profile?.account_status && profile.account_status !== 'approved') {
+        await supabase.auth.signOut()
+        return { error: 'ACCOUNT NOT APPROVED', code: 'account_not_approved' }
+    }
+
     await writeAuditLog({
         actorId: data.user.id,
         actorEmail: email,
         action: 'login',
         entityTable: 'auth.users',
         entityId: data.user.id,
+        metadata: { portal: requestedPortal },
     })
 
-    redirect('/')
+    redirect(requestedPortal === 'admin' ? '/admin' : requestedPortal === 'responsible' ? '/operations' : '/')
 }
 
 // ── Sign Out ─────────────────────────────────────────────────

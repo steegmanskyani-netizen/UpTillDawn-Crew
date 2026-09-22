@@ -1,0 +1,1 @@
+export default function Page(){return <main className="p-6"><h1 className="text-3xl font-bold">Excel</h1><p className="my-4 text-muted-foreground">Admin-only urenexport.</p><a className="border rounded-xl px-4 py-3 inline-block" href="/api/uptilldawn/export">Download .xlsx</a></main>}

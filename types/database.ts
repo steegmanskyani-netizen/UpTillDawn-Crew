@@ -1,4 +1,4 @@
-﻿// ============================================================
+// ============================================================
 // TypeScript Database Types — StaffPortal
 // All Insert/Update types are explicit (no self-referential Omit).
 // Every table MUST have Relationships: [] to satisfy GenericTable
@@ -15,7 +15,7 @@ export type Json =
 
 // ── Enum Types ───────────────────────────────────────────────
 
-export type UserRole = 'employee' | 'admin' | 'director' | 'accounts' | 'reception'
+export type UserRole = 'employee' | 'responsible_lead' | 'admin' | 'director' | 'accounts' | 'reception'
 
 export type AttendanceStatus =
     | 'present' | 'absent' | 'late' | 'wfh' | 'half_day' | 'holiday' | 'weekend'

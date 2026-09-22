@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useAuth, useDisplayName } from "@/lib/providers"
 import { signOut } from "@/lib/actions/auth"
@@ -99,10 +99,10 @@ export function Topbar() {
         <Link href="/" className="flex items-center gap-2">
           <img
             src="/logo.png"
-            alt="StaffPortal"
+            alt="UPTILLDAWN Crew"
             className="h-6"
           />
-          <span className="font-semibold text-sm text-foreground">StaffPortal</span>
+          <span className="font-semibold text-sm text-foreground">UPTILLDAWN</span>
         </Link>
       </div>
 

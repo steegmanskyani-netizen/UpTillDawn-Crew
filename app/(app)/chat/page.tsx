@@ -1,0 +1,2 @@
+import {createClient} from '@/lib/supabase/server'
+export default async function Page(){const s:any=await createClient();const {data}=await s.from('chat_channels').select('*').order('created_at');return <main className="p-6"><h1 className="text-3xl font-bold mb-4">Chats</h1><p className="text-muted-foreground mb-4">Organisatie-, event-, workplace- en privékanalen.</p><div className="grid gap-3">{(data||[]).map((c:any)=><div className="border rounded-xl p-4" key={c.id}><b>{c.name||c.kind}</b><div className="text-xs uppercase">{c.kind}</div></div>)}</div></main>}

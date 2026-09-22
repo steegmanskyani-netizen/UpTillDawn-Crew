@@ -1,0 +1,2 @@
+import {createClient} from '@/lib/supabase/server'
+export default async function Page(){const s:any=await createClient();const {data}=await s.from('upt_audit_logs').select('*').order('created_at',{ascending:false}).limit(200);return <main className="p-6"><h1 className="text-3xl font-bold mb-4">Audit Log</h1><div className="space-y-2">{(data||[]).map((a:any)=><div className="border rounded-lg p-3 text-sm" key={a.id}><b>{a.action}</b> · {a.entity_type} · {new Date(a.created_at).toLocaleString('nl-BE')}</div>)}</div></main>}

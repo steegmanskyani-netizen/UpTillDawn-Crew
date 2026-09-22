@@ -46,7 +46,7 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url)
     }
 
-    // If user is authenticated and tries to access auth pages, redirect to dashboard
+    // If user is authenticated and tries to access auth pages (including /login/{portal}), redirect to dashboard
     const authPages = ['/login', '/signup', '/forgot-password']
     const isAuthPage = authPages.some(p =>
         request.nextUrl.pathname.startsWith(p)

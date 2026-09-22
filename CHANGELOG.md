@@ -78,3 +78,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - GDPR exports of another user are restricted to administrators and recorded
   in the audit log.
+
+## Final hardening pass
+- Added migration 029 with authenticated-only work/break RPC execution.
+- Validates that a supplied shift belongs to the signed-in employee and event.
+- Added audit entries for break/work stop transitions.
+- Added DB consistency constraints for approval decisions and remote check-in selfies.
+- Added Uptilldawn-specific structural/security tests.

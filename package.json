@@ -1,6 +1,6 @@
 {
-  "name": "staff-portal",
-  "version": "2.0.0",
+  "name": "uptilldawn-crew-management",
+  "version": "0.1.0",
   "private": true,
   "engines": {
     "node": ">=22.6.0"

@@ -1,0 +1,3 @@
+import {createClient} from '@/lib/supabase/server'
+import OperationsClient from './operations-client'
+export default async function Page(){const s:any=await createClient();const {data:{user}}=await s.auth.getUser();if(!user)return null;const [{data:members},{data:sessions},{data:breaks}]=await Promise.all([s.from('event_members').select('event_id,events(id,name,start_at,end_at)').eq('user_id',user.id),s.from('work_sessions').select('*').eq('user_id',user.id).is('ended_at',null),s.from('break_sessions').select('*').eq('user_id',user.id).is('ended_at',null)]);return <OperationsClient events={(members||[]).map((m:any)=>m.events).filter(Boolean)} activeSession={sessions?.[0]||null} activeBreak={breaks?.[0]||null}/>}

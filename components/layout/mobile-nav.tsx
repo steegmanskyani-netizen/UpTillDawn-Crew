@@ -1,48 +1,14 @@
 "use client"
-
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
 import { useAuth } from "@/lib/providers"
-import { LayoutDashboard, Clock, CalendarDays, UserPlus, Settings, Monitor, ClipboardList, Shield, ShieldAlert } from "lucide-react"
-
-const mobileItems = [
-  { href: "/", label: "Home", icon: LayoutDashboard, roles: ["employee", "manager", "admin", "hr", "reception"] },
-  { href: "/attendance", label: "Attend", icon: Clock, roles: ["employee", "manager", "admin", "hr", "reception"] },
-  { href: "/leave", label: "Leave", icon: CalendarDays, roles: ["employee", "manager", "admin", "hr"] },
-  { href: "/visitors", label: "Visitors", icon: UserPlus, roles: ["employee", "manager", "admin", "reception"] },
-  { href: "/reception", label: "Desk", icon: Monitor, roles: ["reception"] },
-  { href: "/admin/roll-call", label: "Roll Call", icon: ShieldAlert, roles: ["admin", "reception"] },
-  { href: "/manager/approvals", label: "Approve", icon: ClipboardList, roles: ["manager", "hr"] },
-  { href: "/admin/users", label: "Admin", icon: Shield, roles: ["admin"] },
-  { href: "/settings", label: "Settings", icon: Settings, roles: ["employee", "manager", "admin", "hr", "reception"] },
+import { cn } from "@/lib/utils"
+import { LayoutDashboard, CalendarDays, Clock3, AlertTriangle, Users } from "lucide-react"
+const items=[
+ {href:"/",label:"Home",icon:LayoutDashboard,roles:["employee","responsible_lead","admin"]},
+ {href:"/events",label:"Events",icon:CalendarDays,roles:["employee","responsible_lead","admin"]},
+ {href:"/shifts",label:"Shifts",icon:Clock3,roles:["employee","responsible_lead","admin"]},
+ {href:"/incidents",label:"Urgent",icon:AlertTriangle,roles:["responsible_lead","admin"]},
+ {href:"/admin/users",label:"Crew",icon:Users,roles:["admin"]},
 ]
-
-export function MobileBottomNav() {
-  const pathname = usePathname()
-  const { roles } = useAuth()
-
-  // Show nav items where the user has at least one matching role
-  const items = mobileItems.filter((item) => roles.some(r => item.roles.includes(r))).slice(0, 5)
-
-  return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 flex items-center justify-around border-t border-border bg-card/95 backdrop-blur-md py-1.5 md:hidden safe-area-inset-bottom">
-      {items.map((item) => {
-        const isActive = pathname === item.href || (item.href !== "/" && pathname.startsWith(item.href))
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              "flex flex-col items-center gap-0.5 px-3 py-1.5 text-[10px] font-medium transition-colors",
-              isActive ? "text-brand-taupe" : "text-muted-foreground"
-            )}
-          >
-            <item.icon className={cn("h-5 w-5", isActive && "text-brand-taupe")} />
-            <span>{item.label}</span>
-          </Link>
-        )
-      })}
-    </nav>
-  )
-}
+export function MobileBottomNav(){const pathname=usePathname();const{roles}=useAuth();return <nav className="fixed inset-x-0 bottom-0 z-50 flex justify-around border-t border-border bg-card/95 backdrop-blur p-1.5 md:hidden">{items.filter(i=>roles.some(r=>i.roles.includes(r))).map(i=>{const I=i.icon;const a=i.href==='/'?pathname==='/':pathname.startsWith(i.href);return <Link key={i.href} href={i.href} className={cn("flex min-w-14 flex-col items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold",a?"text-violet-400":"text-muted-foreground")}><I className="h-5 w-5"/>{i.label}</Link>})}</nav>}

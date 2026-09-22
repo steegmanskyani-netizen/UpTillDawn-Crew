@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useTransition } from "react"
 import Link from "next/link"
@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
 import { signUp } from "@/lib/actions/auth"
 
-const ALLOWED_EXCEPTION_EMAILS = []
+
 
 export default function SignupPage() {
   const router = useRouter()
@@ -28,7 +28,7 @@ export default function SignupPage() {
 
     if (!name) errors.full_name = "Full name is required"
     if (!email) errors.email = "Email is required"
-    else if (!email.endsWith("@yourcompany.com") && !ALLOWED_EXCEPTION_EMAILS.includes(email)) errors.email = "Must be a @yourcompany.com email address"
+
     if (password.length < 8) errors.password = "Password must be at least 8 characters"
     if (password !== confirm) errors.confirm_password = "Passwords do not match"
 
@@ -62,14 +62,14 @@ export default function SignupPage() {
     <Card className="w-full max-w-md rounded-2xl border-border shadow-lg">
       <CardHeader className="items-center space-y-4 pb-2">
         <img
-          src="/logo.png"
-          alt="StaffPortal"
+          src="/uptilldawn-logo.jpeg"
+          alt="Uptilldawn"
           className="h-10"
         />
         <div className="text-center space-y-1">
           <h1 className="text-xl font-bold text-foreground">Create your account</h1>
           <p className="text-sm text-muted-foreground">
-            Only <strong>@yourcompany.com</strong> email addresses are accepted
+            Je account moet na registratie door een administrator worden goedgekeurd.
           </p>
         </div>
       </CardHeader>
@@ -106,7 +106,7 @@ export default function SignupPage() {
               id="email"
               name="email"
               type="email"
-              placeholder="you@yourcompany.com"
+              placeholder="naam@voorbeeld.be"
               className="rounded-xl h-11"
               autoComplete="email"
             />

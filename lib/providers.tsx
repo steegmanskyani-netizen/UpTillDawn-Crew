@@ -8,7 +8,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { createClient } from "@/lib/supabase/crew-client"
 import type { User, Session } from "@supabase/supabase-js"
 import type { UserRole } from "@/types/database"
 
@@ -61,19 +61,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   const loadProfile = async (userId: string) => {
-    const { data: profileData } = await supabase
-      .from("user_profiles")
-      .select("id, email, full_name, display_name, job_title, department_id, location_id, desk_extension, avatar_url, is_active")
-      .eq("id", userId)
-      .single()
-
-    const { data: rolesData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId)
-
-    if (profileData) setProfile(profileData as UserProfile)
-    if (rolesData) setRoles((rolesData as { role: UserRole }[]).map(r => r.role))
+    const { data, error } = await supabase.from('profiles')
+      .select('id,full_name,phone_number,profile_photo_url,approved,role').eq('id',userId).single()
+    if (error || !data?.approved) { setProfile(null); setRoles([]); return }
+    setProfile({ id:data.id, email:'', full_name:data.full_name ?? '',
+      display_name:null, job_title:null, department_id:null, location_id:null,
+      desk_extension:null, avatar_url:data.profile_photo_url, is_active:data.approved })
+    setRoles([data.role === 'staff' ? 'employee' : data.role] as UserRole[])
   }
 
   useEffect(() => {
@@ -101,7 +95,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setSession(session)
         setUser(session?.user ?? null)
         if (session?.user) {
-          loadProfile(session.user.id)
+          setTimeout(() => void loadProfile(session.user.id), 0)
         } else {
           setProfile(null)
           setRoles([])

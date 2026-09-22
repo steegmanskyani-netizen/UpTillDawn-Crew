@@ -1,0 +1,4 @@
+'use client'
+import {useState} from 'react'
+import {updatePassword} from '@/lib/actions/auth'
+export default function Page(){const [message,setMessage]=useState('');return <main className="mx-auto max-w-md space-y-4 p-8"><h1 className="text-2xl font-bold">Nieuw wachtwoord</h1><form className="grid gap-3" onSubmit={async e=>{e.preventDefault();const result=await updatePassword(new FormData(e.currentTarget));setMessage(result.error||result.message||'')}}><input aria-label="Nieuw wachtwoord" required minLength={8} type="password" name="password" autoComplete="new-password" className="border bg-background p-3"/><input aria-label="Bevestig wachtwoord" required minLength={8} type="password" name="confirm_password" autoComplete="new-password" className="border bg-background p-3"/><button className="rounded-xl bg-violet-600 p-3">Wachtwoord opslaan</button></form><p role="status">{message}</p></main>}

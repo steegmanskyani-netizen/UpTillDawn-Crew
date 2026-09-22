@@ -5,9 +5,6 @@ const nextConfig = {
       allowedOrigins: ['*.app.github.dev', 'localhost:3000'],
     },
   },
-  typescript: {
-    ignoreBuildErrors: true,
-  },
   images: {
     unoptimized: true,
   },

@@ -26,6 +26,9 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Typecheck
+        run: npm run typecheck
+
       - name: Test
         run: npm test
 
@@ -33,11 +36,7 @@ jobs:
         run: npm run build
         env:
           # Placeholder values let the production build complete in CI.
-          # Real secrets are configured per environment in Vercel.
+          # Production variables are configured in Cloudflare.
           NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
-          SUPABASE_SERVICE_ROLE_KEY: placeholder-service-key
-          RESEND_API_KEY: re_placeholder
-          RESEND_FROM_EMAIL: noreply@example.com
           NEXT_PUBLIC_APP_URL: http://localhost:3000
-          CRON_SECRET: placeholder

@@ -1,4 +1,4 @@
-﻿"use client"
+"use client"
 
 import { useState, useTransition } from "react"
 import Link from "next/link"
@@ -36,8 +36,8 @@ export default function ForgotPasswordPage() {
     <Card className="w-full max-w-md rounded-2xl border-border shadow-lg">
       <CardHeader className="items-center space-y-4 pb-2">
         <img
-          src="/logo.png"
-          alt="StaffPortal"
+          src="/uptilldawn-logo.jpeg"
+          alt="Uptilldawn"
           className="h-10"
         />
         <div className="text-center space-y-1">

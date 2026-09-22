@@ -7,8 +7,8 @@ import { LayoutDashboard, CalendarDays, Clock3, AlertTriangle, Users } from "luc
 const items=[
  {href:"/",label:"Home",icon:LayoutDashboard,roles:["employee","responsible_lead","admin"]},
  {href:"/events",label:"Events",icon:CalendarDays,roles:["employee","responsible_lead","admin"]},
- {href:"/shifts",label:"Shifts",icon:Clock3,roles:["employee","responsible_lead","admin"]},
+ {href:"/operations",label:"Werk",icon:Clock3,roles:["employee","responsible_lead","admin"]},
  {href:"/incidents",label:"Urgent",icon:AlertTriangle,roles:["responsible_lead","admin"]},
- {href:"/admin/users",label:"Crew",icon:Users,roles:["admin"]},
+ {href:"/personnel",label:"Crew",icon:Users,roles:["admin"]},
 ]
 export function MobileBottomNav(){const pathname=usePathname();const{roles}=useAuth();return <nav className="fixed inset-x-0 bottom-0 z-50 flex justify-around border-t border-border bg-card/95 backdrop-blur p-1.5 md:hidden">{items.filter(i=>roles.some(r=>i.roles.includes(r))).map(i=>{const I=i.icon;const a=i.href==='/'?pathname==='/':pathname.startsWith(i.href);return <Link key={i.href} href={i.href} className={cn("flex min-w-14 flex-col items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold",a?"text-violet-400":"text-muted-foreground")}><I className="h-5 w-5"/>{i.label}</Link>})}</nav>}

@@ -7,23 +7,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { supabaseAdmin } from '@/lib/supabase/admin'
-import { writeAuditLog } from '@/lib/audit'
-import { headers } from 'next/headers'
-
-const ALLOWED_DOMAIN = process.env.NEXT_AUTH_DOMAIN ?? '@yourcompany.com'
-
-// Specific non-domain emails permitted to access the system.
-// Populate with additional allowlisted addresses if needed.
-const ALLOWED_EMAILS = new Set<string>([])
-
-// ── Input validation ─────────────────────────────────────────
-
-function isValidEmailDomain(email: string): boolean {
-    const e = email.trim().toLowerCase()
-    return e.endsWith(ALLOWED_DOMAIN) || ALLOWED_EMAILS.has(e)
-}
+import { createClient } from '@/lib/supabase/crew-server'
 
 function extractName(email: string): string {
     const local = email.split('@')[0]
@@ -38,7 +22,7 @@ function extractName(email: string): string {
 export async function signUp(formData: FormData) {
     const email = (formData.get('email') as string)?.trim().toLowerCase()
     const password = formData.get('password') as string
-    const fullName = (formData.get('full_name') as string)?.trim() || extractName(email)
+    const fullName = (formData.get('full_name') as string)?.trim() || extractName(email || '')
 
     if (!email || !password) {
         return { error: 'Email and password are required.' }
@@ -67,14 +51,9 @@ export async function signUp(formData: FormData) {
         if (error.message.includes('already registered')) {
             return { error: 'An account with this email already exists. Please sign in.' }
         }
-        return { error: error.message }
+        console.error('[Auth]', { code: error.code, status: error.status })
+        return { error: 'De aanvraag kon niet worden verwerkt. Probeer opnieuw.' }
     }
-
-    // The handle_new_user() Postgres trigger fires automatically and:
-    //   1. Creates the user_profiles row
-    //   2. Assigns 'employee' role
-    //   3. Auto-assigns 'admin' role if email matches NEXT_PUBLIC_ADMIN_EMAIL
-    //   4. Seeds leave balances
 
     return {
         success: true,
@@ -116,22 +95,20 @@ export async function signIn(formData: FormData) {
             }
         }
 
-        return { error: error?.message || 'Login failed.' }
+        return { error: 'Aanmelden mislukt. Probeer opnieuw.' }
     }
 
-    const { data: profile, error: profileError } = await supabaseAdmin
-        .from('user_profiles')
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
         .select('approved, role')
         .eq('id', data.user.id)
         .single()
 
     if (profileError || !profile) {
-        console.error('UPTILLDAWN PROFILE ERROR:', profileError)
+        console.error('[Auth] Profile lookup failed', { code: profileError?.code })
         await supabase.auth.signOut()
         return {
-            error: profileError
-                ? `PROFILE ERROR: ${profileError.message}`
-                : 'PROFILE ERROR: profiel niet gevonden',
+            error: 'Je profiel kon niet worden geladen. Probeer opnieuw.',
             code: 'profile_error',
         }
     }
@@ -164,18 +141,6 @@ export async function signIn(formData: FormData) {
         }
     }
 
-    await writeAuditLog({
-        actorId: data.user.id,
-        actorEmail: email,
-        action: 'login',
-        entityTable: 'auth.users',
-        entityId: data.user.id,
-        metadata: {
-            portal: requestedPortal,
-            role,
-        },
-    })
-
     redirect(
         requestedPortal === 'admin'
             ? '/admin'
@@ -189,18 +154,6 @@ export async function signIn(formData: FormData) {
 
 export async function signOut() {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (user) {
-        await writeAuditLog({
-            actorId: user.id,
-            actorEmail: user.email,
-            action: 'logout',
-            entityTable: 'auth.users',
-            entityId: user.id,
-        })
-    }
-
     await supabase.auth.signOut()
     redirect('/login')
 }
@@ -219,11 +172,12 @@ export async function forgotPassword(formData: FormData) {
 
     const supabase = await createClient()
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${origin}/auth/reset-password`,
+        redirectTo: `${origin}/auth/callback?next=/auth/reset-password`,
     })
 
     if (error) {
-        return { error: error.message }
+        console.error('[Auth]', { code: error.code, status: error.status })
+        return { error: 'De aanvraag kon niet worden verwerkt. Probeer opnieuw.' }
     }
 
     return {
@@ -250,7 +204,8 @@ export async function updatePassword(formData: FormData) {
     const { error } = await supabase.auth.updateUser({ password })
 
     if (error) {
-        return { error: error.message }
+        console.error('[Auth]', { code: error.code, status: error.status })
+        return { error: 'De aanvraag kon niet worden verwerkt. Probeer opnieuw.' }
     }
 
     return { success: true, message: 'Password updated successfully.' }
@@ -275,7 +230,8 @@ export async function resendVerificationEmail(formData: FormData) {
     })
 
     if (error) {
-        return { error: error.message }
+        console.error('[Auth]', { code: error.code, status: error.status })
+        return { error: 'De aanvraag kon niet worden verwerkt. Probeer opnieuw.' }
     }
 
     return { success: true, message: 'Verification email resent. Please check your inbox.' }
@@ -289,31 +245,20 @@ export async function getCurrentUser() {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) return null
 
-    const { data: profile } = await supabase
-        .from('user_profiles')
-        .select(`
-      *,
-      department:departments(id, name),
-      location:locations(id, name)
-    `)
+    const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('id,full_name,phone_number,profile_photo_url,approved,role')
         .eq('id', user.id)
         .single()
-
-    const { data: rolesData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-
-    const roles = rolesData?.map(r => r.role) ?? ['employee']
-
+    if (error || !profile || !profile.approved) return null
+    // Compatibility fields for legacy components; authorization uses profiles.role.
+    const roles = [profile.role === 'staff' ? 'employee' : profile.role]
     return {
-        ...profile,
-        id: user.id as string,
-        email: (user.email ?? profile?.email ?? '') as string,
-        roles,
-        isAdmin: roles.includes('admin'),
-        isDirector: roles.includes('director'),
-        isAccounts: roles.includes('accounts'),
-        isReception: roles.includes('reception'),
+        ...profile, id: user.id, email: user.email ?? '', roles,
+        display_name: profile.full_name, avatar_url: profile.profile_photo_url,
+        department: null, location: null, department_id: null, location_id: null,
+        is_active: profile.approved, job_title: null, desk_extension: null,
+        isAdmin: profile.role === 'admin', isDirector: false,
+        isAccounts: false, isReception: false,
     }
 }

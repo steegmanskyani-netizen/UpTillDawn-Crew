@@ -7,13 +7,18 @@ import { cn } from "@/lib/utils"
 import { LayoutDashboard, CalendarDays, MapPin, Clock3, AlertTriangle, Users, Shield, Settings, ScrollText } from "lucide-react"
 
 const items = [
+  { href: "/operations", label: "Werk & pauze", icon: Clock3, roles: ["employee","responsible_lead","admin"] },
+  { href: "/briefings", label: "Briefings", icon: ScrollText, roles: ["employee","responsible_lead","admin"] },
+  { href: "/tasks", label: "Taken", icon: ScrollText, roles: ["employee","responsible_lead","admin"] },
+  { href: "/chat", label: "Chat", icon: Users, roles: ["employee","responsible_lead","admin"] },
+  { href: "/exports", label: "Excel", icon: ScrollText, roles: ["admin"] },
   { href: "/", label: "Dashboard", icon: LayoutDashboard, roles: ["employee","responsible_lead","admin"] },
   { href: "/events", label: "Events", icon: CalendarDays, roles: ["employee","responsible_lead","admin"] },
   { href: "/workplaces", label: "Workplaces", icon: MapPin, roles: ["responsible_lead","admin"] },
   { href: "/shifts", label: "Shifts", icon: Clock3, roles: ["employee","responsible_lead","admin"] },
   { href: "/incidents", label: "Incidents", icon: AlertTriangle, roles: ["responsible_lead","admin"] },
-  { href: "/admin/users", label: "Personnel", icon: Users, roles: ["admin"] },
-  { href: "/admin/audit", label: "Audit Log", icon: ScrollText, roles: ["admin"] },
+  { href: "/personnel", label: "Personnel", icon: Users, roles: ["admin"] },
+  { href: "/audit", label: "Audit Log", icon: ScrollText, roles: ["admin"] },
   { href: "/settings", label: "Settings", icon: Settings, roles: ["employee","responsible_lead","admin"] },
 ]
 

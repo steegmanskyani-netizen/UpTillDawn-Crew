@@ -1,3 +1,11 @@
+# Uptilldawn Crew Management
+
+Current implementation and verified limitations: [UPTILLDAWN_IMPLEMENTATION_STATUS.md](UPTILLDAWN_IMPLEMENTATION_STATUS.md).
+
+Deployment instructions: [DEPLOYMENT.md](DEPLOYMENT.md). The material below is retained historical StaffPortal documentation and is not the active Uptilldawn setup guide.
+
+---
+
 # StaffPortal
 
 > Self-hosted, open-source HR and workforce platform built with Next.js, Supabase, and Tailwind CSS.

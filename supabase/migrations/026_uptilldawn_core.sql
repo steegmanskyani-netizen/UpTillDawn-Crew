@@ -1,7 +1,29 @@
 -- UPTILLDAWN Crew Management — Phase 1 core schema
 -- Additive migration: preserves StaffPortal tables while introducing the event-crew domain.
 
-ALTER TYPE user_role ADD VALUE IF NOT EXISTS 'responsible_lead';
+DO $$ BEGIN
+  CREATE TYPE user_role AS ENUM ('employee', 'responsible_lead', 'admin');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE event_status AS ENUM ('draft', 'published', 'active', 'completed', 'archived');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE shift_status AS ENUM ('scheduled', 'confirmed', 'active', 'completed', 'cancelled');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$ BEGIN
+  CREATE TYPE incident_status AS ENUM ('open', 'acknowledged', 'in_progress', 'resolved');
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
 DO $$ BEGIN
   CREATE TYPE account_status AS ENUM ('pending','approved','rejected','suspended');
@@ -25,28 +47,27 @@ ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS approved_by UUID REFERENCES u
 ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS approved_at TIMESTAMPTZ;
 
 -- Preserve access for already-existing installations; new registrations remain pending.
-UPDATE user_profiles SET account_status='approved' WHERE created_at < now() AND is_active=true AND account_status='pending';
 
 CREATE TABLE IF NOT EXISTS events (
- id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), name TEXT NOT NULL, description TEXT, venue TEXT, address TEXT,
+ id UUID PRIMARY KEY DEFAULT gen_random_uuid(), name TEXT NOT NULL, description TEXT, venue TEXT, address TEXT,
  latitude NUMERIC(9,6), longitude NUMERIC(9,6), timezone TEXT NOT NULL DEFAULT 'Europe/Brussels',
  start_at TIMESTAMPTZ NOT NULL, end_at TIMESTAMPTZ NOT NULL, checkin_radius_m INTEGER NOT NULL DEFAULT 100 CHECK(checkin_radius_m BETWEEN 10 AND 10000),
  status event_status NOT NULL DEFAULT 'draft', created_by UUID NOT NULL REFERENCES user_profiles(id), created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), CHECK(end_at>start_at)
 );
 CREATE TABLE IF NOT EXISTS workplaces (
- id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE, name TEXT NOT NULL, description TEXT,
+ id UUID PRIMARY KEY DEFAULT gen_random_uuid(), event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE, name TEXT NOT NULL, description TEXT,
  sort_order INTEGER NOT NULL DEFAULT 0, is_active BOOLEAN NOT NULL DEFAULT true, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), UNIQUE(event_id,name)
 );
 CREATE TABLE IF NOT EXISTS event_members (
- id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE, user_id UUID NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
+ id UUID PRIMARY KEY DEFAULT gen_random_uuid(), event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE, user_id UUID NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE,
  event_role user_role NOT NULL DEFAULT 'employee', created_at TIMESTAMPTZ NOT NULL DEFAULT now(), UNIQUE(event_id,user_id)
 );
 CREATE TABLE IF NOT EXISTS responsible_assignments (
- id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE, workplace_id UUID NOT NULL REFERENCES workplaces(id) ON DELETE CASCADE,
+ id UUID PRIMARY KEY DEFAULT gen_random_uuid(), event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE, workplace_id UUID NOT NULL REFERENCES workplaces(id) ON DELETE CASCADE,
  user_id UUID NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE, assigned_by UUID REFERENCES user_profiles(id), created_at TIMESTAMPTZ NOT NULL DEFAULT now(), UNIQUE(workplace_id,user_id)
 );
 CREATE TABLE IF NOT EXISTS shifts (
- id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE, workplace_id UUID NOT NULL REFERENCES workplaces(id) ON DELETE RESTRICT,
+ id UUID PRIMARY KEY DEFAULT gen_random_uuid(), event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE, workplace_id UUID NOT NULL REFERENCES workplaces(id) ON DELETE RESTRICT,
  user_id UUID NOT NULL REFERENCES user_profiles(id) ON DELETE CASCADE, role_name TEXT NOT NULL DEFAULT 'Crew', responsible_lead_id UUID REFERENCES user_profiles(id) ON DELETE SET NULL,
  scheduled_start TIMESTAMPTZ NOT NULL, scheduled_end TIMESTAMPTZ NOT NULL, status shift_status NOT NULL DEFAULT 'scheduled', overlap_allowed BOOLEAN NOT NULL DEFAULT false,
  notes TEXT, created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), CHECK(scheduled_end>scheduled_start)
@@ -55,7 +76,7 @@ CREATE INDEX IF NOT EXISTS idx_shifts_user_time ON shifts(user_id,scheduled_star
 CREATE INDEX IF NOT EXISTS idx_shifts_event_workplace ON shifts(event_id,workplace_id);
 
 CREATE TABLE IF NOT EXISTS incidents (
- id UUID PRIMARY KEY DEFAULT uuid_generate_v4(), event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE, workplace_id UUID REFERENCES workplaces(id) ON DELETE SET NULL,
+ id UUID PRIMARY KEY DEFAULT gen_random_uuid(), event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE, workplace_id UUID REFERENCES workplaces(id) ON DELETE SET NULL,
  reporter_id UUID NOT NULL REFERENCES user_profiles(id) ON DELETE RESTRICT, responsible_lead_id UUID REFERENCES user_profiles(id) ON DELETE SET NULL,
  message TEXT NOT NULL CHECK(length(trim(message))>0), photo_path TEXT, latitude NUMERIC(9,6), longitude NUMERIC(9,6), gps_accuracy_m NUMERIC,
  status incident_status NOT NULL DEFAULT 'open', acknowledged_by UUID REFERENCES user_profiles(id), acknowledged_at TIMESTAMPTZ, resolved_by UUID REFERENCES user_profiles(id), resolved_at TIMESTAMPTZ,
@@ -63,7 +84,7 @@ CREATE TABLE IF NOT EXISTS incidents (
 );
 
 CREATE OR REPLACE FUNCTION public.upt_is_admin(uid UUID DEFAULT auth.uid()) RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
- SELECT EXISTS(SELECT 1 FROM user_roles WHERE user_id=uid AND role='admin'); $$;
+ SELECT EXISTS(SELECT 1 FROM event_members WHERE user_id=uid AND event_role='admin'); $$;
 CREATE OR REPLACE FUNCTION public.upt_is_responsible(event_uuid UUID, workplace_uuid UUID DEFAULT NULL, uid UUID DEFAULT auth.uid()) RETURNS BOOLEAN LANGUAGE sql STABLE SECURITY DEFINER SET search_path=public AS $$
  SELECT EXISTS(SELECT 1 FROM responsible_assignments ra WHERE ra.user_id=uid AND ra.event_id=event_uuid AND (workplace_uuid IS NULL OR ra.workplace_id=workplace_uuid)); $$;
 

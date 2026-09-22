@@ -44,9 +44,6 @@ export async function signUp(formData: FormData) {
         return { error: 'Email and password are required.' }
     }
 
-    if (!isValidEmailDomain(email)) {
-        return { error: 'Registration is restricted to @yourcompany.com email addresses only.' }
-    }
 
     if (password.length < 8) {
         return { error: 'Password must be at least 8 characters.' }
@@ -91,136 +88,80 @@ export async function signUp(formData: FormData) {
 export async function signIn(formData: FormData) {
     const email = (formData.get('email') as string)?.trim().toLowerCase()
     const password = formData.get('password') as string
+    const requestedPortal = ((formData.get('portal') as string) || 'staff').toLowerCase()
 
     if (!email || !password) {
         return { error: 'Email and password are required.' }
     }
 
-    if (!isValidEmailDomain(email)) {
-        return { error: 'Access restricted to @yourcompany.com accounts.' }
-    }
-
     const supabase = await createClient()
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
-    if (error) {
-        if (error.message.includes('Email not confirmed')) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+    })
+
+    if (error || !data.user) {
+        if (error?.message.includes('Email not confirmed')) {
             return {
-                error: 'Please verify your email address first. Check your inbox for the verification link.',
+                error: 'Please verify your email address first.',
                 code: 'email_not_confirmed',
             }
         }
-        if (error.message.includes('Invalid login credentials')) {
-            return { error: 'Incorrect email or password. Please try again.' }
+
+        if (error?.message.includes('Invalid login credentials')) {
+            return {
+                error: 'Incorrect email or password. Please try again.',
+                code: 'invalid_credentials',
+            }
         }
-        return { error: error.message }
+
+        return { error: error?.message || 'Login failed.' }
     }
 
-
-    // Auto-recover missing user_profiles if standard trigger failed (common for manually imported users)
-    let { data: profile } = await supabaseAdmin
+    const { data: profile, error: profileError } = await supabaseAdmin
         .from('user_profiles')
-        .select('is_active, gender')
+        .select('approved, role')
         .eq('id', data.user.id)
         .single()
 
-    if (!profile) {
-        // Trigger failed: Create missing profile forcefully using service role
-        const fName = email.split('@')[0].split('.').map((p: string) => p.charAt(0).toUpperCase() + p.slice(1)).join(' ')
-        await supabaseAdmin.from('user_profiles').insert({
-            id: data.user.id,
-            email: email,
-            full_name: fName,
-            display_name: fName,
-            is_active: true
-        })
-
-        const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? 'admin@yourcompany.com'
-        // Force the app owner to be an administrator on first signup
-        if (email === ADMIN_EMAIL) {
-            await supabaseAdmin.from('user_roles').insert([
-                { user_id: data.user.id, role: 'admin' },
-            ])
-        }
-
-        // Act as if it succeeded
-        profile = { is_active: true, gender: null }
-    } else if (email === (process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? 'admin@yourcompany.com')) {
-        // Guarantee the admin is always active and has admin roles unconditionally
-        await supabaseAdmin.from('user_profiles').update({ is_active: true }).eq('id', data.user.id)
-
-        // Ensure roles exist
-        const { data: currentRoles } = await supabaseAdmin.from('user_roles').select('role').eq('user_id', data.user.id)
-        const roleStrings = (currentRoles || []).map((r: any) => r.role)
-        if (!roleStrings.includes('admin')) {
-            await supabaseAdmin.from('user_roles').insert({ user_id: data.user.id, role: 'admin' })
-        }
-        profile.is_active = true
-    }
-
-    if (profile && !profile.is_active) {
+    if (profileError || !profile) {
+        console.error('UPTILLDAWN PROFILE ERROR:', profileError)
         await supabase.auth.signOut()
         return {
-            error: 'Your account has been disabled. Please contact your administrator.',
-            code: 'account_disabled',
+            error: profileError
+                ? `PROFILE ERROR: ${profileError.message}`
+                : 'PROFILE ERROR: profiel niet gevonden',
+            code: 'profile_error',
         }
     }
 
-    // Provision standard leave balances for the current year if missing
-    const currentYear = new Date().getFullYear()
-    const { data: currentBalances } = await supabaseAdmin
-        .from('leave_balances')
-        .select('leave_type')
-        .eq('user_id', data.user.id)
-        .eq('year', currentYear)
-
-    const existingTypes = (currentBalances || []).map(b => b.leave_type)
-    const requiredBal = [
-        { type: 'annual', total: 25 },
-        { type: 'sick', total: 10 },
-        { type: 'unpaid', total: 365 },
-    ]
-
-    // Maternity leave — female users only
-    const gender = profile?.gender
-    if (gender === 'female') {
-        requiredBal.push({ type: 'maternity', total: 260 })
+    if (!profile.approved) {
+        await supabase.auth.signOut()
+        return {
+            error: 'ACCOUNT NOT APPROVED',
+            code: 'account_not_approved',
+        }
     }
 
-    const missingBalances = requiredBal.filter(rb => !existingTypes.includes(rb.type as any))
+    const role = profile.role
 
-    if (missingBalances.length > 0) {
-        const inserts = missingBalances.map(mb => ({
-            user_id: data.user.id,
-            leave_type: mb.type as any,
-            total: mb.total,
-            year: currentYear
-        }))
-        await supabaseAdmin.from('leave_balances').insert(inserts)
-    }
-
-    const requestedPortal = ((formData.get('portal') as string) || 'staff').toLowerCase()
-    const { data: loginRoles } = await supabaseAdmin
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', data.user.id)
-    const roles = new Set((loginRoles || []).map((r: any) => r.role))
-
-    // The portal selector never grants privileges: it only selects which existing role is required.
-    const allowed = requestedPortal === 'admin'
-        ? roles.has('admin')
-        : requestedPortal === 'responsible'
-            ? (roles.has('responsible_lead') || roles.has('admin'))
-            : (roles.has('employee') || roles.has('responsible_lead') || roles.has('admin'))
+    const allowed =
+        requestedPortal === 'admin'
+            ? role === 'admin'
+            : requestedPortal === 'responsible'
+                ? role === 'responsible_lead' || role === 'admin'
+                : role === 'staff' ||
+                  role === 'employee' ||
+                  role === 'responsible_lead' ||
+                  role === 'admin'
 
     if (!allowed) {
         await supabase.auth.signOut()
-        return { error: `Dit account heeft geen toegang tot de ${requestedPortal} portal.`, code: 'wrong_portal' }
-    }
-
-    if (profile?.account_status && profile.account_status !== 'approved') {
-        await supabase.auth.signOut()
-        return { error: 'ACCOUNT NOT APPROVED', code: 'account_not_approved' }
+        return {
+            error: `Dit account heeft geen toegang tot de ${requestedPortal} portal.`,
+            code: 'wrong_portal',
+        }
     }
 
     await writeAuditLog({
@@ -229,10 +170,19 @@ export async function signIn(formData: FormData) {
         action: 'login',
         entityTable: 'auth.users',
         entityId: data.user.id,
-        metadata: { portal: requestedPortal },
+        metadata: {
+            portal: requestedPortal,
+            role,
+        },
     })
 
-    redirect(requestedPortal === 'admin' ? '/admin' : requestedPortal === 'responsible' ? '/operations' : '/')
+    redirect(
+        requestedPortal === 'admin'
+            ? '/admin'
+            : requestedPortal === 'responsible'
+                ? '/operations'
+                : '/'
+    )
 }
 
 // ── Sign Out ─────────────────────────────────────────────────
@@ -264,9 +214,6 @@ export async function forgotPassword(formData: FormData) {
         return { error: 'Please enter your email address.' }
     }
 
-    if (!isValidEmailDomain(email)) {
-        return { error: 'Please enter your @yourcompany.com email address.' }
-    }
 
     const origin = process.env.NEXT_PUBLIC_APP_URL
 
@@ -314,8 +261,8 @@ export async function updatePassword(formData: FormData) {
 export async function resendVerificationEmail(formData: FormData) {
     const email = (formData.get('email') as string)?.trim().toLowerCase()
 
-    if (!email || !isValidEmailDomain(email)) {
-        return { error: 'Please enter a valid @yourcompany.com email address.' }
+    if (!email) {
+        return { error: 'Please enter your email address.' }
     }
 
     const origin = process.env.NEXT_PUBLIC_APP_URL

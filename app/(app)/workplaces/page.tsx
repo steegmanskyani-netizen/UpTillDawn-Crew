@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/crew-server'
-import { addWorkplace, assignResponsible } from '@/lib/actions/uptilldawn'
+import { addWorkplace, assignResponsible, updateWorkplace } from '@/lib/actions/uptilldawn'
+import { AdminOnly } from '@/components/auth/admin-only'
+import { ManagerOnly } from '@/components/auth/manager-only'
 import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
@@ -14,55 +16,111 @@ export default async function Page() {
   const isResponsible = profile?.role === 'responsible_lead'
   if (!isAdmin && !isResponsible) redirect('/')
 
-  const [{ data: allWorkplaces }, { data: events }] = await Promise.all([
-    s.from('workplaces').select('*,events(name)').order('sort_order'),
-    s.from('events').select('id,name').order('start_at'),
-  ])
-
-  let workplaces = allWorkplaces || []
+  let events: Array<{ id: string; name: string }> = []
+  let workplaces: Array<{
+    id: string
+    event_id: string
+    name: string
+    description: string | null
+    sort_order: number
+    is_active: boolean
+    events: { name: string } | null
+  }> = []
   let leads: Array<{ id: string; full_name: string | null }> = []
 
   if (isAdmin) {
-    const { data } = await s.from('profiles').select('id,full_name,role').eq('approved', true).in('role', ['responsible_lead','admin']).order('full_name')
-    leads = (data || []).map(p => ({ id: p.id, full_name: p.full_name }))
-  } else if (isResponsible) {
-    const { data: responsibilities } = await s.from('responsible_assignments').select('workplace_id').eq('user_id', user.id)
-    const allowed = new Set((responsibilities || []).map(r => r.workplace_id))
-    workplaces = workplaces.filter(w => allowed.has(w.id))
+    const [{ data: eventRows }, { data: workplaceRows }, { data: leadRows }] = await Promise.all([
+      s.from('events').select('id,name').neq('status', 'archived').order('start_at'),
+      s.from('workplaces').select('id,event_id,name,description,sort_order,is_active,events(name)').order('sort_order'),
+      s.from('profiles').select('id,full_name,role').eq('approved', true).in('role', ['responsible_lead','admin']).order('full_name'),
+    ])
+    events = eventRows || []
+    workplaces = workplaceRows || []
+    leads = (leadRows || []).map(person => ({ id: person.id, full_name: person.full_name }))
+  } else {
+    const { data: memberships } = await s
+      .from('event_members')
+      .select('event_id')
+      .eq('user_id', user.id)
+      .eq('event_role', 'responsible_lead')
+
+    const eventIds = [...new Set((memberships || []).map(row => row.event_id))]
+    if (!eventIds.length) redirect('/events')
+
+    const [{ data: eventRows }, { data: workplaceRows }] = await Promise.all([
+      s.from('events')
+        .select('id,name')
+        .in('id', eventIds)
+        .neq('status', 'archived')
+        .gte('end_at', 'now')
+        .order('start_at'),
+      s.from('workplaces')
+        .select('id,event_id,name,description,sort_order,is_active,events(name)')
+        .in('event_id', eventIds)
+        .order('sort_order'),
+    ])
+
+    events = eventRows || []
+    workplaces = workplaceRows || []
+
+    if (!events.length) redirect('/events')
   }
 
   return <main className="space-y-5 p-4 md:p-8">
     <div>
       <h1 className="text-3xl font-black">Werkplekken</h1>
-      {isResponsible && <p className="text-sm text-muted-foreground">Alleen je toegewezen werkplekken worden hier getoond.</p>}
+      {isResponsible && <p className="text-sm text-muted-foreground">Je kunt werkplekken beheren voor evenementen waaraan je als verantwoordelijke bent toegewezen.</p>}
     </div>
 
-    {isAdmin && <form action={addWorkplace} className="flex flex-wrap gap-2 rounded-2xl border p-4">
-      <select name="event_id" required className="rounded-lg border bg-background p-3">
-        <option value="">Evenement…</option>
-        {events?.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
-      </select>
-      <input name="name" required maxLength={200} placeholder="Nieuwe werkplek" className="rounded-lg border bg-background p-3"/>
-      <button className="rounded-lg bg-violet-600 px-4 font-bold">TOEVOEGEN</button>
-    </form>}
+    <ManagerOnly>
+      <form action={addWorkplace} className="grid gap-2 rounded-2xl border p-4 md:grid-cols-2">
+        <select name="event_id" required className="rounded-lg border bg-background p-3">
+          <option value="">Evenement…</option>
+          {events.map(event => <option key={event.id} value={event.id}>{event.name}</option>)}
+        </select>
+        <input name="name" required maxLength={200} placeholder="Nieuwe werkplek" className="rounded-lg border bg-background p-3"/>
+        <input name="description" maxLength={1000} placeholder="Omschrijving (optioneel)" className="rounded-lg border bg-background p-3"/>
+        <input name="sort_order" type="number" min="0" max="10000" defaultValue="0" aria-label="Volgorde" className="rounded-lg border bg-background p-3"/>
+        <button className="rounded-lg bg-violet-600 px-4 py-3 font-bold md:col-span-2">WERKPLEK TOEVOEGEN</button>
+      </form>
+    </ManagerOnly>
 
     <div className="grid gap-3 md:grid-cols-2">
-      {workplaces.map(x => <article key={x.id} className="rounded-2xl border p-4">
+      {workplaces.map(workplace => <article key={workplace.id} className="rounded-2xl border p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <b>{x.name}</b>
-            <p className="text-sm text-muted-foreground">{x.events?.name}</p>
+            <b>{workplace.name}</b>
+            <p className="text-sm text-muted-foreground">{workplace.events?.name}</p>
+            {workplace.description && <p className="mt-1 text-sm text-muted-foreground">{workplace.description}</p>}
           </div>
-          <span className="rounded-full border px-2 py-1 text-xs">{x.is_active ? 'ACTIEF' : 'INACTIEF'}</span>
+          <span className="rounded-full border px-2 py-1 text-xs">{workplace.is_active ? 'ACTIEF' : 'INACTIEF'}</span>
         </div>
-        {isAdmin && <form action={assignResponsible} className="mt-3 flex gap-2">
-          <input type="hidden" name="workplace_id" value={x.id}/>
+
+        <ManagerOnly>
+          <details className="mt-3 rounded-xl border p-3">
+            <summary className="cursor-pointer font-semibold">Werkplek bewerken</summary>
+            <form action={updateWorkplace} className="mt-3 grid gap-2">
+              <input type="hidden" name="workplace_id" value={workplace.id}/>
+              <input name="name" required maxLength={200} defaultValue={workplace.name} className="rounded-lg border bg-background p-2"/>
+              <textarea name="description" maxLength={1000} defaultValue={workplace.description || ''} placeholder="Omschrijving (optioneel)" className="rounded-lg border bg-background p-2"/>
+              <input name="sort_order" type="number" min="0" max="10000" defaultValue={workplace.sort_order} aria-label="Volgorde" className="rounded-lg border bg-background p-2"/>
+              <label className="flex items-center gap-2 text-sm">
+                <input name="is_active" type="checkbox" defaultChecked={workplace.is_active}/>
+                Actief
+              </label>
+              <button className="rounded-lg border px-3 py-2 font-semibold">WIJZIGINGEN OPSLAAN</button>
+            </form>
+          </details>
+        </ManagerOnly>
+
+        {isAdmin && <AdminOnly><form action={assignResponsible} className="mt-3 flex gap-2">
+          <input type="hidden" name="workplace_id" value={workplace.id}/>
           <select name="user_id" required className="flex-1 rounded-lg border bg-background p-2">
             <option value="">Verantwoordelijke…</option>
-            {leads.map(q => <option key={q.id} value={q.id}>{q.full_name || 'Naam ontbreekt'}</option>)}
+            {leads.map(person => <option key={person.id} value={person.id}>{person.full_name || 'Naam ontbreekt'}</option>)}
           </select>
           <button className="rounded-lg border px-3">Toewijzen</button>
-        </form>}
+        </form></AdminOnly>}
       </article>)}
     </div>
 

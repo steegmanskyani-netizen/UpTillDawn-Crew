@@ -14,6 +14,13 @@ async function write(operation:QueuedOperation,remove=false){const db=await data
 export async function queued(userId:string):Promise<QueuedOperation[]>{const db=await database();try{return await new Promise((resolve,reject)=>{
  const q=db.transaction('operations').objectStore('operations').getAll();q.onsuccess=()=>resolve((q.result as QueuedOperation[]).filter(x=>x.userId===userId).sort((a,b)=>a.createdAt-b.createdAt));q.onerror=()=>reject(q.error)
 })}finally{db.close()}}
+export async function discardQueuedOperation(userId:string,id:string){
+ const operation=(await queued(userId)).find(x=>x.id===id)
+ if(!operation)return false
+ await write(operation,true)
+ window.dispatchEvent(new Event('crew-queue-change'))
+ return true
+}
 let running:Promise<void>|null=null
 export async function synchronize(userId:string){
  if(running)return running

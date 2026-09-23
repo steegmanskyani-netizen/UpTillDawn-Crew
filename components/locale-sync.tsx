@@ -5,7 +5,9 @@ import { translateUiText, type UiLocale } from "@/lib/ui-translations"
 
 const SUPPORTED = new Set<UiLocale>(["nl", "fr", "en"])
 const originalText = new WeakMap<Text, string>()
+const renderedText = new WeakMap<Text, string>()
 const originalAttributes = new WeakMap<Element, Map<string, string>>()
+const renderedAttributes = new WeakMap<Element, Map<string, string>>()
 const attributes = ["placeholder", "aria-label", "title"] as const
 
 function normalizeLocale(value: string | null | undefined): UiLocale {
@@ -13,41 +15,70 @@ function normalizeLocale(value: string | null | undefined): UiLocale {
   return language && SUPPORTED.has(language) ? language : "nl"
 }
 
+function isExcluded(node: Node) {
+  const element = node.nodeType === Node.ELEMENT_NODE
+    ? node as Element
+    : node.parentElement
+  return Boolean(element?.closest("[data-no-translate]"))
+}
+
 function translateTextNode(node: Text, locale: UiLocale) {
+  if (isExcluded(node)) return
+
   const current = node.nodeValue || ""
   const trimmed = current.trim()
   if (!trimmed) return
 
-  const original = originalText.get(node) ?? current
-  if (!originalText.has(node)) originalText.set(node, original)
+  const previousRendered = renderedText.get(node)
+  if (!originalText.has(node) || (previousRendered !== undefined && current !== previousRendered)) {
+    originalText.set(node, current)
+  }
 
+  const original = originalText.get(node) || current
   const originalTrimmed = original.trim()
   const translated = translateUiText(originalTrimmed, locale)
   const leading = original.match(/^\s*/)?.[0] || ""
   const trailing = original.match(/\s*$/)?.[0] || ""
   const next = `${leading}${translated}${trailing}`
 
+  renderedText.set(node, next)
   if (node.nodeValue !== next) node.nodeValue = next
 }
 
 function translateElementAttributes(element: Element, locale: UiLocale) {
+  if (element.closest("[data-no-translate]")) return
+
   let originals = originalAttributes.get(element)
   if (!originals) {
     originals = new Map<string, string>()
     originalAttributes.set(element, originals)
   }
 
+  let rendered = renderedAttributes.get(element)
+  if (!rendered) {
+    rendered = new Map<string, string>()
+    renderedAttributes.set(element, rendered)
+  }
+
   for (const attribute of attributes) {
     if (!element.hasAttribute(attribute)) continue
+
     const current = element.getAttribute(attribute) || ""
-    if (!originals.has(attribute)) originals.set(attribute, current)
-    const original = originals.get(attribute) || ""
+    const previousRendered = rendered.get(attribute)
+    if (!originals.has(attribute) || (previousRendered !== undefined && current !== previousRendered)) {
+      originals.set(attribute, current)
+    }
+
+    const original = originals.get(attribute) || current
     const translated = translateUiText(original, locale)
+    rendered.set(attribute, translated)
     if (current !== translated) element.setAttribute(attribute, translated)
   }
 }
 
 function translateNode(root: Node, locale: UiLocale) {
+  if (isExcluded(root)) return
+
   if (root.nodeType === Node.TEXT_NODE) {
     translateTextNode(root as Text, locale)
     return
@@ -98,6 +129,8 @@ export function LocaleSync() {
       for (const mutation of mutations) {
         if (mutation.type === "characterData") {
           translateNode(mutation.target, locale)
+        } else if (mutation.type === "attributes") {
+          translateElementAttributes(mutation.target as Element, locale)
         } else {
           mutation.addedNodes.forEach(node => translateNode(node, locale))
         }
@@ -109,6 +142,8 @@ export function LocaleSync() {
       subtree: true,
       childList: true,
       characterData: true,
+      attributes: true,
+      attributeFilter: [...attributes],
     })
 
     const onLanguageChange = (event: Event) => {

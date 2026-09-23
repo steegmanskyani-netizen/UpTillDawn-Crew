@@ -13,11 +13,25 @@ export default async function Page() {
     { data: directory },
     { data: privatePeers },
     { data: profile },
+    { data: shifts },
+    { data: responsibleAssignments },
+    { data: events },
   ] = await Promise.all([
     s.from('chat_channels').select('*').order('created_at'),
     s.rpc('upt_crew_directory'),
     s.rpc('upt_private_chat_peers'),
     s.from('profiles').select('role').eq('id', user.id).single(),
+    s.from('shifts')
+      .select('event_id,workplace_id,scheduled_start,scheduled_end,status')
+      .eq('user_id', user.id)
+      .neq('status', 'cancelled')
+      .order('scheduled_start'),
+    s.from('responsible_assignments')
+      .select('event_id,workplace_id')
+      .eq('user_id', user.id),
+    s.from('events')
+      .select('id,start_at,end_at')
+      .order('start_at'),
   ])
 
   const profilePhotoUrls: Record<string, string> = {}
@@ -27,17 +41,50 @@ export default async function Page() {
   }))
 
   const orderedChannels = [...(channels || [])].sort((a, b) => {
-    if (a.kind === 'organization' && b.kind !== 'organization') return -1
-    if (b.kind === 'organization' && a.kind !== 'organization') return 1
-    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    const weight = (kind: string) => kind === 'organization' ? 0 : kind === 'workplace' ? 1 : kind === 'event' ? 2 : 3
+    const byKind = weight(a.kind) - weight(b.kind)
+    if (byKind) return byKind
+    return (a.name || '').localeCompare(b.name || '', 'nl')
   })
 
-  return <main className="mx-auto max-w-4xl space-y-4 p-4 pb-28 md:p-8">
-    <h1 className="text-3xl font-black">Chat</h1>
+  const now = Date.now()
+  const activeEventIds = new Set((events || [])
+    .filter(event => new Date(event.start_at).getTime() <= now && now <= new Date(event.end_at).getTime())
+    .map(event => event.id))
+
+  const activeShifts = (shifts || []).filter(shift => activeEventIds.has(shift.event_id))
+  const currentShift = activeShifts.find(shift =>
+    new Date(shift.scheduled_start).getTime() <= now && now <= new Date(shift.scheduled_end).getTime(),
+  ) || activeShifts[0]
+
+  const currentResponsible = !currentShift
+    ? (responsibleAssignments || []).find(assignment => activeEventIds.has(assignment.event_id))
+    : undefined
+
+  const workplaceContext = currentShift || currentResponsible
+  const activeEventId = workplaceContext?.event_id || [...activeEventIds][0]
+
+  const defaultChannelId =
+    (workplaceContext
+      ? orderedChannels.find(channel =>
+          channel.kind === 'workplace'
+          && channel.event_id === workplaceContext.event_id
+          && channel.workplace_id === workplaceContext.workplace_id,
+        )?.id
+      : undefined)
+    || (activeEventId
+      ? orderedChannels.find(channel => channel.kind === 'event' && channel.event_id === activeEventId)?.id
+      : undefined)
+    || orderedChannels.find(channel => channel.kind === 'organization')?.id
+    || orderedChannels[0]?.id
+    || ''
+
+  return <main className="mx-auto max-w-4xl p-0 pb-24 md:p-8 md:pb-8">
     {error
-      ? <p>Chat kon niet worden geladen.</p>
+      ? <p className="p-4">Chat kon niet worden geladen.</p>
       : <ChatClient
           channels={orderedChannels}
+          defaultChannelId={defaultChannelId}
           userId={user.id}
           crewDirectory={directory || []}
           privatePeers={privatePeers || []}

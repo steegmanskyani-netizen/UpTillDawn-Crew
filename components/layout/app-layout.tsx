@@ -5,6 +5,7 @@ import { Topbar } from "@/components/layout/topbar"
 import { MobileBottomNav } from "@/components/layout/mobile-nav"
 import Link from "next/link"
 import { QueueStatus } from "@/components/crew/queue-status"
+import { MessageCircle } from "lucide-react"
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -19,7 +20,12 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
         <div className="print:hidden"><MobileBottomNav /></div>
       </div>
-      <Link href="/incidents" className="fixed bottom-20 left-4 z-50 rounded-full print:hidden bg-red-600 px-5 py-4 font-black text-white">URGENT</Link>
+      <div className="fixed bottom-20 left-4 right-4 z-50 flex items-center justify-between print:hidden md:hidden">
+        <Link href="/incidents" className="rounded-full bg-red-600 px-5 py-4 font-black text-white">URGENT</Link>
+        <Link href="/chat" aria-label="Chat" className="flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black text-white shadow-lg">
+          <MessageCircle className="h-7 w-7" />
+        </Link>
+      </div>
     </div>
   )
 }

@@ -14,12 +14,16 @@ export default async function Page() {
   const { data: { user } } = await s.auth.getUser()
   if (!user) return null
 
-  const [{ data: profile }, { data: shifts, error: shiftsError }] = await Promise.all([
+  const [{ data: profile }, { data: shifts, error: shiftsError }, { data: activeEvents }, { data: memberships }] = await Promise.all([
     s.from('profiles').select('role').eq('id', user.id).single(),
     s.from('shifts').select('*,workplaces(name),events(name)').order('scheduled_start'),
+    s.from('events').select('id').lte('start_at', 'now').gte('end_at', 'now'),
+    s.from('event_members').select('event_id').eq('user_id', user.id),
   ])
 
   const isAdmin = profile?.role === 'admin'
+  const activeEventIds = new Set((activeEvents || []).map(event => event.id))
+  const hasActiveAssignedEvent = (memberships || []).some(member => activeEventIds.has(member.event_id))
   let workplaces: Array<{ id: string; name: string; event_id: string; events: { name: string } | null }> = []
   let people: CrewOption[] = []
   const managedWorkplaces = new Set<string>()
@@ -58,9 +62,10 @@ export default async function Page() {
 
     {isAdmin && !workplaces.length && <AdminOnly><p className="rounded-xl border p-4 text-muted-foreground">Geen actieve werkplekken gevonden.</p></AdminOnly>}
     {shiftsError && <p>Diensten konden niet worden geladen.</p>}
-    <StaffUnavailableMessage available={Boolean(shifts?.some(shift => shift.user_id === user.id))}>
-      <p className="rounded-xl border p-4 text-muted-foreground">Geen toegewezen diensten.</p>
+    <StaffUnavailableMessage available={hasActiveAssignedEvent}>
+      <p className="rounded-xl border p-4 text-muted-foreground">Diensten zijn beschikbaar vanaf de start van een toegewezen evenement.</p>
     </StaffUnavailableMessage>
+    {!isAdmin && hasActiveAssignedEvent && !shifts?.some(shift => shift.user_id === user.id) && <p className="rounded-xl border p-4 text-muted-foreground">Geen toegewezen diensten.</p>}
 
     <div className="grid gap-3">
       {shifts?.map(x => {

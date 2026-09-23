@@ -17,7 +17,9 @@ test('offline shell script is syntactically valid and keeps ordered dependency r
 
 test('service worker caches the current offline shell version', async () => {
   const sw = await readFile(new URL('../public/sw.js', import.meta.url), 'utf8')
-  assert.match(sw, /uptilldawn-public-v3/)
+  assert.match(sw, /uptilldawn-public-v4/)
   assert.match(sw, /\/offline\.html/)
+  assert.match(sw, /\/offline-public\.html/)
   assert.match(sw, /event\.request\.mode==='navigate'/)
+  assert.match(sw, /publicRoute\?['"]\/offline-public\.html['"]:['"]\/offline\.html['"]/)
 })

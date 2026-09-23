@@ -6,11 +6,11 @@ import { cn } from "@/lib/utils"
 import { LayoutDashboard, CalendarDays, Clock3, AlertTriangle, Users } from "lucide-react"
 
 const items=[
- {href:"/",label:"Dashboard",icon:LayoutDashboard,roles:["employee","responsible_lead","admin"]},
- {href:"/events",label:"Events",icon:CalendarDays,roles:["employee","responsible_lead","admin"]},
+ {href:"/",label:"Overzicht",icon:LayoutDashboard,roles:["employee","responsible_lead","admin"]},
+ {href:"/events",label:"Evenementen",icon:CalendarDays,roles:["employee","responsible_lead","admin"]},
  {href:"/operations",label:"Werk",icon:Clock3,roles:["employee","responsible_lead","admin"]},
  {href:"/incidents",label:"Incidenten",icon:AlertTriangle,roles:["responsible_lead","admin"]},
- {href:"/crew",label:"Crew",icon:Users,roles:["employee","responsible_lead","admin"]},
+ {href:"/crew",label:"Personeel",icon:Users,roles:["employee","responsible_lead","admin"]},
 ]
 
 export function MobileBottomNav({ incidentMissed = 0 }: { incidentMissed?: number }) {

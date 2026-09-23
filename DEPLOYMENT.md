@@ -28,6 +28,7 @@ Set Supabase Auth's Site URL and allowed redirects to the final production origi
 
 ```sh
 npm ci
+npm audit --audit-level=high
 npm run typecheck
 npm run lint
 npm test
@@ -43,7 +44,7 @@ npm run build:cloudflare
 npm run deploy:cloudflare
 ```
 
-No paid resources or paid plan were enabled. The build dry-run reported a compressed Worker size below 3 MiB; actual account limits, CPU usage and operational load still require verification. No R2, D1 or KV binding is required by this configuration.
+No paid resources or paid plan were enabled. Recent dry-runs produced a compressed Worker bundle of roughly 3.5 MiB; actual Cloudflare account limits, CPU usage and operational load still require verification. No R2, D1 or KV binding is required by this configuration.
 
 ## GitHub production workflow
 

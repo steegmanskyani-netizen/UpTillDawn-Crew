@@ -56,6 +56,7 @@ using (
       from public.personal_instructions pi
       where pi.id = work_attachments.personal_instruction_id
         and pi.user_id = (select auth.uid())
+        and upt_private.event_operational(pi.event_id)
     )
   )
   or (
@@ -64,6 +65,7 @@ using (
       select 1
       from public.tasks t
       where t.id = work_attachments.task_id
+        and upt_private.event_operational(t.event_id)
         and (
           exists (
             select 1
@@ -94,6 +96,7 @@ with check (
         from public.briefings b
         where b.id = work_attachments.briefing_id
           and b.workplace_id is not null
+          and upt_private.event_operational(b.event_id)
           and public.upt_is_responsible(b.event_id, b.workplace_id)
       )
     )
@@ -104,6 +107,7 @@ with check (
         from public.tasks t
         where t.id = work_attachments.task_id
           and t.workplace_id is not null
+          and upt_private.event_operational(t.event_id)
           and public.upt_is_responsible(t.event_id, t.workplace_id)
       )
     )

@@ -1,4 +1,5 @@
 import { createTask, removeTaskAssignment } from '@/lib/actions/uptilldawn'
+import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/crew-server'
 import { TaskControls } from '@/components/crew/task-controls'
 import { ResponsibleTaskTest } from '@/components/crew/responsible-task-test'
@@ -25,6 +26,12 @@ export default async function Page() {
     s.from('task_assignments').select('id,user_id,status,tasks(id,title,description,event_id,workplace_id)').order('created_at'),
   ])
 
+  const isAdmin = profile?.role === 'admin'
+  const isResponsible = profile?.role === 'responsible_lead'
+  const manager = isAdmin || isResponsible
+
+  if (!manager && !data?.length) redirect('/')
+
   const attachmentRows: Tables<'work_attachments'>[] = []
   const taskIds = (data || []).map(item => item.tasks?.id).filter((id): id is string => Boolean(id))
   if (taskIds.length) {
@@ -38,9 +45,6 @@ export default async function Page() {
     if (signed?.signedUrl) photoUrls.set(attachment.storage_path, signed.signedUrl)
   }))
 
-  const isAdmin = profile?.role === 'admin'
-  const isResponsible = profile?.role === 'responsible_lead'
-  const manager = isAdmin || isResponsible
   let workplaces: WorkplaceOption[] = []
   let people: CrewOption[] = []
   let memberships: AssignmentMembership[] = []

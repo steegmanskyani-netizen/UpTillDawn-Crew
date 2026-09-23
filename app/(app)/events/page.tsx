@@ -71,6 +71,7 @@ export default async function Page() {
     </form></AdminOnly>}
 
     {eventsResult.error && <p>Evenementen konden niet worden geladen.</p>}
+    {!eventsResult.error && !events.length && <p className="rounded-xl border p-4 text-muted-foreground">Geen evenementen beschikbaar.</p>}
 
     <div className="space-y-3">
       {events.map(event => {

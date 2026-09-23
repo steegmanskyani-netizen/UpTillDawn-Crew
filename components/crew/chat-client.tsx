@@ -34,10 +34,6 @@ export function ChatClient({
   const [busy, setBusy] = useState(false)
 
   useEffect(() => {
-    if (!selected && channels[0]?.id) setSelected(channels[0].id)
-  }, [channels, selected])
-
-  useEffect(() => {
     if (!selected) return
     const s = createClient()
     let alive = true

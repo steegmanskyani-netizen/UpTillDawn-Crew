@@ -1,7 +1,7 @@
 -- Public API privilege/RLS regression matrix.
 -- Read-only assertions only.
 
-DO $$
+DO $matrix$
 DECLARE
   v_missing_rls text;
   v_anon_tables text;
@@ -82,6 +82,6 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'FAIL direct mutation grant remains on an RPC-only table';
   END IF;
-END $;
+END $matrix$;
 
 SELECT 'PASS: public RLS/anon surface is locked down, trigger functions are non-callable and RPC-only tables have no direct mutation grants' AS result;

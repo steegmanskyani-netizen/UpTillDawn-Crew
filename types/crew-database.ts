@@ -476,6 +476,7 @@ export type Database = {
           created_at: string
           id: string
           kind: string
+          link: string | null
           read_at: string | null
           title: string
           user_id: string
@@ -485,6 +486,7 @@ export type Database = {
           created_at?: string
           id?: string
           kind?: string
+          link?: string | null
           read_at?: string | null
           title: string
           user_id: string
@@ -494,6 +496,7 @@ export type Database = {
           created_at?: string
           id?: string
           kind?: string
+          link?: string | null
           read_at?: string | null
           title?: string
           user_id?: string
@@ -2026,6 +2029,10 @@ export type Database = {
       upt_is_responsible: {
         Args: { event_uuid: string; uid?: string; workplace_uuid?: string }
         Returns: boolean
+      }
+      upt_mark_notification_read: {
+        Args: { p_notification: string }
+        Returns: undefined
       }
       upt_moderate_message: {
         Args: { p_message: string; p_reason: string }

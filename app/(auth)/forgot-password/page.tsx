@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
           </h1>
           <p className="text-sm text-muted-foreground">
             {sent
-              ? `If an account exists for ${sentTo}, a reset link has been sent.`
+              ? `Als er een account bestaat voor ${sentTo}, is een herstel-link verstuurd.`
               : "Vul je e-mailadres in en we sturen een herstel-link."}
           </p>
         </div>
@@ -95,7 +95,7 @@ export default function ForgotPasswordPage() {
             </form>
             <div className="flex justify-center">
               <Link href="/login" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-                <ArrowLeft className="h-3 w-3" />Back to login
+                <ArrowLeft className="h-3 w-3" />Terug naar inloggen
               </Link>
             </div>
           </>

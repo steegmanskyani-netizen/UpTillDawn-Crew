@@ -33,7 +33,7 @@ export default async function Page() {
   let liveSessions: typeof shifts.data extends never ? never[] : any[] = []
   let liveBreaks: any[] = []
   let liveShifts: any[] = []
-  let crewDirectory: Array<{ id: string; full_name: string; phone_number: string | null; profile_photo_url: string | null }> = []
+  let crewDirectory: Array<{ id: string; full_name: string | null; phone_number: string | null; profile_photo_url: string | null }> = []
 
   if (manager) {
     const [sessionsResult, breaksResult, assignmentsResult, liveShiftsResult] = await Promise.all([

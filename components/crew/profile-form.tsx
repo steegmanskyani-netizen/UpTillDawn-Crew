@@ -90,7 +90,7 @@ export function ProfileForm({
     <label className="block">Rijksregisternummer<input name="national_register" autoComplete="off" maxLength={32} defaultValue={initial.national_register_number || ''} className="mt-1 block w-full rounded-xl border bg-background p-3"/></label>
     <label className="block">IBAN<input name="iban" autoComplete="off" maxLength={34} defaultValue={initial.iban || ''} className="mt-1 block w-full rounded-xl border bg-background p-3 uppercase"/></label>
     <label className="block">Permanente profielfoto<input name="photo" type="file" accept="image/jpeg,image/png,image/webp" className="mt-1 block w-full rounded-xl border bg-background p-3"/></label>
-    <p className="text-xs text-muted-foreground">Adres, geboortedatum, rijksregisternummer en IBAN zijn afgeschermd voor gewone personeelsaccounts.</p>
+    <p className="text-xs text-muted-foreground">Adres, geboortedatum, rijksregisternummer en IBAN is enkel zichtbaar voor admin.</p>
     <button disabled={busy} className="w-full rounded-xl bg-violet-600 p-3 font-bold">{busy ? 'OPSLAAN…' : 'PROFIEL OPSLAAN'}</button>
     {msg && <p role="status">{msg}</p>}
   </form>

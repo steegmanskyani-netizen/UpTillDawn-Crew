@@ -18,6 +18,7 @@
 ### Security
 
 - Removed anonymous direct access to Uptilldawn public tables/RPCs.
+- Removed direct authenticated INSERT/UPDATE/DELETE grants from RPC/trigger-only operational tables, leaving validated workflow RPCs as the mutation boundary.
 - Restricted profile sensitive fields and role/approval mutation.
 - Restricted Responsible access to assigned workplace scope.
 - Restricted private chat and private media access.

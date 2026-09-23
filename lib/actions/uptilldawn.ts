@@ -53,6 +53,21 @@ export async function setAccountStatus(fd:FormData){
 export async function acknowledgeBriefing(fd:FormData){const s=await createClient();const {error}=await s.rpc('upt_acknowledge_briefing',{p_briefing:uuid.parse(fd.get('id'))});check(error);revalidatePath('/briefings')}
 export async function acknowledgeInstruction(fd:FormData){const s=await createClient();const {error}=await s.rpc('upt_acknowledge_personal_instruction',{p_instruction:uuid.parse(fd.get('id'))});check(error);revalidatePath('/briefings')}
 export async function createBriefing(fd:FormData){const {s,user}=await adminClient();const {error}=await s.from('briefings').insert({event_id:uuid.parse(fd.get('event_id')),title:text.parse(fd.get('title')),body:z.string().trim().min(1).max(20000).parse(fd.get('body')),created_by:user.id});check(error);revalidatePath('/briefings')}
+export async function createPersonalInstruction(fd:FormData){
+ const {s,user}=await adminClient()
+ const {error}=await s.from('personal_instructions').insert({event_id:uuid.parse(fd.get('event_id')),user_id:uuid.parse(fd.get('user_id')),title:text.parse(fd.get('title')),body:z.string().trim().min(1).max(20000).parse(fd.get('body')),created_by:user.id})
+ check(error);revalidatePath('/briefings')
+}
+export async function updateBriefing(fd:FormData){
+ const {s}=await adminClient()
+ const {error}=await s.from('briefings').update({title:text.parse(fd.get('title')),body:z.string().trim().min(1).max(20000).parse(fd.get('body'))}).eq('id',uuid.parse(fd.get('id')))
+ check(error);revalidatePath('/briefings')
+}
+export async function updatePersonalInstruction(fd:FormData){
+ const {s}=await adminClient()
+ const {error}=await s.from('personal_instructions').update({title:text.parse(fd.get('title')),body:z.string().trim().min(1).max(20000).parse(fd.get('body'))}).eq('id',uuid.parse(fd.get('id')))
+ check(error);revalidatePath('/briefings')
+}
 export async function createTask(fd:FormData){const {s}=await adminClient();const {error}=await s.rpc('upt_create_assigned_task',{p_event:uuid.parse(fd.get('event_id')),p_workplace:null as unknown as string,p_user:uuid.parse(fd.get('user_id')),p_title:text.parse(fd.get('title')),p_description:String(fd.get('description')||'').slice(0,4000)});check(error);revalidatePath('/tasks')}
 export async function archiveEvent(fd:FormData){const {s}=await adminClient();const {error}=await s.from('events').update({status:'archived'}).eq('id',uuid.parse(fd.get('event_id')));check(error);revalidatePath('/events')}
 export async function duplicateEvent(fd:FormData){const {s}=await adminClient();const [start,end]=dates(fd,'start_at','end_at');const {error}=await s.rpc('upt_duplicate_event',{p_event:uuid.parse(fd.get('event_id')),p_name:text.parse(fd.get('name')),p_start:start,p_end:end});check(error);revalidatePath('/events')}

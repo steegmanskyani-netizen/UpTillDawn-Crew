@@ -1,6 +1,7 @@
 import { DateInput } from '@/components/crew/date-input'
 import { createClient } from '@/lib/supabase/crew-server'
-import { cancelShift, createShift, updateShift } from '@/lib/actions/uptilldawn'\nimport { nlStatus } from '@/lib/ui-nl'
+import { cancelShift, createShift, updateShift } from '@/lib/actions/uptilldawn'
+import { nlStatus } from '@/lib/ui-nl'
 
 export const dynamic = 'force-dynamic'
 

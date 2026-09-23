@@ -8,6 +8,13 @@ import {
   updateBriefing,
   updatePersonalInstruction,
 } from '@/lib/actions/uptilldawn'
+import {
+  AssignmentScopeFields,
+  type AssignmentEvent,
+  type AssignmentMembership,
+  type AssignmentPerson,
+  type AssignmentWorkplace,
+} from '@/components/crew/assignment-scope-fields'
 import type { Tables } from '@/types/crew-database'
 
 function PhotoInput() {
@@ -50,23 +57,102 @@ export default async function Page() {
   const user = await getCurrentUser()
   if (!user) return null
 
+  const isAdmin = user.role === 'admin'
+  const isResponsible = user.role === 'responsible_lead'
+  const manager = isAdmin || isResponsible
+
   const [
     { data: briefs, error },
     { data: personal },
     { data: acks },
     { data: packs },
-    { data: events },
-    { data: people },
   ] = await Promise.all([
     s.from('briefings').select('*').order('created_at', { ascending: false }),
     s.from('personal_instructions').select('*').order('created_at', { ascending: false }),
     s.from('briefing_acknowledgements').select('*').eq('user_id', user.id),
     s.from('personal_instruction_acknowledgements').select('*').eq('user_id', user.id),
-    s.from('events').select('id,name'),
-    user.isAdmin
-      ? s.from('profiles').select('id,full_name').eq('approved', true).order('full_name')
-      : Promise.resolve({ data: [] }),
   ])
+
+  let events: AssignmentEvent[] = []
+  let workplaces: AssignmentWorkplace[] = []
+  let people: AssignmentPerson[] = []
+  let memberships: AssignmentMembership[] = []
+
+  if (isAdmin) {
+    const [
+      { data: eventRows },
+      { data: workplaceRows },
+      { data: personRows },
+      { data: eventMembers },
+      { data: shiftRows },
+    ] = await Promise.all([
+      s.from('events').select('id,name').neq('status', 'archived').order('start_at'),
+      s.from('workplaces').select('id,name,event_id').eq('is_active', true).order('sort_order'),
+      s.from('profiles').select('id,full_name').eq('approved', true).order('full_name'),
+      s.from('event_members').select('event_id,user_id'),
+      s.from('shifts').select('event_id,workplace_id,user_id').neq('status', 'cancelled'),
+    ])
+
+    events = eventRows || []
+    workplaces = workplaceRows || []
+    people = personRows || []
+    memberships = [
+      ...(eventMembers || []).map(row => ({ event_id: row.event_id, workplace_id: null, user_id: row.user_id })),
+      ...(shiftRows || []).map(row => ({ event_id: row.event_id, workplace_id: row.workplace_id, user_id: row.user_id })),
+    ]
+  } else if (isResponsible) {
+    const { data: responsibilities } = await s
+      .from('responsible_assignments')
+      .select('event_id,workplace_id')
+      .eq('user_id', user.id)
+
+    const workplaceIds = [...new Set((responsibilities || []).map(row => row.workplace_id))]
+    if (workplaceIds.length) {
+      const { data: workplaceRows } = await s
+        .from('workplaces')
+        .select('id,name,event_id')
+        .in('id', workplaceIds)
+        .eq('is_active', true)
+        .order('sort_order')
+
+      workplaces = workplaceRows || []
+
+      const eventIds = [...new Set(workplaces.map(workplace => workplace.event_id))]
+      if (eventIds.length) {
+        const { data: eventRows } = await s
+          .from('events')
+          .select('id,name')
+          .in('id', eventIds)
+          .neq('status', 'archived')
+          .order('start_at')
+        events = eventRows || []
+      }
+
+      const directories = await Promise.all((responsibilities || []).map(async responsibility => {
+        const { data } = await s.rpc('upt_responsible_event_members', {
+          p_event: responsibility.event_id,
+          p_workplace: responsibility.workplace_id,
+        })
+        return {
+          responsibility,
+          people: data || [],
+        }
+      }))
+
+      const uniquePeople = new Map<string, AssignmentPerson>()
+      for (const directory of directories) {
+        for (const person of directory.people) {
+          uniquePeople.set(person.id, { id: person.id, full_name: person.full_name })
+          memberships.push({
+            event_id: directory.responsibility.event_id,
+            workplace_id: directory.responsibility.workplace_id,
+            user_id: person.id,
+          })
+        }
+      }
+      people = [...uniquePeople.values()].sort((a, b) => (a.full_name || '').localeCompare(b.full_name || '', 'nl'))
+    }
+  }
 
   const attachments: Tables<'work_attachments'>[] = []
   const briefingIds = (briefs || []).map(item => item.id)
@@ -91,14 +177,23 @@ export default async function Page() {
   const instructionPhotos = (id: string) => attachments.filter(item => item.personal_instruction_id === id)
 
   return <main className="space-y-5 p-4 md:p-8">
-    <h1 className="text-3xl font-black">Instructies</h1>
+    <div>
+      <h1 className="text-3xl font-black">Instructies</h1>
+      {isResponsible && <p className="text-sm text-muted-foreground">Je kunt alleen instructies beheren voor personeel binnen je toegewezen werkplekken.</p>}
+    </div>
 
-    {user.isAdmin && <div className="grid gap-4 lg:grid-cols-2">
+    {manager && (isAdmin || workplaces.length > 0) && <div className="grid gap-4 lg:grid-cols-2">
       <form action={createBriefing} className="grid gap-3 rounded-xl border p-4">
         <h2 className="font-bold">Nieuwe algemene instructie</h2>
-        <select name="event_id" required className="border bg-background p-3">
-          {events?.map(event => <option key={event.id} value={event.id}>{event.name}</option>)}
-        </select>
+        <AssignmentScopeFields
+          events={events}
+          workplaces={workplaces}
+          people={people}
+          memberships={memberships}
+          isAdmin={isAdmin}
+          requirePerson={false}
+          workplaceRequired={!isAdmin}
+        />
         <input name="title" required placeholder="Titel" className="border bg-background p-3"/>
         <textarea name="body" required placeholder="Algemene instructie" className="min-h-28 border bg-background p-3"/>
         <PhotoInput />
@@ -107,13 +202,14 @@ export default async function Page() {
 
       <form action={createPersonalInstruction} className="grid gap-3 rounded-xl border border-violet-500 p-4">
         <h2 className="font-bold">Persoonlijke instructie</h2>
-        <select name="event_id" required className="border bg-background p-3">
-          {events?.map(event => <option key={event.id} value={event.id}>{event.name}</option>)}
-        </select>
-        <select name="user_id" required className="border bg-background p-3">
-          <option value="">Selecteer medewerker</option>
-          {people?.map(person => <option key={person.id} value={person.id}>{person.full_name || 'Naam ontbreekt'}</option>)}
-        </select>
+        <AssignmentScopeFields
+          events={events}
+          workplaces={workplaces}
+          people={people}
+          memberships={memberships}
+          isAdmin={isAdmin}
+          workplaceRequired={!isAdmin}
+        />
         <input name="title" required placeholder="Titel" className="border bg-background p-3"/>
         <textarea name="body" required placeholder="Persoonlijke instructie" className="min-h-28 border bg-background p-3"/>
         <PhotoInput />
@@ -123,12 +219,14 @@ export default async function Page() {
 
     {error && <p>Instructies konden niet worden geladen.</p>}
 
+    {!manager && !(briefs?.length || personal?.length) && <p>Geen toegewezen instructies.</p>}
+
     {briefs?.map(briefing => <article key={briefing.id} className="space-y-3 rounded-xl border p-4">
       <h2 className="text-xl font-bold">{briefing.title} · v{briefing.version}</h2>
       <p className="whitespace-pre-wrap">{briefing.body}</p>
       <PhotoGallery rows={briefingPhotos(briefing.id)} urls={photoUrls}/>
 
-      {user.isAdmin
+      {manager
         ? <form action={updateBriefing} className="grid gap-2 border-t pt-3">
             <input type="hidden" name="id" value={briefing.id}/>
             <input name="title" defaultValue={briefing.title} required className="border bg-background p-2"/>
@@ -149,7 +247,7 @@ export default async function Page() {
       <p className="whitespace-pre-wrap">{instruction.body}</p>
       <PhotoGallery rows={instructionPhotos(instruction.id)} urls={photoUrls}/>
 
-      {user.isAdmin
+      {manager
         ? <form action={updatePersonalInstruction} className="grid gap-2 border-t pt-3">
             <input type="hidden" name="id" value={instruction.id}/>
             <input name="title" defaultValue={instruction.title} required className="border bg-background p-2"/>

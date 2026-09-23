@@ -66,6 +66,7 @@ export function SyncCenter() {
   }, [userId])
 
   if (!userId) return null
+  const authenticatedUserId: string = userId
 
   const total = ops.length + uploads.length
 
@@ -73,7 +74,7 @@ export function SyncCenter() {
     setBusy(true)
     setMessage('')
     try {
-      await synchronize(userId)
+      await synchronize(authenticatedUserId)
       await refresh()
       setMessage('Synchronisatie opnieuw uitgevoerd. Alleen serverbevestigde acties zijn verwijderd uit de wachtrij.')
     } catch {
@@ -86,7 +87,7 @@ export function SyncCenter() {
   async function discardOperation(op: QueuedOperation) {
     const ok = window.confirm(`Deze ${labels[op.type] || op.type}-actie is NIET door de server bevestigd. Definitief verwijderen?`)
     if (!ok) return
-    await discardQueuedOperation(userId, op.id)
+    await discardQueuedOperation(authenticatedUserId, op.id)
     await refresh()
     setMessage('Actie expliciet verwijderd uit de lokale wachtrij.')
   }
@@ -94,7 +95,7 @@ export function SyncCenter() {
   async function discardUpload(upload: QueuedUpload) {
     const ok = window.confirm('Dit bestand is mogelijk nog NIET door de server verwerkt. Definitief lokaal verwijderen?')
     if (!ok) return
-    await discardQueuedUpload(userId, upload.id)
+    await discardQueuedUpload(authenticatedUserId, upload.id)
     await refresh()
     setMessage('Bestand expliciet verwijderd uit de lokale wachtrij.')
   }

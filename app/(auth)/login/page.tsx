@@ -5,12 +5,12 @@ import { usePathname } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { Menu, X, Eye, EyeOff, Loader2, AlertCircle, ArrowRight, ShieldCheck, Users, UserCog } from "lucide-react"
-import { signIn } from "@/lib/actions/auth"
+import { signIn } from "@/lib/actions/auth"\nimport { LanguageSwitcher } from "@/components/language-switcher"
 
 const portals = {
-  staff: { label: "Staff", icon: Users },
-  responsible: { label: "Responsible", icon: UserCog },
-  admin: { label: "Admin", icon: ShieldCheck },
+  staff: { label: "Personeel", icon: Users },
+  responsible: { label: "Verantwoordelijke", icon: UserCog },
+  admin: { label: "Beheerder", icon: ShieldCheck },
 } as const
 
 type Portal = keyof typeof portals
@@ -77,7 +77,7 @@ export default function LoginPage() {
               <PortalIcon className="h-5 w-5" />
             </div>
             <h1 className="text-2xl font-black tracking-tight">{portals[portal].label}</h1>
-            <p className="mt-1 text-sm text-zinc-400">UPTILLDAWN CREW MANAGEMENT</p>
+            <p className="mt-1 text-sm text-zinc-400">UP TILL DAWN PERSONEELSBEHEER</p>
           </div>
 
           {error && (

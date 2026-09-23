@@ -1961,6 +1961,7 @@ export type Database = {
         }
         Returns: string
       }
+      upt_create_private_chat: { Args: { p_user: string }; Returns: string }
       upt_create_shift: {
         Args: {
           p_end: string
@@ -1971,6 +1972,15 @@ export type Database = {
           p_workplace: string
         }
         Returns: string
+      }
+      upt_crew_directory: {
+        Args: never
+        Returns: {
+          full_name: string
+          id: string
+          phone_number: string
+          profile_photo_url: string
+        }[]
       }
       upt_decide_check_in: {
         Args: { p_approve: boolean; p_check_in: string; p_notes?: string }
@@ -2005,6 +2015,10 @@ export type Database = {
         Args: { event_uuid: string; uid?: string; workplace_uuid?: string }
         Returns: boolean
       }
+      upt_moderate_message: {
+        Args: { p_message: string; p_reason: string }
+        Returns: undefined
+      }
       upt_own_profile_details: {
         Args: never
         Returns: {
@@ -2017,6 +2031,16 @@ export type Database = {
           national_register_number: string
           phone_number: string
           profile_photo_url: string
+        }[]
+      }
+      upt_private_chat_peers: {
+        Args: never
+        Returns: {
+          channel_id: string
+          full_name: string
+          phone_number: string
+          profile_photo_url: string
+          user_id: string
         }[]
       }
       upt_remove_task_assignment: {
@@ -2058,6 +2082,10 @@ export type Database = {
           phone_number: string
           profile_photo_url: string
         }[]
+      }
+      upt_send_message: {
+        Args: { p_attachment_path?: string; p_body?: string; p_channel: string }
+        Returns: string
       }
       upt_start_break: { Args: { p_work_session: string }; Returns: string }
       upt_start_work: {

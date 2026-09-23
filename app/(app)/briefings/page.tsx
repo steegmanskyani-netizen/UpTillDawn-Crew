@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/crew-server'
-import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/actions/auth'
 import { ManagerOnly } from '@/components/auth/manager-only'
 import { StaffAvailability, StaffUnavailableMessage } from '@/components/auth/staff-availability'
@@ -77,26 +76,26 @@ export default async function Page() {
     s.from('personal_instructions').select('*').order('created_at', { ascending: false }),
     s.from('briefing_acknowledgements').select('*').eq('user_id', user.id),
     s.from('personal_instruction_acknowledgements').select('*').eq('user_id', user.id),
-    s.from('events').select('id').lte('start_at', 'now').gte('end_at', 'now'),
+    s.from('events').select('id').gte('end_at', 'now'),
     s.from('event_members').select('event_id').eq('user_id', user.id),
     s.from('shifts').select('event_id,workplace_id').eq('user_id', user.id).neq('status', 'cancelled'),
   ])
 
-  const activeEventIds = new Set((eventWindows || []).map(event => event.id))
+  const readableEventIds = new Set((eventWindows || []).map(event => event.id))
   const assignedEventIds = new Set([
     ...(ownMemberships || []).map(row => row.event_id),
     ...(ownShifts || []).map(row => row.event_id),
   ])
   const assignedWorkplaces = new Set((ownShifts || []).map(row => `${row.event_id}:${row.workplace_id}`))
   const staffCanReadBriefing = (briefing: Tables<'briefings'>) =>
-    activeEventIds.has(briefing.event_id)
+    readableEventIds.has(briefing.event_id)
     && (
       briefing.workplace_id
         ? assignedWorkplaces.has(`${briefing.event_id}:${briefing.workplace_id}`)
         : assignedEventIds.has(briefing.event_id)
     )
   const staffCanReadInstruction = (instruction: Tables<'personal_instructions'>) =>
-    instruction.user_id === user.id && activeEventIds.has(instruction.event_id)
+    instruction.user_id === user.id && readableEventIds.has(instruction.event_id)
   const hasStaffInstruction = (briefs || []).some(staffCanReadBriefing)
     || (personal || []).some(staffCanReadInstruction)
 
@@ -181,8 +180,6 @@ export default async function Page() {
     }
   }
 
-  if (!manager && !(briefs?.length || personal?.length)) redirect('/')
-
   const attachments: Tables<'work_attachments'>[] = []
   const briefingIds = (briefs || []).map(item => item.id)
   const personalIds = (personal || []).map(item => item.id)
@@ -209,8 +206,8 @@ export default async function Page() {
     <div>
       <h1 className="text-3xl font-black">Instructies</h1>
       {isResponsible && <p className="text-sm text-muted-foreground">Je kunt alleen instructies beheren voor personeel binnen je toegewezen werkplekken.</p>}
-      <StaffUnavailableMessage available={hasStaffInstruction}>
-        <p className="mt-3 rounded-xl border p-4 text-muted-foreground">Instructies zijn beschikbaar vanaf de start van een toegewezen evenement.</p>
+      <StaffUnavailableMessage available={Boolean(assignedEventIds.size)}>
+        <p className="mt-3 rounded-xl border p-4 text-muted-foreground">Instructies worden zichtbaar zodra je aan een evenement bent toegevoegd.</p>
       </StaffUnavailableMessage>
     </div>
 
@@ -250,6 +247,7 @@ export default async function Page() {
     </div></ManagerOnly>}
 
     {error && <p>Instructies konden niet worden geladen.</p>}
+    {!manager && assignedEventIds.size > 0 && !hasStaffInstruction && <p className="rounded-xl border p-4 text-muted-foreground">Nog geen instructies voor jouw evenement.</p>}
 
     {briefs?.map(briefing => <StaffAvailability key={briefing.id} available={staffCanReadBriefing(briefing)}><article className="space-y-3 rounded-xl border p-4">
       <h2 className="text-xl font-bold">{briefing.title} · v{briefing.version}</h2>

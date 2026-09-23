@@ -1,3 +1,28 @@
-import {createClient} from '@/lib/supabase/crew-server'
-import {ProfileForm} from '@/components/crew/profile-form'
-export default async function Page(){const s=await createClient();const {data:{user}}=await s.auth.getUser();if(!user)return null;const {data,error}=await s.from('profiles').select('full_name,phone_number').eq('id',user.id).single();return <main className="mx-auto max-w-xl space-y-5 p-5"><h1 className="text-3xl font-black">Profiel</h1><p>{user.email}</p>{error?<p>Profiel kon niet worden geladen.</p>:<ProfileForm id={user.id} name={data?.full_name||''} phone={data?.phone_number||''}/>}</main>}
+import { createClient } from '@/lib/supabase/crew-server'
+import { ProfileForm } from '@/components/crew/profile-form'
+
+export const dynamic = 'force-dynamic'
+
+export default async function Page() {
+  const s = await createClient()
+  const { data: { user } } = await s.auth.getUser()
+  if (!user) return null
+
+  const { data, error } = await s.rpc('upt_own_profile_details')
+  const profile = data?.[0]
+  let photoUrl: string | null = null
+  if (profile?.profile_photo_url) {
+    const { data: signed } = await s.storage.from('profile-photos').createSignedUrl(profile.profile_photo_url, 300)
+    photoUrl = signed?.signedUrl || null
+  }
+
+  return <main className="mx-auto max-w-xl space-y-5 p-5">
+    <div>
+      <h1 className="text-3xl font-black">Profiel</h1>
+      <p className="text-sm text-muted-foreground">{profile?.email || user.email}</p>
+    </div>
+    {error || !profile
+      ? <p>Profiel kon niet worden geladen.</p>
+      : <ProfileForm id={user.id} initial={profile} photoUrl={photoUrl}/>}
+  </main>
+}

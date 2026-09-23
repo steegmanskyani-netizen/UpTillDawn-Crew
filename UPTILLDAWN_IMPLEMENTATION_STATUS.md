@@ -60,6 +60,7 @@ The following migrations have been applied successfully to the target project:
 - `uptilldawn_responsible_membership_invariant`
 - `uptilldawn_profile_role_integrity`
 - `uptilldawn_cover_remaining_foreign_keys`
+- `uptilldawn_rpc_only_table_grants`
 
 Generated TypeScript database types were refreshed from the live target schema after these changes.
 
@@ -77,7 +78,7 @@ Generated TypeScript database types were refreshed from the live target schema a
 - The operational, queued-upload, storage, privilege-matrix, offline-time-dependency, foreign-key-index and Responsible read-scope suites were rerun during the final cleanup and passed; the new-feature suite retains its previously verified pass. `tests/sql/profile-role-integrity.sql` also passed and verifies that `profiles.role` is constrained to `staff`, `responsible_lead` or `admin`.
 - Current Supabase performance advisor no longer reports unindexed foreign keys. Current Supabase security advisor no longer reports the private break-warning table as policy-less. Remaining warnings are the authenticated `SECURITY DEFINER` RPC entry points that intentionally implement validated application workflows/helpers, plus leaked-password protection being disabled at project level. A source scan found no authenticated SECURITY DEFINER entry point lacking either direct auth checks or a validated authorization helper. Advisor output is not treated as a complete security audit.
 - `npm ci` and `npm audit` now report **0 known vulnerabilities** after pinning the vulnerable transitive `uuid` dependency to patched v11.1.1; the full Next/OpenNext build remains green with that override.
-- Database cleanup removed exact redundant indexes and now covers every public foreign key with a valid leading index. `tests/sql/foreign-key-indexes.sql` passes against the target database. Supabase's remaining performance notices are unused-index INFO findings only; the database currently has almost no production traffic, so unused-index statistics are not representative.
+- Database cleanup removed exact redundant indexes and now covers every public foreign key with a valid leading index. `tests/sql/foreign-key-indexes.sql` passes against the target database. Direct INSERT/UPDATE/DELETE grants were also removed from RPC/trigger-only operational tables; the privilege matrix now asserts those mutation grants remain absent. Supabase's remaining performance notices are unused-index INFO findings only; the database currently has almost no production traffic, so unused-index statistics are not representative.
 
 ## Still required before production
 
@@ -87,6 +88,6 @@ Generated TypeScript database types were refreshed from the live target schema a
 4. **Web Push:** in-app notifications are implemented, but push subscription and external push delivery are not.
 5. **Policy decision:** define overtime and, if required, a work-period model different from the current one-event allowance model. The system deliberately does not invent payroll policy.
 6. **Broader security regression coverage:** the public-table/RPC privilege matrix and private-storage regression suites now exist and pass. Additional adversarial browser/device testing is still required before describing the system as security-audited.
-7. **Fresh-install proof:** all 74 local migration filenames now match the 74 applied migration-history entries in the target Supabase project exactly. The complete chain still needs to be replayed on an isolated database before claiming a clean-from-zero installation path.
+7. **Fresh-install proof:** all 75 local migration filenames now match the 75 applied migration-history entries in the target Supabase project exactly. The complete chain still needs to be replayed on an isolated database before claiming a clean-from-zero installation path.
 
 The application code remains isolated on `codex/uptilldawn-production-hardening`. Production deployment must not be inferred solely from green CI.

@@ -41,6 +41,7 @@ The active crew app does not require a Supabase service-role key.
 
 ```sh
 npm ci
+npm audit --audit-level=high
 npm run lint
 npm run typecheck
 npm test

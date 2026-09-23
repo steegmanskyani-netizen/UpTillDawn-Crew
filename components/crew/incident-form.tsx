@@ -2,8 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/crew-client'
-import { enqueue } from '@/lib/crew-queue'
+import { enqueue, enqueueIncidentPhoto } from '@/lib/crew-queue'
 
 type EventOption = { id: string; name: string }
 type WorkplaceContext = {
@@ -41,8 +40,6 @@ export function IncidentForm({
     const eventId = String(fd.get('event') || '')
     const workplaceId = String(fd.get('workplace') || '')
     const message = String(fd.get('message') || '').trim()
-    let uploadedPath: string | null = null
-
     try {
       let location: { latitude: number; longitude: number; accuracy: number } | null = null
       if (navigator.geolocation && navigator.onLine) {
@@ -53,63 +50,26 @@ export function IncidentForm({
         ))
       }
 
-      if (file) {
-        if (!navigator.onLine) {
-          await enqueue(userId, 'incident', {
-            event_id: eventId,
-            ...(workplaceId ? { workplace_id: workplaceId } : {}),
-            message,
-          })
-          setStatus('URGENT melding is offline bewaard ZONDER foto. De foto is niet verloren zonder melding: verstuur ze opnieuw zodra je online bent.')
-          return
-        }
-
-        if (file.size > 10 * 1024 * 1024) throw new Error('De incidentfoto mag maximaal 10 MB zijn.')
-        const extByType: Record<string, string> = {'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}
-        const ext = extByType[file.type]
-        if (!ext) throw new Error('Gebruik een JPG-, PNG- of WEBP-foto.')
-
-        const s = createClient()
-        uploadedPath = `${userId}/${crypto.randomUUID()}.${ext}`
-        const { error: uploadError } = await s.storage.from('incident-photos').upload(uploadedPath, file, {
-          contentType: file.type,
-          upsert: false,
-        })
-        if (uploadError) throw new Error('Incidentfoto uploaden mislukt.')
-
-        const { error } = await s.rpc('upt_create_incident', {
-          p_event: eventId,
-          p_workplace: (workplaceId || null) as unknown as string,
-          p_message: message,
-          p_photo_path: uploadedPath,
-          ...(location ? {
-            p_latitude: location.latitude,
-            p_longitude: location.longitude,
-            p_accuracy_m: location.accuracy,
-          } : {}),
-        })
-        if (error) throw new Error('URGENT melding kon niet worden bevestigd.')
-
-        setFile(null)
-        setFileKey(k => k + 1)
-        setStatus('URGENT melding met foto is door de server bevestigd.')
-        router.refresh()
-        return
-      }
-
-      await enqueue(userId, 'incident', {
+      const payload = {
         event_id: eventId,
         ...(workplaceId ? { workplace_id: workplaceId } : {}),
         message,
         ...(location || {}),
-      })
-      setStatus('Melding bewaard. Wacht op serverbevestiging in het meldingenoverzicht.')
+      }
+
+      if (file) {
+        await enqueueIncidentPhoto(userId, payload, file)
+        setFile(null)
+        setFileKey(k => k + 1)
+        setStatus(navigator.onLine
+          ? 'URGENT melding en foto zijn bewaard voor serververwerking.'
+          : 'URGENT melding en foto zijn lokaal bewaard en worden automatisch verzonden zodra je online bent.')
+      } else {
+        await enqueue(userId, 'incident', payload)
+        setStatus('Melding bewaard. Alleen serverbevestigde incidenten gelden als gesynchroniseerd.')
+      }
       router.refresh()
     } catch (error) {
-      if (uploadedPath) {
-        const s = createClient()
-        await s.storage.from('incident-photos').remove([uploadedPath])
-      }
       setStatus(error instanceof Error ? error.message : 'Melding kon niet worden bewaard. Probeer opnieuw.')
     } finally {
       setBusy(false)

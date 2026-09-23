@@ -156,5 +156,5 @@ export function useDisplayName(): string {
   const { profile, user } = useAuth()
   if (profile?.full_name) return profile.full_name
   if (user?.email) return user.email.split("@")[0]
-  return "Crew"
+  return "Personeel"
 }

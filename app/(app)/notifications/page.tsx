@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/crew-server'
-import { markNotificationRead } from '@/lib/actions/uptilldawn'
+import { markNotificationRead } from '@/lib/actions/uptilldawn'\nimport { nlStatus } from '@/lib/ui-nl'
 
 export const dynamic = 'force-dynamic'
 
@@ -23,7 +23,7 @@ export default async function Page() {
           <div>
             <h2 className="font-bold">{n.title}</h2>
             {n.body && <p className="mt-1 text-sm">{n.body}</p>}
-            <p className="mt-2 text-xs text-muted-foreground">{new Date(n.created_at).toLocaleString('nl-BE')} · {n.kind}</p>
+            <p className="mt-2 text-xs text-muted-foreground">{new Date(n.created_at).toLocaleString('nl-BE')} · {nlStatus(n.kind)}</p>
           </div>
           {!n.read_at && <span className="rounded-full bg-violet-500/20 px-2 py-1 text-xs font-bold text-violet-300">NIEUW</span>}
         </div>

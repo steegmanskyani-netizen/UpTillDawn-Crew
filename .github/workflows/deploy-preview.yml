@@ -2,9 +2,6 @@ name: Deploy Preview
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - codex/uptilldawn-production-hardening
 
 concurrency:
   group: uptilldawn-preview

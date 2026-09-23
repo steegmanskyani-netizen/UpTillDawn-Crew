@@ -32,6 +32,8 @@ export function AppSidebar({
   showEvents = false,
   showTasks = false,
   showBriefings = false,
+  showShifts = false,
+  showIncidents = false,
 }: {
   chatMissed?: number
   incidentMissed?: number
@@ -40,6 +42,8 @@ export function AppSidebar({
   showEvents?: boolean
   showTasks?: boolean
   showBriefings?: boolean
+  showShifts?: boolean
+  showIncidents?: boolean
 }) {
   const pathname = usePathname(); const { roles, isAdmin, testRole, setTestRole } = useAuth()
   const visible = items.filter(i => {
@@ -48,6 +52,8 @@ export function AppSidebar({
     if (i.href === "/events") return showEvents
     if (i.href === "/tasks") return showTasks
     if (i.href === "/briefings") return showBriefings
+    if (i.href === "/shifts") return showShifts
+    if (i.href === "/incidents") return showIncidents
     return true
   })
   return <aside className="hidden md:flex w-[250px] h-screen sticky top-0 flex-col border-r border-border bg-card">

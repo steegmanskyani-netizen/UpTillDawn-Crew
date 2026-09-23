@@ -18,7 +18,7 @@ async function approvedClient(){
  const {data:{user}}=await s.auth.getUser()
  if(!user) throw new Error('Aanmelden vereist.')
  const {data:profile}=await s.from('profiles').select('approved,role').eq('id',user.id).single()
- if(!profile?.approved) throw new Error('ACCOUNT NOT APPROVED')
+ if(!profile?.approved) throw new Error('ACCOUNT NOG NIET GOEDGEKEURD')
  return {s,user,profile}
 }
 function check(error:{code?:string}|null){if(error){console.error('[Crew mutation]',{code:error.code});throw new Error('Opslaan mislukt. Controleer je invoer en probeer opnieuw.')}}
@@ -106,7 +106,7 @@ export async function addEventMember(fd:FormData){
 }
 export async function assignResponsible(fd:FormData){
  const {s,user}=await adminClient();const workplace_id=uuid.parse(fd.get('workplace_id')),user_id=uuid.parse(fd.get('user_id'))
- const {data:p}=await s.from('profiles').select('approved,role').eq('id',user_id).single();if(!p?.approved||!['responsible_lead','admin'].includes(p.role))throw new Error('Selecteer een goedgekeurde Responsible of Admin.')
+ const {data:p}=await s.from('profiles').select('approved,role').eq('id',user_id).single();if(!p?.approved||!['responsible_lead','admin'].includes(p.role))throw new Error('Selecteer een goedgekeurde verantwoordelijke of beheerder.')
  const {data:w,error:e}=await s.from('workplaces').select('event_id').eq('id',workplace_id).single();check(e);if(!w)return
  const {error}=await s.from('responsible_assignments').upsert({event_id:w.event_id,workplace_id,user_id,assigned_by:user.id},{onConflict:'workplace_id,user_id'});check(error);revalidatePath('/workplaces')
 }
@@ -116,7 +116,7 @@ export async function createShift(fd:FormData){
  const {error}=await s.rpc('upt_create_shift',{
   p_workplace:uuid.parse(fd.get('workplace_id')),
   p_user:uuid.parse(fd.get('user_id')),
-  p_role_name:text.parse(fd.get('role_name')||'Crew'),
+  p_role_name:text.parse(fd.get('role_name')||'Personeel'),
   p_start:start,
   p_end:end,
   p_overlap_allowed:fd.get('overlap_allowed')==='on',
@@ -128,7 +128,7 @@ export async function updateShift(fd:FormData){
  const [start,end]=dates(fd,'start','end')
  const {error}=await s.rpc('upt_update_shift',{
   p_shift:uuid.parse(fd.get('shift_id')),
-  p_role_name:text.parse(fd.get('role_name')||'Crew'),
+  p_role_name:text.parse(fd.get('role_name')||'Personeel'),
   p_start:start,
   p_end:end,
   p_overlap_allowed:fd.get('overlap_allowed')==='on',
@@ -144,7 +144,7 @@ export async function cancelShift(fd:FormData){
 export async function setAccountStatus(fd:FormData){
  const {s,user}=await adminClient();const id=uuid.parse(fd.get('user_id'));const status=z.enum(['pending','approved']).parse(fd.get('status'));const approved=status==='approved'
  const role=z.enum(['admin','responsible_lead','staff']).parse(fd.get('role')||'staff')
- if(id===user.id && (!approved||role!=='admin'))throw new Error('Je kunt je eigen admin-toegang hier niet intrekken.')
+ if(id===user.id && (!approved||role!=='admin'))throw new Error('Je kunt je eigen beheerderstoegang hier niet intrekken.')
  const {error}=await s.rpc('upt_admin_set_account',{p_user:id,p_approved:approved,p_role:role});check(error);revalidatePath('/personnel')
 }
 export async function acknowledgeBriefing(fd:FormData){const s=await createClient();const {error}=await s.rpc('upt_acknowledge_briefing',{p_briefing:uuid.parse(fd.get('id'))});check(error);revalidatePath('/briefings')}

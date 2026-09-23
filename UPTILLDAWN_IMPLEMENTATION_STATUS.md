@@ -2,7 +2,7 @@
 
 This is a verified hardening milestone, **not a production-complete release**.
 
-**Current implementation estimate: ~94%.** This estimate counts only implemented and verified work; production deployment, browser/device E2E and the remaining offline/Web Push work are not counted as complete.
+**Current implementation estimate: ~95%.** This estimate counts only implemented and verified work; production deployment, browser/device E2E and the remaining offline/Web Push work are not counted as complete.
 
 ## Verified implementation
 
@@ -21,6 +21,7 @@ This is a verified hardening milestone, **not a production-complete release**.
 - Staff warning at 55 minutes and Responsible/Admin warning at 70 minutes are generated while a break is active, with deduplication.
 - GPS is captured only for explicit operational actions. Radius/accuracy status is computed server-side; denied/unavailable/poor-accuracy states are not falsely marked verified.
 - Responsible live crew-status UI shows visible active work sessions, break state, workplace and safe contact data.
+- The Admin landing page is now an operational dashboard with active events, working/on-break counts, pending check-in/out approvals, missing check-ins, open incidents, outstanding task assignments, server-side sync issues, live crew status and direct links to time corrections/audit/management sections. Admin desktop/mobile Dashboard navigation routes to this page.
 - Admin time-correction UI uses the audited correction RPC and preserves original/corrected values in correction history.
 - Briefings support create/edit/versioning and renewed acknowledgement after content changes. Personal instructions support authoring, editing, versioning and per-user acknowledgement.
 - Task packages support assignment/progress. Responsible leads can create/remove assignments only within their own workplace.
@@ -58,7 +59,7 @@ Generated TypeScript database types were refreshed from the live target schema a
 ## Verification executed
 
 - Node suite: 39 tests passed at the established baseline, including paid-break allocation, midnight and DST behavior.
-- Recent GitHub CI runs pass lint, TypeScript checking, Node tests, the Next.js production build, the OpenNext Cloudflare build and Wrangler deployment dry-run for the current implementation commits. This is not a production deployment.
+- Recent GitHub CI runs pass lint, TypeScript checking, Node tests, the Next.js production build, the OpenNext Cloudflare build and Wrangler deployment dry-run for the current implementation commits, including the Admin dashboard/offline/security continuation. This is not a production deployment.
 - Local HTTP smoke tests previously passed for public/auth redirects, anonymous export denial, offline fallback and service worker. These are not authenticated browser E2E tests.
 - `tests/sql/operational-security.sql` was rerun against the target database inside a transaction and rolled back successfully after the new migrations. It covers profile isolation, self-promotion denial, cross-workplace access denial, unapproved accounts, anonymous RPC privileges, shared break allowance, sync replay/conflicts, GPS assessment, briefing acknowledgement, event duplication, work/break lifecycle, stored GPS evidence and warning deduplication.
 - `tests/sql/new-feature-security.sql` was executed against the target database inside a transaction and rolled back successfully. It verifies self-service sensitive-profile privacy, private chat membership, moderation authorization/audit, Responsible workplace-scoped shift creation, overlap prevention, cross-workplace denial and the URGENT acknowledge/resolve lifecycle.
@@ -77,6 +78,6 @@ Generated TypeScript database types were refreshed from the live target schema a
 4. **Web Push:** in-app notifications are implemented, but push subscription and external push delivery are not.
 5. **Policy decision:** define overtime and, if required, a work-period model different from the current one-event allowance model. The system deliberately does not invent payroll policy.
 6. **Broader security regression coverage:** the public-table/RPC privilege matrix and private-storage regression suites now exist and pass. Additional adversarial browser/device testing is still required before describing the system as security-audited.
-7. **Fresh-install proof:** replay the complete historical migration chain on an isolated database before claiming a clean-from-zero installation path.
+7. **Fresh-install proof:** all 67 local migration filenames now match the 67 applied migration-history entries in the target Supabase project exactly. The complete chain still needs to be replayed on an isolated database before claiming a clean-from-zero installation path.
 
 The application code remains isolated on `codex/uptilldawn-production-hardening`. Production deployment must not be inferred solely from green CI.

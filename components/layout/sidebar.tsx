@@ -29,6 +29,7 @@ export function AppSidebar({
   incidentMissed = 0,
   taskMissed = 0,
   showOperations = false,
+  showEvents = false,
   showTasks = false,
   showBriefings = false,
 }: {
@@ -36,6 +37,7 @@ export function AppSidebar({
   incidentMissed?: number
   taskMissed?: number
   showOperations?: boolean
+  showEvents?: boolean
   showTasks?: boolean
   showBriefings?: boolean
 }) {
@@ -43,6 +45,7 @@ export function AppSidebar({
   const visible = items.filter(i => {
     if (!roles.some(r => i.roles.includes(r))) return false
     if (i.href === "/operations") return showOperations
+    if (i.href === "/events") return showEvents
     if (i.href === "/tasks") return showTasks
     if (i.href === "/briefings") return showBriefings
     return true

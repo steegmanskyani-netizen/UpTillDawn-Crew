@@ -8,34 +8,21 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'UPTILLDAWN Crew',
-  description: 'Open-source enterprise workforce management platform',
-  generator: 'v0.app',
-  manifest: '/manifest.json',
+  description: 'Event crew management voor Uptilldawn',
+  manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
     title: 'UPTILLDAWN Crew',
   },
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: '/icon.png',
+    apple: '/icon.png',
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f5f5f7' },
-    { media: '(prefers-color-scheme: dark)', color: '#1c1c1e' },
-  ],
+  themeColor: '#050505',
   userScalable: true,
 }
 

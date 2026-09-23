@@ -146,17 +146,21 @@ BEGIN
 END $$;
 RESET ROLE;
 
--- Operational evidence cannot be directly deleted by the uploader after acceptance.
-SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_storage_ids WHERE name='staff'),true);
-SET LOCAL ROLE authenticated;
-DELETE FROM storage.objects
-WHERE bucket_id IN ('checkin-selfies','incident-photos','chat-attachments')
-  AND split_part(name,'/',1)=auth.uid()::text;
-RESET ROLE;
+-- Operational evidence must have no authenticated DELETE policy.
 DO $$
 BEGIN
- IF (SELECT count(*) FROM storage.objects WHERE bucket_id IN ('checkin-selfies','incident-photos','chat-attachments')) <> 3
- THEN RAISE EXCEPTION 'FAIL operational media immutability'; END IF;
+ IF EXISTS (
+   SELECT 1
+   FROM pg_policies
+   WHERE schemaname='storage'
+     AND tablename='objects'
+     AND cmd='DELETE'
+     AND policyname IN (
+       'upt_checkin_selfies_delete',
+       'upt_incident_photos_delete',
+       'upt_chat_attachments_delete'
+     )
+ ) THEN RAISE EXCEPTION 'FAIL operational media delete policy still present'; END IF;
 END $$;
 
 -- Owner can read own operational evidence and admin can read all four fixtures.

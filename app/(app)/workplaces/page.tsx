@@ -33,7 +33,7 @@ export default async function Page() {
 
   return <main className="space-y-5 p-4 md:p-8">
     <div>
-      <h1 className="text-3xl font-black">Workplaces</h1>
+      <h1 className="text-3xl font-black">Werkplekken</h1>
       {isResponsible && <p className="text-sm text-muted-foreground">Alleen je toegewezen werkplekken worden hier getoond.</p>}
     </div>
 
@@ -42,7 +42,7 @@ export default async function Page() {
         <option value="">Event…</option>
         {events?.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
       </select>
-      <input name="name" required maxLength={200} placeholder="Nieuwe workplace" className="rounded-lg border bg-background p-3"/>
+      <input name="name" required maxLength={200} placeholder="Nieuwe werkplek" className="rounded-lg border bg-background p-3"/>
       <button className="rounded-lg bg-violet-600 px-4 font-bold">TOEVOEGEN</button>
     </form>}
 
@@ -58,10 +58,10 @@ export default async function Page() {
         {isAdmin && <form action={assignResponsible} className="mt-3 flex gap-2">
           <input type="hidden" name="workplace_id" value={x.id}/>
           <select name="user_id" required className="flex-1 rounded-lg border bg-background p-2">
-            <option value="">Responsible lead…</option>
+            <option value="">Responsible Lead…</option>
             {leads.map(q => <option key={q.id} value={q.id}>{q.full_name || 'Naam ontbreekt'}</option>)}
           </select>
-          <button className="rounded-lg border px-3">Assign</button>
+          <button className="rounded-lg border px-3">Toewijzen</button>
         </form>}
       </article>)}
     </div>

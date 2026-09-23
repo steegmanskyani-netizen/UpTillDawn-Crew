@@ -26,7 +26,7 @@ export default async function Dashboard() {
 
   const profile = profileResult.data
   if (profile && !profile.approved) {
-    return <div className="p-8"><div className="mx-auto mt-20 max-w-xl rounded-2xl border border-amber-500/30 bg-amber-500/10 p-8 text-center"><h1 className="text-2xl font-black">ACCOUNT NOT APPROVED</h1><p className="mt-2 text-muted-foreground">Je account wacht op goedkeuring door een administrator.</p></div></div>
+    return <div className="p-8"><div className="mx-auto mt-20 max-w-xl rounded-2xl border border-amber-500/30 bg-amber-500/10 p-8 text-center"><h1 className="text-2xl font-black">ACCOUNT NOG NIET GOEDGEKEURD</h1><p className="mt-2 text-muted-foreground">Je account wacht op goedkeuring door een beheerder.</p></div></div>
   }
 
   const events = eventsResult.data || []
@@ -35,20 +35,20 @@ export default async function Dashboard() {
 
   return <main className="space-y-7 p-4 md:p-8">
     <div>
-      <p className="text-xs font-bold tracking-[.2em] text-violet-400">UP TILL DAWN CREW MANAGEMENT</p>
-      <h1 className="mt-1 text-3xl font-black">Welkom, {profile?.full_name || 'Crew'}</h1>
+      <p className="text-xs font-bold tracking-[.2em] text-violet-400">UP TILL DAWN PERSONEELSBEHEER</p>
+      <h1 className="mt-1 text-3xl font-black">Welkom, {profile?.full_name || 'Personeelslid'}</h1>
       <p className="text-muted-foreground">Je operationele crew-overzicht.</p>
     </div>
     {hasLoadError && <p className="rounded-xl border border-amber-500/40 p-4">Een deel van het dashboard kon niet worden geladen.</p>}
     <section className="grid gap-4 md:grid-cols-3">
-      <Card href="/events" icon={CalendarDays} title="Events" value={events.length}/>
-      <Card href="/shifts" icon={Clock3} title="Mijn shifts" value={shifts.length}/>
+      <Card href="/events" icon={CalendarDays} title="Evenementen" value={events.length}/>
+      <Card href="/shifts" icon={Clock3} title="Mijn diensten" value={shifts.length}/>
       <Card href="/incidents" icon={AlertTriangle} title="Open incidenten" value={incidentsResult.count ?? 0}/>
     </section>
     <section>
-      <h2 className="mb-3 text-lg font-bold">Komende events</h2>
+      <h2 className="mb-3 text-lg font-bold">Komende evenementen</h2>
       <div className="grid gap-3">
-        {events.length ? events.map(event => <Link href="/events" key={event.id} className="flex items-center justify-between rounded-2xl border border-border bg-card p-4"><div><div className="font-bold">{event.name}</div><div className="flex gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4"/>{event.venue || 'Locatie nog niet ingesteld'}</div></div><ArrowRight className="h-5 w-5"/></Link>) : <div className="rounded-2xl border border-dashed p-8 text-center text-muted-foreground">Nog geen events.</div>}
+        {events.length ? events.map(event => <Link href="/events" key={event.id} className="flex items-center justify-between rounded-2xl border border-border bg-card p-4"><div><div className="font-bold">{event.name}</div><div className="flex gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4"/>{event.venue || 'Locatie nog niet ingesteld'}</div></div><ArrowRight className="h-5 w-5"/></Link>) : <div className="rounded-2xl border border-dashed p-8 text-center text-muted-foreground">Nog geen evenementen.</div>}
       </div>
     </section>
   </main>

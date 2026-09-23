@@ -8,31 +8,75 @@ export default async function Page() {
   const s = await createClient()
   const { data: { user } } = await s.auth.getUser()
   if (!user) redirect('/login')
+
   const { data: profile } = await s.from('profiles').select('approved,role').eq('id', user.id).single()
   if (!profile?.approved || profile.role !== 'admin') redirect('/')
 
-  const [{ data: sessions, error }, { data: breaks }, { data: people }, { data: events }, { data: corrections }] = await Promise.all([
-    s.from('work_sessions').select('*').order('started_at', { ascending: false }).limit(100),
-    s.from('break_sessions').select('*').order('started_at', { ascending: false }).limit(200),
+  const { data: sessions, error: sessionsError } = await s
+    .from('work_sessions')
+    .select('id,user_id,event_id,started_at,ended_at')
+    .order('started_at', { ascending: false })
+    .limit(100)
+
+  if (sessionsError) {
+    return <main className="p-8">Tijdregistraties konden niet worden geladen.</main>
+  }
+
+  const sessionIds = (sessions || []).map(session => session.id)
+  const breaksPromise = sessionIds.length
+    ? s.from('break_sessions')
+        .select('id,work_session_id,user_id,started_at,ended_at')
+        .in('work_session_id', sessionIds)
+        .order('started_at', { ascending: false })
+    : Promise.resolve({ data: [], error: null })
+
+  const [
+    { data: breaks, error: breaksError },
+    { data: people, error: peopleError },
+    { data: events, error: eventsError },
+    { data: corrections, error: correctionsError },
+  ] = await Promise.all([
+    breaksPromise,
     s.from('profiles').select('id,full_name'),
     s.from('events').select('id,name'),
-    s.from('time_corrections').select('*').order('corrected_at', { ascending: false }).limit(100),
+    s.from('time_corrections')
+      .select('id,user_id,field_name,original_value,corrected_value,reason,corrected_at')
+      .order('corrected_at', { ascending: false })
+      .limit(100),
   ])
-  if (error) return <main className="p-8">Tijdregistraties konden niet worden geladen.</main>
-  const name = (id: string) => people?.find(p => p.id === id)?.full_name || 'Crewlid'
-  const eventName = (id: string) => events?.find(e => e.id === id)?.name || 'Event'
+
+  if (breaksError || peopleError || eventsError || correctionsError) {
+    return <main className="p-8">Tijdregistraties konden niet volledig worden geladen.</main>
+  }
+
+  const name = (id: string) => people?.find(person => person.id === id)?.full_name || 'Crewlid'
+  const eventName = (id: string) => events?.find(event => event.id === id)?.name || 'Event'
 
   return <main className="mx-auto max-w-6xl space-y-6 p-4 pb-28 md:p-8">
-    <div><h1 className="text-3xl font-black">Tijdcorrecties</h1><p className="text-muted-foreground">Alle correcties vereisen een reden en blijven bewaard in de auditgeschiedenis.</p></div>
+    <div>
+      <h1 className="text-3xl font-black">Tijdcorrecties</h1>
+      <p className="text-muted-foreground">Alle correcties vereisen een reden en blijven bewaard in de auditgeschiedenis.</p>
+    </div>
+
     <section className="space-y-4">
       {(sessions || []).map(session => <article key={session.id} className="rounded-2xl border p-4">
         <h2 className="font-bold">{name(session.user_id)} · {eventName(session.event_id)}</h2>
         <TimeCorrectionForm targetType="work_session" targetId={session.id} startedAt={session.started_at} endedAt={session.ended_at}/>
-        {(breaks || []).filter(b => b.work_session_id === session.id).map(b => <div key={b.id} className="ml-4 mt-3"><p className="text-sm font-semibold">Pauze</p><TimeCorrectionForm targetType="break_session" targetId={b.id} startedAt={b.started_at} endedAt={b.ended_at}/></div>)}
+        {(breaks || []).filter(pause => pause.work_session_id === session.id).map(pause => <div key={pause.id} className="ml-4 mt-3">
+          <p className="text-sm font-semibold">Pauze</p>
+          <TimeCorrectionForm targetType="break_session" targetId={pause.id} startedAt={pause.started_at} endedAt={pause.ended_at}/>
+        </div>)}
       </article>)}
+      {!sessions?.length && <p className="rounded-xl border p-4 text-muted-foreground">Nog geen tijdregistraties.</p>}
     </section>
-    <section className="space-y-2"><h2 className="text-xl font-bold">Recente correctiegeschiedenis</h2>
-      {(corrections || []).map(c => <article key={c.id} className="rounded-xl border p-3 text-sm"><p className="font-semibold">{name(c.user_id)} · {c.field_name}</p><p>{new Date(c.original_value).toLocaleString('nl-BE')} → {new Date(c.corrected_value).toLocaleString('nl-BE')}</p><p className="text-muted-foreground">{c.reason} · {new Date(c.corrected_at).toLocaleString('nl-BE')}</p></article>)}
+
+    <section className="space-y-2">
+      <h2 className="text-xl font-bold">Recente correctiegeschiedenis</h2>
+      {(corrections || []).map(correction => <article key={correction.id} className="rounded-xl border p-3 text-sm">
+        <p className="font-semibold">{name(correction.user_id)} · {correction.field_name}</p>
+        <p>{new Date(correction.original_value).toLocaleString('nl-BE')} → {new Date(correction.corrected_value).toLocaleString('nl-BE')}</p>
+        <p className="text-muted-foreground">{correction.reason} · {new Date(correction.corrected_at).toLocaleString('nl-BE')}</p>
+      </article>)}
     </section>
   </main>
 }

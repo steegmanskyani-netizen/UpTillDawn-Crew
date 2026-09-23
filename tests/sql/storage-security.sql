@@ -146,6 +146,19 @@ BEGIN
 END $$;
 RESET ROLE;
 
+-- Operational evidence cannot be directly deleted by the uploader after acceptance.
+SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_storage_ids WHERE name='staff'),true);
+SET LOCAL ROLE authenticated;
+DELETE FROM storage.objects
+WHERE bucket_id IN ('checkin-selfies','incident-photos','chat-attachments')
+  AND split_part(name,'/',1)=auth.uid()::text;
+RESET ROLE;
+DO $
+BEGIN
+ IF (SELECT count(*) FROM storage.objects WHERE bucket_id IN ('checkin-selfies','incident-photos','chat-attachments')) <> 3
+ THEN RAISE EXCEPTION 'FAIL operational media immutability'; END IF;
+END $;
+
 -- Owner can read own operational evidence and admin can read all four fixtures.
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_storage_ids WHERE name='staff'),true);
 SET LOCAL ROLE authenticated;

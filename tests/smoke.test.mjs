@@ -14,7 +14,8 @@ test('next.config.mjs loads and exports a valid config object', async () => {
   const config = mod.default
   assert.ok(config, 'next.config.mjs must have a default export')
   assert.equal(typeof config, 'object')
-  assert.ok(Array.isArray(config.serverExternalPackages), 'serverExternalPackages should be an array')
+  assert.equal(config.images?.unoptimized, true)
+  assert.equal(config.experimental?.serverActions, undefined, 'production/test config must not allow Codespaces Server Action origins')
 })
 
 test('core entry points exist', async () => {

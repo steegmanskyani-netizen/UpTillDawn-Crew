@@ -8,13 +8,13 @@ import './globals.css'
 
 
 export const metadata: Metadata = {
-  title: 'UP TILL DAWN Crew',
-  description: 'Event crew management voor Up Till Dawn',
+  title: 'UP TILL DAWN Personeel',
+  description: 'Evenementen- en personeelsbeheer voor Up Till Dawn',
   manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'UP TILL DAWN Crew',
+    title: 'UP TILL DAWN Personeel',
   },
   icons: {
     icon: '/up-till-dawn-mark.webp',

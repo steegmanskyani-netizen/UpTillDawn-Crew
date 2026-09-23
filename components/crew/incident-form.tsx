@@ -27,6 +27,8 @@ export function IncidentForm({
 }) {
   const [busy, setBusy] = useState(false)
   const [status, setStatus] = useState('')
+  const [eventId, setEventId] = useState(defaultEventId || '')
+  const [workplaceId, setWorkplaceId] = useState(defaultWorkplaceId || '')
   const [file, setFile] = useState<File | null>(null)
   const [fileKey, setFileKey] = useState(0)
   const router = useRouter()
@@ -76,13 +78,32 @@ export function IncidentForm({
     }
   }}>
     <h2 className="text-xl font-black text-red-400">URGENT MELDEN</h2>
-    <select name="event" required defaultValue={defaultEventId || ''} className="w-full rounded-lg border bg-background p-3">
+    <select
+      name="event"
+      required
+      value={eventId}
+      onChange={e => {
+        const nextEvent = e.target.value
+        setEventId(nextEvent)
+        if (!contexts.some(context => context.event_id === nextEvent && context.workplace_id === workplaceId)) {
+          setWorkplaceId('')
+        }
+      }}
+      className="w-full rounded-lg border bg-background p-3"
+    >
       <option value="">Selecteer event</option>
       {events.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
     </select>
-    <select name="workplace" defaultValue={defaultWorkplaceId || ''} className="w-full rounded-lg border bg-background p-3">
+    <select
+      name="workplace"
+      value={workplaceId}
+      onChange={e => setWorkplaceId(e.target.value)}
+      className="w-full rounded-lg border bg-background p-3"
+    >
       <option value="">Geen specifieke werkplek</option>
-      {contexts.map(c => <option key={`${c.event_id}:${c.workplace_id}`} value={c.workplace_id}>{c.event_name} — {c.workplace_name}</option>)}
+      {contexts.filter(context => !eventId || context.event_id === eventId).map(context =>
+        <option key={`${context.event_id}:${context.workplace_id}`} value={context.workplace_id}>{context.workplace_name}</option>
+      )}
     </select>
     <textarea name="message" required maxLength={4000} placeholder="Wat is er aan de hand?" className="min-h-28 w-full rounded-lg border bg-background p-3"/>
     <label className="block text-sm">Optionele foto

@@ -1,0 +1,72 @@
+name: Deploy Cloudflare
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: uptilldawn-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Refuse non-main deployment
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "Production deployment is only allowed from main."
+          exit 1
+
+      - name: Validate required production secrets
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY NEXT_PUBLIC_APP_URL CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing required production secret: $name"
+              exit 1
+            fi
+          done
+          case "$NEXT_PUBLIC_APP_URL" in
+            https://*) ;;
+            *) echo "::error::NEXT_PUBLIC_APP_URL must be an HTTPS production origin."; exit 1 ;;
+          esac
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build Cloudflare Worker
+        run: npm run build:cloudflare
+
+      - name: Deployment dry-run
+        run: npx wrangler deploy --dry-run
+
+      - name: Deploy production Worker
+        run: npm run deploy:cloudflare

@@ -27,12 +27,13 @@ VALUES(
  'active'
 );
 
-INSERT INTO public.workplaces(id,event_id,name)
-VALUES(
- (SELECT id FROM upt_dep_ids WHERE name='workplace'),
- (SELECT id FROM upt_dep_ids WHERE name='event'),
- 'Bar/Toog'
-);
+UPDATE upt_dep_ids
+SET id=(
+  SELECT id FROM public.workplaces
+  WHERE event_id=(SELECT id FROM upt_dep_ids WHERE name='event')
+    AND name='Bar/Toog'
+)
+WHERE name='workplace';
 
 INSERT INTO public.event_members(event_id,user_id)
 VALUES(

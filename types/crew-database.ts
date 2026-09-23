@@ -1411,6 +1411,68 @@ export type Database = {
           },
         ]
       }
+      work_attachments: {
+        Row: {
+          briefing_id: string | null
+          created_at: string
+          id: string
+          mime_type: string
+          personal_instruction_id: string | null
+          storage_path: string
+          task_id: string | null
+          uploaded_by: string
+        }
+        Insert: {
+          briefing_id?: string | null
+          created_at?: string
+          id?: string
+          mime_type: string
+          personal_instruction_id?: string | null
+          storage_path: string
+          task_id?: string | null
+          uploaded_by: string
+        }
+        Update: {
+          briefing_id?: string | null
+          created_at?: string
+          id?: string
+          mime_type?: string
+          personal_instruction_id?: string | null
+          storage_path?: string
+          task_id?: string | null
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_attachments_briefing_id_fkey"
+            columns: ["briefing_id"]
+            isOneToOne: false
+            referencedRelation: "briefings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_attachments_personal_instruction_id_fkey"
+            columns: ["personal_instruction_id"]
+            isOneToOne: false
+            referencedRelation: "personal_instructions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_attachments_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       work_sessions: {
         Row: {
           break_allowance_minutes: number

@@ -42,6 +42,6 @@ export function QueueStatus() {
     {ops.length} actie(s) en {uploads.length} bestand(en) wachten op bevestiging.
     {hasError && <p>Synchronisatie vereist controle. Niets wordt stilzwijgend verwijderd.</p>}
     <button className="ml-3 underline" onClick={() => user && void synchronize(user.id)}>Opnieuw proberen</button>
-    <Link href="/sync" className="ml-3 underline">Details / conflict oplossen</Link>
+    <Link href="/sync" className="ml-3 underline">Details / probleem oplossen</Link>
   </aside>
 }

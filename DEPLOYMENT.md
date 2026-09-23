@@ -45,6 +45,20 @@ npm run deploy:cloudflare
 
 No paid resources or paid plan were enabled. The build dry-run reported a compressed Worker size below 3 MiB; actual account limits, CPU usage and operational load still require verification. No R2, D1 or KV binding is required by this configuration.
 
+## GitHub production workflow
+
+A guarded manual workflow is available at `.github/workflows/deploy-cloudflare.yml`. It only deploys from `main`, uses the GitHub `production` environment and refuses to continue when required secrets are missing.
+
+Configure these GitHub production-environment secrets before triggering it:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `NEXT_PUBLIC_APP_URL` — exact HTTPS production origin
+- `CLOUDFLARE_API_TOKEN` — scoped to the Worker deployment
+- `CLOUDFLARE_ACCOUNT_ID`
+
+The workflow runs lint, typecheck, tests, the OpenNext Cloudflare build and a Wrangler dry-run before the actual deployment. Do not place the Supabase service-role key in GitHub frontend/deployment variables; the active crew app does not require it.
+
 ## Database
 
 Project ref: `eakoavcieossazqzplke`. Migrations introduced here are already applied there. Do not reapply them blindly or run a reset. Migration filenames are aligned to the versions returned by Supabase's migration history.

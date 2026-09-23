@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { DateInput } from '@/components/crew/date-input'
 import { AdminOnly } from '@/components/auth/admin-only'
+import { StaffAvailability, StaffUnavailableMessage } from '@/components/auth/staff-availability'
 import { nlStatus } from '@/lib/ui-nl'
 import { createClient } from '@/lib/supabase/crew-server'
 import { getCurrentUser } from '@/lib/actions/auth'
@@ -21,10 +22,13 @@ export default async function Page() {
   const user = await getCurrentUser()
   if (!user) return null
 
-  const eventsResult = await s
-    .from('events')
-    .select('id,name,venue,start_at,end_at,status,latitude,longitude,checkin_radius_m')
-    .order('start_at')
+  const [eventsResult, membershipResult, shiftResult] = await Promise.all([
+    s.from('events')
+      .select('id,name,venue,start_at,end_at,status,latitude,longitude,checkin_radius_m')
+      .order('start_at'),
+    s.from('event_members').select('event_id').eq('user_id', user.id),
+    s.from('shifts').select('event_id').eq('user_id', user.id).neq('status', 'cancelled'),
+  ])
 
   const peopleResult = user.isAdmin
     ? await s.from('profiles').select('id,full_name').eq('approved', true).order('full_name')
@@ -32,9 +36,22 @@ export default async function Page() {
 
   const events = eventsResult.data || []
   const people = peopleResult.data || []
+  const assignedEventIds = new Set([
+    ...(membershipResult.data || []).map(row => row.event_id),
+    ...(shiftResult.data || []).map(row => row.event_id),
+  ])
+  const now = Date.now()
+  const staffAvailable = events.some(event =>
+    assignedEventIds.has(event.id)
+    && now >= new Date(event.start_at).getTime()
+    && now <= new Date(event.end_at).getTime() + 3 * 24 * 60 * 60 * 1000
+  )
 
   return <main className="space-y-6 p-4 md:p-8">
     <h1 className="text-3xl font-black">Evenementen</h1>
+    <StaffUnavailableMessage available={staffAvailable}>
+      <p className="rounded-xl border p-4 text-muted-foreground">Evenementen zijn beschikbaar vanaf de start van een toegewezen evenement.</p>
+    </StaffUnavailableMessage>
 
     {user.isAdmin && <AdminOnly><form action={createEvent} className="grid gap-3 rounded-2xl border p-4 md:grid-cols-3">
       <input name="name" required maxLength={200} placeholder="Evenementnaam" className={input}/>
@@ -54,7 +71,11 @@ export default async function Page() {
     {events.map(event => {
       const chatUntil = new Date(new Date(event.end_at).getTime() + 3 * 24 * 60 * 60 * 1000)
 
-      return <article key={event.id} className="space-y-3 rounded-2xl border bg-card p-4">
+      const visibleForStaff = assignedEventIds.has(event.id)
+        && now >= new Date(event.start_at).getTime()
+        && now <= chatUntil.getTime()
+
+      return <StaffAvailability key={event.id} available={visibleForStaff}><article className="space-y-3 rounded-2xl border bg-card p-4">
       <h2 className="text-xl font-bold">{event.name}</h2>
       <p>{event.venue || 'Locatie nog niet ingesteld'} · {new Date(event.start_at).toLocaleString('nl-BE')} · {nlStatus(event.status)}</p>
       {!user.isAdmin && <div className="rounded-xl border border-violet-500/30 bg-violet-500/5 p-3 text-sm">
@@ -101,7 +122,7 @@ export default async function Page() {
           <button className="rounded-lg border p-2">Archiveren</button>
         </form>}
       </></AdminOnly>}
-    </article>
+    </article></StaffAvailability>
     })}
   </main>
 }

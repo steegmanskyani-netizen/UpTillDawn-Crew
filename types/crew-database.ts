@@ -1940,6 +1940,10 @@ export type Database = {
         Args: { p_task: string; p_user: string }
         Returns: string
       }
+      upt_attach_incident_photo: {
+        Args: { p_incident: string; p_operation: string; p_photo_path: string }
+        Returns: string
+      }
       upt_audit_export: { Args: never; Returns: undefined }
       upt_can_access_workplace: {
         Args: { p_event: string; p_workplace: string }
@@ -2104,6 +2108,15 @@ export type Database = {
       }
       upt_send_message: {
         Args: { p_attachment_path?: string; p_body?: string; p_channel: string }
+        Returns: string
+      }
+      upt_send_photo_message_operation: {
+        Args: {
+          p_attachment_path: string
+          p_body: string
+          p_channel: string
+          p_operation: string
+        }
         Returns: string
       }
       upt_start_break: { Args: { p_work_session: string }; Returns: string }

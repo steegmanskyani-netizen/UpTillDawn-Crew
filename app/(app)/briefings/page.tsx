@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/crew-server'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/actions/auth'
 import { ManagerOnly } from '@/components/auth/manager-only'
+import { StaffAvailability, StaffUnavailableMessage } from '@/components/auth/staff-availability'
 import {
   acknowledgeBriefing,
   acknowledgeInstruction,
@@ -68,12 +69,39 @@ export default async function Page() {
     { data: personal },
     { data: acks },
     { data: packs },
+    { data: eventWindows },
+    { data: ownMemberships },
+    { data: ownShifts },
   ] = await Promise.all([
     s.from('briefings').select('*').order('created_at', { ascending: false }),
     s.from('personal_instructions').select('*').order('created_at', { ascending: false }),
     s.from('briefing_acknowledgements').select('*').eq('user_id', user.id),
     s.from('personal_instruction_acknowledgements').select('*').eq('user_id', user.id),
+    s.from('events').select('id,start_at,end_at'),
+    s.from('event_members').select('event_id').eq('user_id', user.id),
+    s.from('shifts').select('event_id,workplace_id').eq('user_id', user.id).neq('status', 'cancelled'),
   ])
+
+  const now = Date.now()
+  const activeEventIds = new Set((eventWindows || [])
+    .filter(event => now >= new Date(event.start_at).getTime() && now <= new Date(event.end_at).getTime())
+    .map(event => event.id))
+  const assignedEventIds = new Set([
+    ...(ownMemberships || []).map(row => row.event_id),
+    ...(ownShifts || []).map(row => row.event_id),
+  ])
+  const assignedWorkplaces = new Set((ownShifts || []).map(row => `${row.event_id}:${row.workplace_id}`))
+  const staffCanReadBriefing = (briefing: Tables<'briefings'>) =>
+    activeEventIds.has(briefing.event_id)
+    && (
+      briefing.workplace_id
+        ? assignedWorkplaces.has(`${briefing.event_id}:${briefing.workplace_id}`)
+        : assignedEventIds.has(briefing.event_id)
+    )
+  const staffCanReadInstruction = (instruction: Tables<'personal_instructions'>) =>
+    instruction.user_id === user.id && activeEventIds.has(instruction.event_id)
+  const hasStaffInstruction = (briefs || []).some(staffCanReadBriefing)
+    || (personal || []).some(staffCanReadInstruction)
 
   let events: AssignmentEvent[] = []
   let workplaces: AssignmentWorkplace[] = []
@@ -184,6 +212,9 @@ export default async function Page() {
     <div>
       <h1 className="text-3xl font-black">Instructies</h1>
       {isResponsible && <p className="text-sm text-muted-foreground">Je kunt alleen instructies beheren voor personeel binnen je toegewezen werkplekken.</p>}
+      <StaffUnavailableMessage available={hasStaffInstruction}>
+        <p className="mt-3 rounded-xl border p-4 text-muted-foreground">Instructies zijn beschikbaar vanaf de start van een toegewezen evenement.</p>
+      </StaffUnavailableMessage>
     </div>
 
     {manager && (isAdmin || workplaces.length > 0) && <ManagerOnly><div className="grid gap-4 lg:grid-cols-2">
@@ -223,7 +254,7 @@ export default async function Page() {
 
     {error && <p>Instructies konden niet worden geladen.</p>}
 
-    {briefs?.map(briefing => <article key={briefing.id} className="space-y-3 rounded-xl border p-4">
+    {briefs?.map(briefing => <StaffAvailability key={briefing.id} available={staffCanReadBriefing(briefing)}><article className="space-y-3 rounded-xl border p-4">
       <h2 className="text-xl font-bold">{briefing.title} · v{briefing.version}</h2>
       <p className="whitespace-pre-wrap">{briefing.body}</p>
       <PhotoGallery rows={briefingPhotos(briefing.id)} urls={photoUrls}/>
@@ -242,9 +273,9 @@ export default async function Page() {
               <input type="hidden" name="id" value={briefing.id}/>
               <button className="rounded-xl border p-3">INSTRUCTIE GELEZEN</button>
             </form>}
-    </article>)}
+    </article></StaffAvailability>)}
 
-    {personal?.map(instruction => <article key={instruction.id} className="space-y-3 rounded-xl border border-violet-500 p-4">
+    {personal?.map(instruction => <StaffAvailability key={instruction.id} available={staffCanReadInstruction(instruction)}><article className="space-y-3 rounded-xl border border-violet-500 p-4">
       <h2 className="text-xl font-bold">Persoonlijk: {instruction.title} · v{instruction.version}</h2>
       <p className="whitespace-pre-wrap">{instruction.body}</p>
       <PhotoGallery rows={instructionPhotos(instruction.id)} urls={photoUrls}/>
@@ -263,6 +294,6 @@ export default async function Page() {
               <input type="hidden" name="id" value={instruction.id}/>
               <button className="rounded-xl border p-3">Gelezen bevestigen</button>
             </form>}
-    </article>)}
+    </article></StaffAvailability>)}
   </main>
 }

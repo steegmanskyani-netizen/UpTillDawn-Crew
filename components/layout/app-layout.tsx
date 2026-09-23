@@ -94,16 +94,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
         <div className="print:hidden"><MobileBottomNav incidentMissed={incidentMissed} /></div>
       </div>
-      <div className="fixed bottom-20 left-4 right-4 z-50 flex items-center justify-between print:hidden md:hidden">
+      {!pathname.startsWith("/chat") && <div className="fixed bottom-20 left-4 right-4 z-50 flex items-center justify-between print:hidden md:hidden">
         <Link href="/incidents" className="relative rounded-full bg-red-600 px-5 py-4 font-black text-white">
           URGENT
           <CountBadge count={incidentMissed} />
         </Link>
-        {!pathname.startsWith("/chat") && <Link href="/chat" aria-label={chatMissed ? `Chat, ${chatMissed} gemiste berichten` : "Chat"} className="relative flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black text-white shadow-lg">
+        <Link href="/chat" aria-label={chatMissed ? `Chat, ${chatMissed} gemiste berichten` : "Chat"} className="relative flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black text-white shadow-lg">
           <MessageCircle className="h-7 w-7" />
           <CountBadge count={chatMissed} />
-        </Link>}
-      </div>
+        </Link>
+      </div>}
     </div>
   )
 }

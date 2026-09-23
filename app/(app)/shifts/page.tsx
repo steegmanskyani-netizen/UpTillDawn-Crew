@@ -1,4 +1,5 @@
 import { DateInput } from '@/components/crew/date-input'
+import { AdminOnly } from '@/components/auth/admin-only'
 import { createClient } from '@/lib/supabase/crew-server'
 import { cancelShift, createShift, updateShift } from '@/lib/actions/uptilldawn'
 import { nlStatus } from '@/lib/ui-nl'
@@ -19,7 +20,6 @@ export default async function Page() {
 
   const isAdmin = profile?.role === 'admin'
   const isResponsible = profile?.role === 'responsible_lead'
-  const manager = isAdmin || isResponsible
 
   let workplaces: Array<{ id: string; name: string; event_id: string; events: { name: string } | null }> = []
   let people: CrewOption[] = []
@@ -33,32 +33,15 @@ export default async function Page() {
     workplaces = w || []
     people = p || []
     for (const workplace of workplaces) managedWorkplaces.add(workplace.id)
-  } else if (isResponsible) {
-    const { data: assignments } = await s.from('responsible_assignments').select('event_id,workplace_id').eq('user_id', user.id)
-    const ids = [...new Set((assignments || []).map(a => a.workplace_id))]
-    if (ids.length) {
-      const { data: w } = await s.from('workplaces').select('id,name,event_id,events(name)').in('id', ids).eq('is_active', true).order('sort_order')
-      workplaces = w || []
-      for (const workplace of workplaces) managedWorkplaces.add(workplace.id)
-
-      const directories = await Promise.all((assignments || []).map(a =>
-        s.rpc('upt_responsible_event_members', { p_event: a.event_id, p_workplace: a.workplace_id })
-      ))
-      const unique = new Map<string, CrewOption>()
-      for (const directory of directories) {
-        for (const member of directory.data || []) unique.set(member.id, { id: member.id, full_name: member.full_name })
-      }
-      people = [...unique.values()].sort((a, b) => (a.full_name || '').localeCompare(b.full_name || '', 'nl'))
-    }
   }
 
   return <main className="space-y-5 p-4 md:p-8">
     <div>
       <h1 className="text-3xl font-black">Diensten</h1>
-      {isResponsible && <p className="text-sm text-muted-foreground">Je kunt alleen diensten beheren voor werkplekken waarvoor jij verantwoordelijke bent.</p>}
+      {!isAdmin && <p className="text-sm text-muted-foreground">Diensten kunnen enkel door admin worden aangemaakt of aangepast.</p>}
     </div>
 
-    {manager && workplaces.length > 0 && <form action={createShift} className="grid gap-2 rounded-2xl border p-4 md:grid-cols-3">
+    {isAdmin && workplaces.length > 0 && <AdminOnly><form action={createShift} className="grid gap-2 rounded-2xl border p-4 md:grid-cols-3">
       <select name="workplace_id" required className="rounded-lg border bg-background p-3">
         <option value="">Werkplek…</option>
         {workplaces.map(x => <option key={x.id} value={x.id}>{x.events?.name} — {x.name}</option>)}
@@ -72,14 +55,14 @@ export default async function Page() {
       <DateInput name="end"/>
       <label className="flex items-center gap-2"><input type="checkbox" name="overlap_allowed"/> Overlap expliciet toestaan</label>
       <button className="rounded-lg bg-violet-600 p-3 font-bold md:col-span-3">DIENST AANMAKEN</button>
-    </form>}
+    </form></AdminOnly>}
 
-    {manager && !workplaces.length && <p className="rounded-xl border p-4 text-muted-foreground">Geen beheerbare werkplekken gevonden.</p>}
+    {isAdmin && !workplaces.length && <AdminOnly><p className="rounded-xl border p-4 text-muted-foreground">Geen actieve werkplekken gevonden.</p></AdminOnly>}
     {shiftsError && <p>Diensten konden niet worden geladen.</p>}
 
     <div className="grid gap-3">
       {shifts?.map(x => {
-        const canManage = isAdmin || managedWorkplaces.has(x.workplace_id)
+        const canManage = isAdmin && managedWorkplaces.has(x.workplace_id)
         return <article key={x.id} className="rounded-xl border p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -89,7 +72,7 @@ export default async function Page() {
             <span className="rounded-full border px-2 py-1 text-xs font-bold">{nlStatus(x.status)}</span>
           </div>
 
-          {canManage && x.status !== 'cancelled' && <details className="mt-4 rounded-xl border p-3">
+          {canManage && x.status !== 'cancelled' && <AdminOnly><details className="mt-4 rounded-xl border p-3">
             <summary className="cursor-pointer font-semibold">Dienst beheren</summary>
             <form action={updateShift} className="mt-3 grid gap-2 md:grid-cols-2">
               <input type="hidden" name="shift_id" value={x.id}/>
@@ -104,7 +87,7 @@ export default async function Page() {
               <input name="reason" maxLength={500} placeholder="Reden annulering (optioneel)" className="min-w-0 flex-1 rounded-lg border bg-background p-3"/>
               <button className="rounded-lg bg-red-700 px-4 py-3 font-bold text-white">ANNULEER DIENST</button>
             </form>
-          </details>}
+          </details></AdminOnly>}
         </article>
       })}
     </div>

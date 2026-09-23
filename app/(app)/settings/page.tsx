@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/crew-server'
-import { ProfileForm } from '@/components/crew/profile-form'
+import { ProfileForm } from '@/components/crew/profile-form'\nimport { LanguageSwitcher } from '@/components/language-switcher'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,5 +24,8 @@ export default async function Page() {
     {error || !profile
       ? <p>Profiel kon niet worden geladen.</p>
       : <ProfileForm id={user.id} initial={profile} photoUrl={photoUrl}/>}
+    <section className="rounded-2xl border p-4">
+      <LanguageSwitcher />
+    </section>
   </main>
 }

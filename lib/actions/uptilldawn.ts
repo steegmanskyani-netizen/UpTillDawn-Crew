@@ -78,7 +78,7 @@ export async function cancelShift(fd:FormData){
  check(error);revalidatePath('/shifts');revalidatePath('/operations')
 }
 export async function setAccountStatus(fd:FormData){
- const {s,user}=await adminClient();const id=uuid.parse(fd.get('user_id'));const approved=fd.get('status')==='approved'
+ const {s,user}=await adminClient();const id=uuid.parse(fd.get('user_id'));const status=z.enum(['pending','approved']).parse(fd.get('status'));const approved=status==='approved'
  const role=z.enum(['admin','responsible_lead','staff']).parse(fd.get('role')||'staff')
  if(id===user.id && (!approved||role!=='admin'))throw new Error('Je kunt je eigen admin-toegang hier niet intrekken.')
  const {error}=await s.rpc('upt_admin_set_account',{p_user:id,p_approved:approved,p_role:role});check(error);revalidatePath('/personnel')

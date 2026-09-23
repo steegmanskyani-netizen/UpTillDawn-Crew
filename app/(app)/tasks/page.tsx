@@ -139,7 +139,11 @@ export default async function Page() {
       <button className="rounded-xl bg-violet-600 p-3 font-bold md:col-span-2">TAAK AANMAKEN & TOEWIJZEN</button>
     </form></ManagerOnly>}
 
-    {error ? <p>Taken konden niet worden geladen.</p> : !visibleAssignments.length ? <p>Geen toegewezen taken.</p> : visibleAssignments.map(t => {
+    {error
+      ? <p>Taken konden niet worden geladen.</p>
+      : !visibleAssignments.length
+        ? (manager || hasActiveAssignedEvent ? <p>Geen toegewezen taken.</p> : null)
+        : visibleAssignments.map(t => {
       const task = t.tasks
       const canManage = Boolean(manager && task && (isAdmin || (task.workplace_id && managedWorkplaces.has(task.workplace_id))))
       const article = <article className="rounded-xl border p-4">

@@ -20,9 +20,10 @@ function CountBadge({ count }: { count: number }) {
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
-  const { user, roles } = useAuth()
+  const { user, roles, testRole } = useAuth()
   const [chatMissed, setChatMissed] = useState(0)
   const [incidentMissed, setIncidentMissed] = useState(0)
+  const [hasActiveEvent, setHasActiveEvent] = useState(false)
 
   const refreshMissed = useCallback(async () => {
     if (!user) return
@@ -43,6 +44,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     }
 
     const supabase = createClient()
+
+    const { data: activeEvents } = await supabase
+      .from("events")
+      .select("id")
+      .lte("start_at", now)
+      .gte("end_at", now)
+      .limit(1)
+    setHasActiveEvent(Boolean(activeEvents?.length))
 
     if (pathname.startsWith("/chat")) {
       window.localStorage.setItem(chatKey, now)
@@ -95,10 +104,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <div className="print:hidden"><MobileBottomNav incidentMissed={incidentMissed} /></div>
       </div>
       {!pathname.startsWith("/chat") && <div className="fixed bottom-20 left-4 right-4 z-50 flex items-center justify-between print:hidden md:hidden">
-        <Link href="/incidents" className="relative rounded-full bg-red-600 px-5 py-4 font-black text-white">
+        {(hasActiveEvent || testRole !== null) && <Link href="/incidents" className="relative rounded-full bg-red-600 px-5 py-4 font-black text-white">
           URGENT
           <CountBadge count={incidentMissed} />
-        </Link>
+        </Link>}
         <Link href="/chat" aria-label={chatMissed ? `Chat, ${chatMissed} gemiste berichten` : "Chat"} className="relative flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black text-white shadow-lg">
           <MessageCircle className="h-7 w-7" />
           <CountBadge count={chatMissed} />

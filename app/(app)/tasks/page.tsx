@@ -1,6 +1,7 @@
 import { createTask, removeTaskAssignment } from '@/lib/actions/uptilldawn'
 import { createClient } from '@/lib/supabase/crew-server'
 import { TaskControls } from '@/components/crew/task-controls'
+import { ResponsibleTaskTest } from '@/components/crew/responsible-task-test'
 
 export const dynamic = 'force-dynamic'
 
@@ -53,6 +54,7 @@ export default async function Page() {
   }
 
   return <main className="space-y-4 p-4 md:p-8">
+    {isAdmin && <ResponsibleTaskTest workplaces={workplaces} people={people} />}
     <div>
       <h1 className="text-3xl font-black">Taken</h1>
       {isResponsible && <p className="text-sm text-muted-foreground">Je beheert alleen taakpakketten binnen je eigen werkplek.</p>}

@@ -13,10 +13,10 @@ import {
 } from '@/lib/crew-queue'
 
 const labels: Record<string,string> = {
-  start_work: 'START WORK',
-  start_break: 'START BREAK',
-  stop_break: 'STOP BREAK',
-  stop_work: 'STOP WORK',
+  start_work: 'WERK STARTEN',
+  start_break: 'PAUZE STARTEN',
+  stop_break: 'PAUZE STOPPEN',
+  stop_work: 'WERK STOPPEN',
   transition: 'WERKPLEKOVERGANG',
   task: 'TAAKSTATUS',
   message: 'CHATBERICHT',
@@ -102,7 +102,7 @@ export function SyncCenter() {
   return <div className="space-y-4">
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border p-4">
       <div>
-        <p className="font-bold">{online ? 'ONLINE' : 'OFFLINE'}</p>
+        <p className="font-bold">{online ? 'VERBONDEN' : 'NIET VERBONDEN'}</p>
         <p className="text-sm text-muted-foreground">{ops.length} actie(s) + {uploads.length} bestand(en) wachten op serverbevestiging.</p>
       </div>
       <button disabled={busy || !online || !total} onClick={retry} className="rounded-xl bg-violet-600 px-4 py-3 font-bold">OPNIEUW SYNCHRONISEREN</button>
@@ -139,6 +139,6 @@ export function SyncCenter() {
     </article>)}
 
     {message && <p role="status" className="rounded-xl border p-4">{message}</p>}
-    <p className="text-xs text-muted-foreground">Tijdacties blijven geordend. URGENT- en chatfoto&apos;s blijven als Blob in IndexedDB bewaard tot upload en server-RPC bevestigd zijn.</p>
+    <p className="text-xs text-muted-foreground">Tijdacties blijven geordend. URGENT- en chatfoto&apos;s blijven als Blob in IndexedDB bewaard tot upload en serverbewerking bevestigd zijn.</p>
   </div>
 }

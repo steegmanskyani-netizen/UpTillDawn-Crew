@@ -41,6 +41,18 @@ VALUES(
  (SELECT id FROM upt_scope_ids WHERE name='staff')
 );
 
+DO $
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM public.event_members
+    WHERE event_id=(SELECT id FROM upt_scope_ids WHERE name='event')
+      AND user_id=(SELECT id FROM upt_scope_ids WHERE name='lead')
+  ) THEN
+    RAISE EXCEPTION 'FAIL responsible assignment did not create event membership';
+  END IF;
+END $;
+
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_scope_ids WHERE name='lead'),true);
 SET LOCAL ROLE authenticated;
 DO $$
@@ -81,5 +93,5 @@ BEGIN
 END $$;
 RESET ROLE;
 
-SELECT 'PASS: responsible reads assigned event and only assigned workplace; staff event member retains event workplace visibility' AS result;
+SELECT 'PASS: responsible assignment creates event membership, reads assigned event and only assigned workplace; staff event member retains event workplace visibility' AS result;
 ROLLBACK;

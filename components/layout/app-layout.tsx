@@ -26,6 +26,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [taskMissed, setTaskMissed] = useState(0)
   const [hasActiveEvent, setHasActiveEvent] = useState(false)
   const [showOperations, setShowOperations] = useState(false)
+  const [showEvents, setShowEvents] = useState(false)
   const [showTasks, setShowTasks] = useState(false)
   const [showBriefings, setShowBriefings] = useState(false)
 
@@ -51,13 +52,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
     const supabase = createClient()
 
-    const { data: activeEvents } = await supabase
-      .from("events")
-      .select("id")
-      .lte("start_at", now)
-      .gte("end_at", now)
+    const [{ data: activeEvents }, { data: startedEvents }] = await Promise.all([
+      supabase
+        .from("events")
+        .select("id")
+        .lte("start_at", now)
+        .gte("end_at", now),
+      supabase
+        .from("events")
+        .select("id")
+        .lte("start_at", now),
+    ])
 
     const activeEventIds = (activeEvents || []).map(event => event.id)
+    const startedEventIds = new Set((startedEvents || []).map(event => event.id))
     const active = activeEventIds.length > 0
     setHasActiveEvent(active)
 
@@ -65,20 +73,36 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
     if (manager) {
       setShowOperations(active || testRole !== null)
+      setShowEvents(true)
       setShowTasks(true)
       setShowBriefings(true)
     } else {
-      const [{ data: activeShifts }, { data: assignedTasks }, { data: briefs }, { data: personal }] = await Promise.all([
-        activeEventIds.length
-          ? supabase.from("shifts").select("id").eq("user_id", user.id).in("event_id", activeEventIds).neq("status", "cancelled").limit(1)
-          : Promise.resolve({ data: [] as { id: string }[] }),
-        supabase.from("task_assignments").select("id").eq("user_id", user.id).limit(1),
-        supabase.from("briefings").select("id").limit(1),
-        supabase.from("personal_instructions").select("id").eq("user_id", user.id).limit(1),
+      const [{ data: memberships }, { data: shifts }, { data: assignedTasks }, { data: briefs }, { data: personal }] = await Promise.all([
+        supabase.from("event_members").select("event_id").eq("user_id", user.id),
+        supabase.from("shifts").select("event_id").eq("user_id", user.id).neq("status", "cancelled"),
+        supabase.from("task_assignments").select("id,tasks(event_id)").eq("user_id", user.id),
+        supabase.from("briefings").select("id,event_id"),
+        supabase.from("personal_instructions").select("id,event_id").eq("user_id", user.id),
       ])
-      setShowOperations(Boolean(activeShifts?.length) || testRole !== null)
-      setShowTasks(Boolean(assignedTasks?.length) || testRole !== null)
-      setShowBriefings(Boolean(briefs?.length || personal?.length) || testRole !== null)
+
+      const assignedEventIds = new Set<string>([
+        ...(memberships || []).map(row => row.event_id),
+        ...(shifts || []).map(row => row.event_id),
+      ])
+      const activeAssignedEventIds = new Set(activeEventIds.filter(id => assignedEventIds.has(id)))
+      const startedAssigned = [...assignedEventIds].some(id => startedEventIds.has(id))
+
+      const hasActiveTask = (assignedTasks || []).some(row => {
+        const task = Array.isArray(row.tasks) ? row.tasks[0] : row.tasks
+        return Boolean(task?.event_id && activeAssignedEventIds.has(task.event_id))
+      })
+      const hasActiveBriefing = (briefs || []).some(row => activeAssignedEventIds.has(row.event_id))
+        || (personal || []).some(row => activeAssignedEventIds.has(row.event_id))
+
+      setShowOperations(activeAssignedEventIds.size > 0)
+      setShowEvents(startedAssigned)
+      setShowTasks(hasActiveTask)
+      setShowBriefings(hasActiveBriefing)
     }
 
     if (pathname.startsWith("/tasks")) {
@@ -138,6 +162,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         incidentMissed={incidentMissed}
         taskMissed={taskMissed}
         showOperations={showOperations}
+        showEvents={showEvents}
         showTasks={showTasks}
         showBriefings={showBriefings}
       /></div>
@@ -152,6 +177,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           incidentMissed={incidentMissed}
           taskMissed={taskMissed}
           showOperations={showOperations}
+          showEvents={showEvents}
           showTasks={showTasks}
         /></div>
       </div>

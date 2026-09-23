@@ -59,7 +59,7 @@ export default async function Page() {
 
     {manager && workplaces.length > 0 && <form action={createShift} className="grid gap-2 rounded-2xl border p-4 md:grid-cols-3">
       <select name="workplace_id" required className="rounded-lg border bg-background p-3">
-        <option value="">Workplace…</option>
+        <option value="">Werkplek…</option>
         {workplaces.map(x => <option key={x.id} value={x.id}>{x.events?.name} — {x.name}</option>)}
       </select>
       <select name="user_id" required className="rounded-lg border bg-background p-3">

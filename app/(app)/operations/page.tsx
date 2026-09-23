@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/crew-server'
 import { redirect } from 'next/navigation'
 import OperationsClient from './operations-client'
+import type { Tables } from '@/types/crew-database'
 
 export const dynamic = 'force-dynamic'
 
@@ -30,9 +31,9 @@ export default async function Page() {
     ? await s.rpc('upt_work_session_time_summary', { p_work_session: session.data.id })
     : null
 
-  let liveSessions: typeof shifts.data extends never ? never[] : any[] = []
-  let liveBreaks: any[] = []
-  let liveShifts: any[] = []
+  let liveSessions: Tables<'work_sessions'>[] = []
+  let liveBreaks: Tables<'break_sessions'>[] = []
+  let liveShifts: Tables<'shifts'>[] = []
   let crewDirectory: Array<{ id: string; full_name: string | null; phone_number: string | null; profile_photo_url: string | null }> = []
 
   if (manager) {

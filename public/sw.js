@@ -1,4 +1,4 @@
-const CACHE='uptilldawn-public-v2'
+const CACHE='uptilldawn-public-v3'
 const PUBLIC_ASSETS=['/offline.html','/uptilldawn-logo.jpeg','/icon-dark-32x32.png']
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(PUBLIC_ASSETS))))
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('uptilldawn-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim())))

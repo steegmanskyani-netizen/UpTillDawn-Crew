@@ -2,7 +2,7 @@
 
 This is a verified hardening milestone, **not a production-complete release**.
 
-**Current implementation estimate: ~95%.** This estimate counts only implemented and verified work; production deployment, browser/device E2E and the remaining offline/Web Push work are not counted as complete.
+**Current implementation estimate: ~96%.** This estimate counts only implemented and verified work; production deployment, browser/device E2E and the remaining offline/Web Push work are not counted as complete.
 
 ## Verified implementation
 
@@ -13,7 +13,7 @@ This is a verified hardening milestone, **not a production-complete release**.
 - Safe crew-directory data is limited to approved users' name, phone and profile photo. A dedicated Crew page is available to approved Staff, Responsible and Admin users. Private profile-photo reads use short-lived signed URLs. A storage-RLS regression found and fixed a profile-photo policy bug caused by nested profile RLS.
 - Admin account approval and role changes are server-authorized and audited. Users cannot promote or approve themselves.
 - Event creation/edit/archive and configuration duplication are implemented. Duplication copies reusable configuration but not work sessions, check-ins, incidents or other historical operational records.
-- Workplaces and multiple Responsible assignments are implemented. Responsible users see and manage only assigned workplaces.
+- Workplaces and multiple Responsible assignments are implemented. Responsible users see and manage only assigned workplaces. A Responsible assignment now also guarantees event membership so the lead can participate in shift/check-in/task workflows without a separate admin membership step.
 - Shift creation/edit/cancellation is available to admins and scoped Responsible leads. New shift RPCs validate event membership, authorization and time ranges, reject overlaps unless explicitly allowed, and block destructive edits while an active work session exists.
 - Check-in/check-out requests, Responsible/Admin decisions and signed remote-selfie retrieval are implemented. Remote selfie ownership/existence/freshness/non-reuse validation remains server-side.
 - Work/break timing uses server-authoritative RPCs. Only one active work session and one active break are allowed. START WORK / START BREAK / STOP BREAK / STOP WORK and workplace transitions are implemented.
@@ -53,12 +53,17 @@ The following migrations have been applied successfully to the target project:
 - `uptilldawn_operational_media_immutability`
 - `uptilldawn_anon_privilege_hardening`
 - `uptilldawn_offline_time_dependencies`
+- `uptilldawn_remove_legacy_profile_view`
+- `uptilldawn_rls_performance_cleanup`
+- `uptilldawn_responsible_read_scope`
+- `uptilldawn_index_and_private_policy_cleanup`
+- `uptilldawn_responsible_membership_invariant`
 
 Generated TypeScript database types were refreshed from the live target schema after these changes.
 
 ## Verification executed
 
-- Node suite: 39 tests passed at the established baseline, including paid-break allocation, midnight and DST behavior.
+- Current Node suite: 12 tests pass, including paid-break allocation, midnight/DST behavior, overlap protection, offline-shell syntax/invariants, core migration checks and PWA/service-worker smoke checks. The earlier larger legacy suite was intentionally removed with the retired StaffPortal runtime.
 - Recent GitHub CI runs pass lint, TypeScript checking, Node tests, the Next.js production build, the OpenNext Cloudflare build and Wrangler deployment dry-run for the current implementation commits, including the Admin dashboard/offline/security continuation. This is not a production deployment.
 - Local HTTP smoke tests previously passed for public/auth redirects, anonymous export denial, offline fallback and service worker. These are not authenticated browser E2E tests.
 - `tests/sql/operational-security.sql` was rerun against the target database inside a transaction and rolled back successfully after the new migrations. It covers profile isolation, self-promotion denial, cross-workplace access denial, unapproved accounts, anonymous RPC privileges, shared break allowance, sync replay/conflicts, GPS assessment, briefing acknowledgement, event duplication, work/break lifecycle, stored GPS evidence and warning deduplication.
@@ -67,8 +72,10 @@ Generated TypeScript database types were refreshed from the live target schema a
 - `tests/sql/storage-security.sql` was executed against the target database inside a transaction and rolled back successfully. It verifies approved profile-photo access, unapproved denial, Responsible access to linked check-in/incident evidence, private-chat attachment membership isolation and the absence of direct authenticated DELETE policies for operational media.
 - `tests/sql/privilege-matrix.sql` passed against the target database. All public base tables have RLS enabled, `anon` has no public-table/Uptilldawn-RPC grants, no crew RLS policy is granted to `PUBLIC`, and trigger functions are not directly callable.
 - `tests/sql/offline-time-dependencies.sql` passed against the target database. It verifies an ordered queued START WORK → START BREAK → STOP BREAK → STOP WORK chain using operation dependencies instead of pre-existing server entity IDs.
-- The full operational, new-feature, queued-upload, storage, privilege-matrix and offline-time-dependency SQL suites were rerun after the latest privilege/offline migrations and all passed.
-- Current Supabase security advisor has no new missing public-table RLS finding from these migrations. It still reports the intentionally private `upt_private.break_warning_receipts` table as RLS-without-policy, flags authenticated `SECURITY DEFINER` RPC entry points for review, and reports leaked-password protection disabled. Advisor output is not treated as a complete security audit.
+- The full operational, new-feature, queued-upload, storage, privilege-matrix, offline-time-dependency and Responsible read-scope SQL suites were rerun after the cleanup migrations and all passed.
+- Current Supabase security advisor no longer reports the private break-warning table as policy-less. Remaining warnings are the authenticated `SECURITY DEFINER` RPC entry points that intentionally implement validated application workflows/helpers, plus leaked-password protection being disabled at project level. A source scan found no authenticated SECURITY DEFINER entry point lacking either direct auth checks or a validated authorization helper. Advisor output is not treated as a complete security audit.
+- `npm ci` and `npm audit` now report **0 known vulnerabilities** after pinning the vulnerable transitive `uuid` dependency to patched v11.1.1; the full Next/OpenNext build remains green with that override.
+- Database cleanup removed exact redundant indexes and added covering indexes for the most frequently joined/scoped operational relations. Supabase's remaining foreign-key/unused-index notices are informational; the database currently has almost no production traffic, so unused-index statistics are not representative.
 
 ## Still required before production
 
@@ -78,6 +85,6 @@ Generated TypeScript database types were refreshed from the live target schema a
 4. **Web Push:** in-app notifications are implemented, but push subscription and external push delivery are not.
 5. **Policy decision:** define overtime and, if required, a work-period model different from the current one-event allowance model. The system deliberately does not invent payroll policy.
 6. **Broader security regression coverage:** the public-table/RPC privilege matrix and private-storage regression suites now exist and pass. Additional adversarial browser/device testing is still required before describing the system as security-audited.
-7. **Fresh-install proof:** all 67 local migration filenames now match the 67 applied migration-history entries in the target Supabase project exactly. The complete chain still needs to be replayed on an isolated database before claiming a clean-from-zero installation path.
+7. **Fresh-install proof:** all 72 local migration filenames now match the 72 applied migration-history entries in the target Supabase project exactly. The complete chain still needs to be replayed on an isolated database before claiming a clean-from-zero installation path.
 
 The application code remains isolated on `codex/uptilldawn-production-hardening`. Production deployment must not be inferred solely from green CI.

@@ -11,8 +11,8 @@ export default async function Page() {
   const { data: crew, error } = await s.rpc('upt_crew_directory')
   if (error) {
     return <main className="mx-auto max-w-4xl p-4 md:p-8">
-      <h1 className="text-3xl font-black">Crew</h1>
-      <p className="mt-4">Crewlijst kon niet worden geladen.</p>
+      <h1 className="text-3xl font-black">Personeel</h1>
+      <p className="mt-4">Personeelslijst kon niet worden geladen.</p>
     </main>
   }
 
@@ -24,7 +24,7 @@ export default async function Page() {
 
   return <main className="mx-auto max-w-4xl space-y-5 p-4 pb-28 md:p-8">
     <div>
-      <h1 className="text-3xl font-black">Crew</h1>
+      <h1 className="text-3xl font-black">Personeel</h1>
       <p className="text-sm text-muted-foreground">Alleen naam, profielfoto en telefoonnummer worden hier getoond.</p>
     </div>
     <div className="grid gap-3 sm:grid-cols-2">

@@ -1973,6 +1973,14 @@ export type Database = {
         Args: { p_assignment: string }
         Returns: undefined
       }
+      upt_acknowledge_incident: {
+        Args: { p_incident: string }
+        Returns: undefined
+      }
+      upt_resolve_incident: {
+        Args: { p_incident: string }
+        Returns: undefined
+      }
       upt_request_check_in: {
         Args: {
           p_accuracy_m?: number

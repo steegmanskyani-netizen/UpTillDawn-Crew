@@ -450,6 +450,45 @@ export type Database = {
           },
         ]
       }
+      event_availability: {
+        Row: {
+          event_id: string
+          responded_at: string
+          response: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          event_id: string
+          responded_at?: string
+          response: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          event_id?: string
+          responded_at?: string
+          response?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_availability_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_availability_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       event_members: {
         Row: {
           created_at: string

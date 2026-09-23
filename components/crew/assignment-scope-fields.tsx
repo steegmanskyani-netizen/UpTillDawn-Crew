@@ -13,6 +13,7 @@ export function AssignmentScopeFields({
   people,
   memberships,
   isAdmin,
+  showEventSelect = isAdmin,
   requirePerson = true,
   workplaceRequired = false,
   multiplePeople = false,
@@ -23,6 +24,7 @@ export function AssignmentScopeFields({
   people: AssignmentPerson[]
   memberships: AssignmentMembership[]
   isAdmin: boolean
+  showEventSelect?: boolean
   requirePerson?: boolean
   workplaceRequired?: boolean
   multiplePeople?: boolean
@@ -33,10 +35,10 @@ export function AssignmentScopeFields({
   const [personId, setPersonId] = useState("")
 
   const visibleWorkplaces = useMemo(
-    () => isAdmin && eventId
+    () => showEventSelect && eventId
       ? workplaces.filter(workplace => workplace.event_id === eventId)
       : workplaces,
-    [eventId, isAdmin, workplaces],
+    [eventId, showEventSelect, workplaces],
   )
 
   const effectiveEventId = workplaceId
@@ -73,7 +75,7 @@ export function AssignmentScopeFields({
   const visiblePeople = people.filter(person => allowedUserIds.has(person.id))
 
   return <>
-    {isAdmin && <select
+    {showEventSelect && <select
       name="event_id"
       required={!workplaceId}
       value={eventId}
@@ -98,7 +100,7 @@ export function AssignmentScopeFields({
       }}
       className="border bg-background p-3"
     >
-      {isAdmin
+      {showEventSelect
         ? <option value="">Geheel evenement</option>
         : <option value="">Werkplek…</option>}
       {visibleWorkplaces.map(workplace => {

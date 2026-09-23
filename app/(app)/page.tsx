@@ -19,7 +19,7 @@ export default async function Dashboard() {
 
   const [profileResult, eventsResult, shiftsResult, incidentsResult] = await Promise.all([
     s.from('profiles').select('full_name,approved').eq('id', user.id).single(),
-    s.from('events').select('id,name,venue,start_at,status').order('start_at', { ascending: true }).limit(3),
+    s.from('events').select('id,name,venue,start_at,end_at,status').gte('end_at', new Date().toISOString()).order('start_at', { ascending: true }).limit(3),
     s.from('shifts').select('id,scheduled_start,scheduled_end,role_name,workplace_id,event_id').eq('user_id', user.id).order('scheduled_start', { ascending: true }).limit(3),
     s.from('incidents').select('id', { count: 'exact', head: true }).neq('status', 'resolved'),
   ])

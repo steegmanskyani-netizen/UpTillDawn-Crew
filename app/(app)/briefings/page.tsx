@@ -70,7 +70,6 @@ export default async function Page() {
     { data: packs },
     { data: eventWindows },
     { data: ownMemberships },
-    { data: ownShifts },
   ] = await Promise.all([
     s.from('briefings').select('*').order('created_at', { ascending: false }),
     s.from('personal_instructions').select('*').order('created_at', { ascending: false }),
@@ -78,24 +77,16 @@ export default async function Page() {
     s.from('personal_instruction_acknowledgements').select('*').eq('user_id', user.id),
     s.from('events').select('id').gte('end_at', 'now'),
     s.from('event_members').select('event_id').eq('user_id', user.id),
-    s.from('shifts').select('event_id,workplace_id').eq('user_id', user.id).neq('status', 'cancelled'),
   ])
 
   const readableEventIds = new Set((eventWindows || []).map(event => event.id))
-  const assignedEventIds = new Set([
-    ...(ownMemberships || []).map(row => row.event_id),
-    ...(ownShifts || []).map(row => row.event_id),
-  ])
-  const assignedWorkplaces = new Set((ownShifts || []).map(row => `${row.event_id}:${row.workplace_id}`))
+  const assignedEventIds = new Set((ownMemberships || []).map(row => row.event_id))
   const staffCanReadBriefing = (briefing: Tables<'briefings'>) =>
-    readableEventIds.has(briefing.event_id)
-    && (
-      briefing.workplace_id
-        ? assignedWorkplaces.has(`${briefing.event_id}:${briefing.workplace_id}`)
-        : assignedEventIds.has(briefing.event_id)
-    )
+    assignedEventIds.has(briefing.event_id) && readableEventIds.has(briefing.event_id)
   const staffCanReadInstruction = (instruction: Tables<'personal_instructions'>) =>
-    instruction.user_id === user.id && readableEventIds.has(instruction.event_id)
+    instruction.user_id === user.id
+    && assignedEventIds.has(instruction.event_id)
+    && readableEventIds.has(instruction.event_id)
   const hasStaffInstruction = (briefs || []).some(staffCanReadBriefing)
     || (personal || []).some(staffCanReadInstruction)
 
@@ -127,42 +118,37 @@ export default async function Page() {
       ...(shiftRows || []).map(row => ({ event_id: row.event_id, workplace_id: row.workplace_id, user_id: row.user_id })),
     ]
   } else if (isResponsible) {
-    const { data: responsibilities } = await s
-      .from('responsible_assignments')
-      .select('event_id,workplace_id')
+    const { data: responsibleMemberships } = await s
+      .from('event_members')
+      .select('event_id')
       .eq('user_id', user.id)
+      .eq('event_role', 'responsible_lead')
 
-    const workplaceIds = [...new Set((responsibilities || []).map(row => row.workplace_id))]
-    if (workplaceIds.length) {
-      const { data: workplaceRows } = await s
-        .from('workplaces')
-        .select('id,name,event_id')
-        .in('id', workplaceIds)
-        .eq('is_active', true)
-        .order('sort_order')
-
-      workplaces = workplaceRows || []
-
-      const eventIds = [...new Set(workplaces.map(workplace => workplace.event_id))]
-      if (eventIds.length) {
-        const { data: eventRows } = await s
-          .from('events')
+    const eventIds = [...new Set((responsibleMemberships || []).map(row => row.event_id))]
+    if (eventIds.length) {
+      const [{ data: eventRows }, { data: workplaceRows }] = await Promise.all([
+        s.from('events')
           .select('id,name')
           .in('id', eventIds)
           .neq('status', 'archived')
-          .order('start_at')
-        events = eventRows || []
-      }
+          .gte('end_at', 'now')
+          .order('start_at'),
+        s.from('workplaces')
+          .select('id,name,event_id')
+          .in('event_id', eventIds)
+          .eq('is_active', true)
+          .order('sort_order'),
+      ])
 
-      const directories = await Promise.all((responsibilities || []).map(async responsibility => {
+      events = eventRows || []
+      workplaces = workplaceRows || []
+
+      const directories = await Promise.all(eventIds.map(async eventId => {
         const { data } = await s.rpc('upt_responsible_event_members', {
-          p_event: responsibility.event_id,
-          p_workplace: responsibility.workplace_id,
+          p_event: eventId,
+          p_workplace: null,
         })
-        return {
-          responsibility,
-          people: data || [],
-        }
+        return { eventId, people: data || [] }
       }))
 
       const uniquePeople = new Map<string, AssignmentPerson>()
@@ -170,8 +156,8 @@ export default async function Page() {
         for (const person of directory.people) {
           uniquePeople.set(person.id, { id: person.id, full_name: person.full_name })
           memberships.push({
-            event_id: directory.responsibility.event_id,
-            workplace_id: directory.responsibility.workplace_id,
+            event_id: directory.eventId,
+            workplace_id: null,
             user_id: person.id,
           })
         }
@@ -205,13 +191,13 @@ export default async function Page() {
   return <main className="space-y-5 p-4 md:p-8">
     <div>
       <h1 className="text-3xl font-black">Instructies</h1>
-      {isResponsible && <p className="text-sm text-muted-foreground">Je kunt alleen instructies beheren voor personeel binnen je toegewezen werkplekken.</p>}
+      {isResponsible && <p className="text-sm text-muted-foreground">Je kunt instructies voorbereiden voor evenementen waaraan je als verantwoordelijke bent toegewezen.</p>}
       <StaffUnavailableMessage available={Boolean(assignedEventIds.size)}>
         <p className="mt-3 rounded-xl border p-4 text-muted-foreground">Instructies worden zichtbaar zodra je aan een evenement bent toegevoegd.</p>
       </StaffUnavailableMessage>
     </div>
 
-    {manager && (isAdmin || workplaces.length > 0) && <ManagerOnly><div className="grid gap-4 lg:grid-cols-2">
+    {manager && (isAdmin || events.length > 0) && <ManagerOnly><div className="grid gap-4 lg:grid-cols-2">
       <form action={createBriefing} className="grid gap-3 rounded-xl border p-4">
         <h2 className="font-bold">Nieuwe algemene instructie</h2>
         <AssignmentScopeFields
@@ -220,8 +206,9 @@ export default async function Page() {
           people={people}
           memberships={memberships}
           isAdmin={isAdmin}
+          showEventSelect
           requirePerson={false}
-          workplaceRequired={!isAdmin}
+          workplaceRequired={false}
         />
         <input name="title" required placeholder="Titel" className="border bg-background p-3"/>
         <textarea name="body" required placeholder="Algemene instructie" className="min-h-28 border bg-background p-3"/>
@@ -237,7 +224,8 @@ export default async function Page() {
           people={people}
           memberships={memberships}
           isAdmin={isAdmin}
-          workplaceRequired={!isAdmin}
+          showEventSelect
+          workplaceRequired={false}
         />
         <input name="title" required placeholder="Titel" className="border bg-background p-3"/>
         <textarea name="body" required placeholder="Persoonlijke instructie" className="min-h-28 border bg-background p-3"/>

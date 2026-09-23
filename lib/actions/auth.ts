@@ -141,7 +141,7 @@ export async function signIn(formData: FormData) {
     if (!profile.approved) {
         await supabase.auth.signOut()
         return {
-            error: 'ACCOUNT NOT APPROVED',
+            error: 'ACCOUNT NOG NIET GOEDGEKEURD',
             code: 'account_not_approved',
         }
     }
@@ -160,7 +160,7 @@ export async function signIn(formData: FormData) {
     if (!allowed) {
         await supabase.auth.signOut()
         return {
-            error: `Dit account heeft geen toegang tot het gekozen portaal (${requestedPortal}).`,
+            error: `Dit account heeft geen toegang tot het gekozen portaal.`,
             code: 'wrong_portal',
         }
     }

@@ -36,6 +36,8 @@ This is a verified hardening milestone, **not a production-complete release**.
 - Export still reports overtime as `Niet vastgesteld` because no approved overtime rule has been defined.
 - Obsolete StaffPortal office/leave/kiosk routes/actions that depended on absent tables were removed. See `LEGACY_REMOVAL.md`.
 - Authenticated homepage HTML/API responses are not cached by the service worker. The service worker uses a privacy-safe public fallback for auth routes and a separate operational offline shell for app routes; the operational shell does not cache authenticated HTML.
+- UI cleanup removes legacy profile/settings fields (Job Title, Department, Desk Extension, Work Schedule, Kiosk PIN and Hobbies), removes the legacy footer branding bar, uses the Uptilldawn app icon instead of the sidebar placeholder, and keeps displayed roles synchronized with the authenticated profile role.
+- App launch now normalizes the device/browser locale to supported `nl`, `fr` or `en`, falling back to English and persisting the selected locale for subsequent launches.
 - TypeScript enforcement is enabled in production builds. Cloudflare Workers/OpenNext configuration is present.
 
 ## Database migrations added in this hardening continuation

@@ -1,7 +1,7 @@
 import { getCurrentUser } from '@/lib/actions/auth'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/crew-server'
-import { setAccountStatus } from '@/lib/actions/uptilldawn'
+import { setAccountStatus } from '@/lib/actions/uptilldawn'\nimport { nlRole, nlStatus } from '@/lib/ui-nl'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,7 +29,7 @@ export default async function Page() {
           <div className="min-w-0 flex-1">
             <b>{p.full_name || 'Naam ontbreekt'}</b>
             <p className="break-all text-sm text-muted-foreground">{p.email || 'Geen e-mail'}</p>
-            <p className="text-sm text-muted-foreground">{p.role} · {p.approved ? 'APPROVED' : 'PENDING'}</p>
+            <p className="text-sm text-muted-foreground">{nlRole(p.role)} · {nlStatus(p.approved ? 'approved' : 'pending')}</p>
             <details className="mt-3 rounded-xl border p-3">
               <summary className="cursor-pointer font-semibold">Privé personeelsgegevens</summary>
               <dl className="mt-3 grid gap-2 text-sm md:grid-cols-2">
@@ -44,13 +44,13 @@ export default async function Page() {
           <form action={setAccountStatus} className="flex flex-wrap gap-2">
             <input type="hidden" name="user_id" value={p.id}/>
             <select name="status" defaultValue={p.approved ? 'approved' : 'pending'} className="rounded-lg border bg-background p-2">
-              <option value="pending">PENDING</option>
-              <option value="approved">APPROVED</option>
+              <option value="pending">In afwachting</option>
+              <option value="approved">Goedgekeurd</option>
             </select>
             <select name="role" defaultValue={p.role} className="rounded-lg border bg-background p-2">
-              <option value="staff">Staff</option>
-              <option value="responsible_lead">Responsible</option>
-              <option value="admin">Admin</option>
+              <option value="staff">Personeel</option>
+              <option value="responsible_lead">Verantwoordelijke</option>
+              <option value="admin">Beheerder</option>
             </select>
             <button className="rounded-lg bg-violet-600 px-4">Opslaan</button>
           </form>

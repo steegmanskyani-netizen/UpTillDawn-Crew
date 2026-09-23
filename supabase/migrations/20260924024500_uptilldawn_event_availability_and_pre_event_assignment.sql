@@ -9,6 +9,9 @@ create table if not exists public.event_availability (
   primary key (event_id, user_id)
 );
 
+create index if not exists idx_event_availability_user_id
+  on public.event_availability(user_id);
+
 alter table public.event_availability enable row level security;
 grant select, insert, update on public.event_availability to authenticated;
 

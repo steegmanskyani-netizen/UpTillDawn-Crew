@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/actions/auth'
-import { createClient } from '@/lib/supabase/crew-server'
+import { createClient } from '@/lib/supabase/personeel-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,7 +35,7 @@ export default async function Page(){
  if(results.some(x=>x.error)) return <main className="p-4 md:p-8"><h1 className="text-3xl font-black">Beheeroverzicht</h1><p className="mt-4">Dashboardgegevens konden niet volledig worden geladen.</p></main>
 
  const eventRows=events.data||[],sessionRows=sessions.data||[],breakRows=breaks.data||[],inRows=pendingIns.data||[],outRows=pendingOuts.data||[],incidentRows=incidents.data||[],assignmentRows=assignments.data||[],shiftRows=shifts.data||[],profileRows=profiles.data||[],workplaceRows=workplaces.data||[],syncRows=syncIssues.data||[],checkRows=approvedChecks.data||[]
- const activeEvents=eventRows.filter(e=>Date.parse(e.start_at)<=nowMs&&Date.parse(e.end_at)>=nowMs)
+ const activeEvenements=eventRows.filter(e=>Date.parse(e.start_at)<=nowMs&&Date.parse(e.end_at)>=nowMs)
  const missing=shiftRows.filter(shift=>!checkRows.some(check=>check.user_id===shift.user_id&&check.event_id===shift.event_id&&check.workplace_id===shift.workplace_id))
  const people=new Map(profileRows.map(p=>[p.id,p]))
  const eventMap=new Map(eventRows.map(e=>[e.id,e]))
@@ -60,7 +60,7 @@ export default async function Page(){
   <section className="grid gap-5 lg:grid-cols-2">
    <div className="space-y-3 rounded-2xl border p-4"><div className="flex items-center justify-between"><h2 className="text-xl font-bold">Actief personeel</h2><span className="text-sm text-muted-foreground">{sessionRows.length} actief</span></div>
     {!sessionRows.length&&<p className="text-muted-foreground">Niemand is momenteel server-bevestigd aan het werk.</p>}
-    {sessionRows.map(ws=>{const person=people.get(ws.user_id);const shift=ws.shift_id?shiftMap.get(ws.shift_id):undefined;const workplace=shift?workplaceMap.get(shift.workplace_id):undefined;const event=eventMap.get(ws.event_id);const onBreak=paused.has(ws.id);return <article key={ws.id} className="rounded-xl border p-3"><div className="flex items-start justify-between gap-3"><div><p className="font-bold">{person?.full_name||'Crewlid'}</p><p className="text-sm text-muted-foreground">{event?.name||'Evenement'} · {workplace?.name||'Werkplek'}</p><p className="text-xs text-muted-foreground">Gestart {new Date(ws.started_at).toLocaleString('nl-BE')}</p>{person?.phone_number&&<a href={'tel:'+person.phone_number} className="text-sm underline">{person.phone_number}</a>}</div><span className={onBreak?'rounded-full bg-amber-500/20 px-3 py-1 text-xs font-bold text-amber-300':'rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300'}>{onBreak?'PAUZE':'WERKT'}</span></div></article>})}
+    {sessionRows.map(ws=>{const person=people.get(ws.user_id);const shift=ws.shift_id?shiftMap.get(ws.shift_id):undefined;const workplace=shift?workplaceMap.get(shift.workplace_id):undefined;const event=eventMap.get(ws.event_id);const onBreak=paused.has(ws.id);return <article key={ws.id} className="rounded-xl border p-3"><div className="flex items-start justify-between gap-3"><div><p className="font-bold">{person?.full_name||'Personeelslid'}</p><p className="text-sm text-muted-foreground">{event?.name||'Evenement'} · {workplace?.name||'Werkplek'}</p><p className="text-xs text-muted-foreground">Gestart {new Date(ws.started_at).toLocaleString('nl-BE')}</p>{person?.phone_number&&<a href={'tel:'+person.phone_number} className="text-sm underline">{person.phone_number}</a>}</div><span className={onBreak?'rounded-full bg-amber-500/20 px-3 py-1 text-xs font-bold text-amber-300':'rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300'}>{onBreak?'PAUZE':'WERKT'}</span></div></article>})}
    </div>
 
    <div className="space-y-3 rounded-2xl border p-4"><div className="flex items-center justify-between"><h2 className="text-xl font-bold">Actie vereist</h2><Link href="/operations" className="text-sm underline">Goedkeuringen openen</Link></div>

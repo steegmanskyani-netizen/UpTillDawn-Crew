@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/crew-server'
 import { IncidentForm } from '@/components/crew/incident-form'
-import { IncidentControls } from '@/components/crew/incident-controls'\nimport { nlStatus } from '@/lib/ui-nl'
+import { IncidentControls } from '@/components/crew/incident-controls'
+import { nlStatus } from '@/lib/ui-nl'
 
 export const dynamic = 'force-dynamic'
 

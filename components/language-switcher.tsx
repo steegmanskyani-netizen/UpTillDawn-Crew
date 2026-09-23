@@ -4,8 +4,8 @@ import { useEffect, useState } from "react"
 
 const languages = [
   { value: "nl", label: "Nederlands" },
-  { value: "fr", label: "Français" },
-  { value: "en", label: "English" },
+  { value: "fr", label: "Frans" },
+  { value: "en", label: "Engels" },
 ] as const
 
 export function LanguageSwitcher({ dark = false }: { dark?: boolean }) {

@@ -93,7 +93,7 @@ export default async function Page() {
             <summary className="cursor-pointer font-semibold">Dienst beheren</summary>
             <form action={updateShift} className="mt-3 grid gap-2 md:grid-cols-2">
               <input type="hidden" name="shift_id" value={x.id}/>
-              <label className="grid gap-1 text-sm">Rol<input name="role_name" required maxLength={200} defaultValue={x.role_name} className="rounded-lg border bg-background p-3"/></label>
+              <label className="grid gap-1 text-sm">Rol<input name="role_name" required maxLength={200} defaultValue={x.role_name === 'Crew' ? 'Personeel' : x.role_name} className="rounded-lg border bg-background p-3"/></label>
               <label className="flex items-center gap-2 self-end pb-3"><input type="checkbox" name="overlap_allowed" defaultChecked={x.overlap_allowed}/> Overlap expliciet toestaan</label>
               <DateInput name="start" initial={x.scheduled_start}/>
               <DateInput name="end" initial={x.scheduled_end}/>

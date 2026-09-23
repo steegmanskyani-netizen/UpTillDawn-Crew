@@ -26,6 +26,7 @@ export function AssignmentScopeFields({
 }) {
   const [eventId, setEventId] = useState("")
   const [workplaceId, setWorkplaceId] = useState("")
+  const [personId, setPersonId] = useState("")
 
   const visibleWorkplaces = useMemo(
     () => isAdmin && eventId
@@ -66,6 +67,7 @@ export function AssignmentScopeFields({
       onChange={event => {
         setEventId(event.target.value)
         setWorkplaceId("")
+        setPersonId("")
       }}
       className="border bg-background p-3"
     >
@@ -77,7 +79,10 @@ export function AssignmentScopeFields({
       name="workplace_id"
       required={workplaceRequired}
       value={workplaceId}
-      onChange={event => setWorkplaceId(event.target.value)}
+      onChange={event => {
+        setWorkplaceId(event.target.value)
+        setPersonId("")
+      }}
       className="border bg-background p-3"
     >
       {isAdmin
@@ -96,7 +101,8 @@ export function AssignmentScopeFields({
       required
       disabled={!effectiveEventId && !workplaceId}
       className="border bg-background p-3 disabled:opacity-50"
-      defaultValue=""
+      value={personId}
+      onChange={event => setPersonId(event.target.value)}
     >
       <option value="">Medewerker…</option>
       {visiblePeople.map(person =>

@@ -1,18 +1,37 @@
-# Security Policy
+# Security
 
-## Supported versions
+## Supported code
 
-StaffPortal is distributed from the `main` branch and security fixes are applied there. Run the latest commit on `main` to receive patches. There are no separately maintained long-term support branches at this time.
+Only the latest Uptilldawn code on the active release branch / merged `main` should be deployed. Older commits are not maintained as separate supported versions.
 
-| Version | Supported |
-|---------|-----------|
-| `main` (latest) | Yes |
-| Older commits | No |
+## Security model
 
-## Reporting a vulnerability
+- Supabase Auth provides user authentication.
+- Every active public application table uses Row Level Security.
+- Unapproved accounts cannot use crew operations.
+- Admin and Responsible permissions are rechecked in database RPCs.
+- The active application does not use a Supabase service-role key.
+- Sensitive media is stored in private Supabase Storage buckets and exposed with scoped policies / short-lived signed URLs.
+- Timekeeping and approval timestamps are server authoritative.
+- Offline replay uses immutable operation IDs and conflict detection.
 
-If you discover a security vulnerability, please report it privately rather than opening a public issue. Email security@sarmalinux.com with a description of the issue, the affected component or endpoint, and steps to reproduce. Where relevant, include the deployment context (self-hosted, Vercel, Supabase configuration) so the report can be assessed accurately. I will respond within 7 days with an acknowledgement and either a remediation plan or a status update. Coordinated disclosure is preferred: please allow a reasonable window for a fix to ship before any public write-up, and credit will be given to reporters who request it.
+SECURITY DEFINER RPCs are intentionally exposed only where the authenticated application must perform a validated privileged workflow. They must keep explicit caller/role/ownership checks and a fixed `search_path`.
 
-## Scope and hardening notes
+## Secrets
 
-StaffPortal relies on Supabase Row Level Security for data isolation, server-side service-role keys that must never be exposed to the client, and a `CRON_SECRET` bearer token to authenticate scheduled jobs. When self-hosting, keep `SUPABASE_SERVICE_ROLE_KEY` and `CRON_SECRET` out of client bundles and version control, restrict Supabase Auth redirect URLs to known origins, and rotate API keys if a leak is suspected. Reports covering misconfiguration of these controls in the default setup are in scope.
+Never commit:
+
+- Supabase secret/service-role keys
+- Cloudflare API tokens
+- database passwords
+- personal access tokens
+
+Only `NEXT_PUBLIC_SUPABASE_URL`, the publishable/anon key and the public app URL belong in the active application configuration.
+
+## Reporting
+
+Do not post credentials, private employee data or exploit details in a public issue. Contact the repository owner privately with the affected route/RPC, reproduction steps and impact.
+
+## Remaining project-level setting
+
+Supabase leaked-password protection should be enabled before production release. This is an Auth project setting, not an application-code permission.

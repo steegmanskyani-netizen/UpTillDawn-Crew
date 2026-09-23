@@ -23,6 +23,10 @@
 - Restricted private chat and private media access.
 - Prevented authenticated direct deletion of accepted operational media.
 - Aligned local migration filenames with the target Supabase migration history.
+- Fixed Responsible event/workplace read scoping and enforced Responsible event-membership consistency.
+- Removed unsupported personnel status choices and added explicit Admin/manager route guards.
+- Patched the transitive `uuid` advisory through a tested v11.1.1 override; `npm audit` now reports 0 known vulnerabilities.
+- Removed redundant database indexes, added hot-path covering indexes and made the private break-warning deny policy explicit.
 
 ### Cleanup
 

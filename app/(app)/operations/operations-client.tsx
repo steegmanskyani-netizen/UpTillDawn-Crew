@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/crew-client'
 import { enqueue } from '@/lib/crew-queue'
 import { captureLocation } from '@/lib/crew-gps'
+import { saveOperationsSnapshot } from '@/lib/crew-offline-snapshot'
 import type { Tables,Database } from '@/types/crew-database'
 type Summary=Database['public']['Functions']['upt_work_session_time_summary']['Returns'][number]
 type CrewMember={id:string;full_name:string|null;phone_number:string|null;profile_photo_url:string|null}
@@ -12,6 +13,17 @@ export default function OperationsClient(p:Props){
  const router=useRouter();const [busy,setBusy]=useState(false),[msg,setMsg]=useState(''),[remote,setRemote]=useState(false),[file,setFile]=useState<File|null>(null)
  const s=createClient()
  useEffect(()=>{const timer=setInterval(()=>{if(navigator.onLine)router.refresh()},15000);return()=>clearInterval(timer)},[router])
+ useEffect(()=>{void saveOperationsSnapshot({
+  version:1,
+  userId:p.userId,
+  savedAt:Date.now(),
+  events:p.events.map(e=>({id:e.id,name:e.name})),
+  workplaces:p.workplaces.map(w=>({id:w.id,event_id:w.event_id,name:w.name})),
+  shifts:p.shifts.map(x=>({id:x.id,event_id:x.event_id,workplace_id:x.workplace_id,role_name:x.role_name,scheduled_start:x.scheduled_start,scheduled_end:x.scheduled_end})),
+  activeSession:p.activeSession?{id:p.activeSession.id,event_id:p.activeSession.event_id,shift_id:p.activeSession.shift_id,started_at:p.activeSession.started_at}:null,
+  activeBreak:p.activeBreak?{id:p.activeBreak.id,work_session_id:p.activeBreak.work_session_id,started_at:p.activeBreak.started_at}:null,
+  checkins:p.checkins.filter(x=>x.user_id===p.userId).map(x=>({event_id:x.event_id,workplace_id:x.workplace_id,status:x.status})),
+}).catch(()=>{})},[p.userId,p.events,p.workplaces,p.shifts,p.activeSession,p.activeBreak,p.checkins])
  async function run(action:()=>Promise<void>){if(busy)return;setBusy(true);setMsg('');try{await action();router.refresh()}catch{setMsg('Actie niet bevestigd. Controleer je verbinding en huidige status.')}finally{setBusy(false)}}
  async function work(type:string,payload:Record<string,string>){const gps=(type==='start_work'||type==='stop_work')?await captureLocation():{};await enqueue(p.userId,type,{...payload,...gps});setMsg('Actie bewaard. Alleen de bevestigde serverstatus geldt.')}
  async function requestCheckin(shift:Tables<'shifts'>){

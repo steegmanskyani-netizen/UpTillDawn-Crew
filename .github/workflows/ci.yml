@@ -10,6 +10,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # Placeholder public values are sufficient for compile-time validation.
+      # Real production values are configured separately in Cloudflare.
+      NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,9 +40,9 @@ jobs:
 
       - name: Build
         run: npm run build
-        env:
-          # Placeholder values let the production build complete in CI.
-          # Production variables are configured in Cloudflare.
-          NEXT_PUBLIC_SUPABASE_URL: https://placeholder.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: placeholder-anon-key
-          NEXT_PUBLIC_APP_URL: http://localhost:3000
+
+      - name: Build Cloudflare Worker
+        run: npm run build:cloudflare
+
+      - name: Wrangler deployment dry-run
+        run: npx wrangler deploy --dry-run

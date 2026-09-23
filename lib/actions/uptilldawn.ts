@@ -22,6 +22,7 @@ async function approvedClient(){
  return {s,user,profile}
 }
 function check(error:{code?:string}|null){if(error){console.error('[Crew mutation]',{code:error.code});throw new Error('Opslaan mislukt. Controleer je invoer en probeer opnieuw.')}}
+function requireManager(role:string){if(!['admin','responsible_lead'].includes(role))throw new Error('Geen toegang.')}
 
 type WorkPhotoTarget = { type: 'briefing' | 'instruction' | 'task'; id: string }
 const photoTypes = new Map([
@@ -150,10 +151,16 @@ export async function setAccountStatus(fd:FormData){
 export async function acknowledgeBriefing(fd:FormData){const s=await createClient();const {error}=await s.rpc('upt_acknowledge_briefing',{p_briefing:uuid.parse(fd.get('id'))});check(error);revalidatePath('/briefings')}
 export async function acknowledgeInstruction(fd:FormData){const s=await createClient();const {error}=await s.rpc('upt_acknowledge_personal_instruction',{p_instruction:uuid.parse(fd.get('id'))});check(error);revalidatePath('/briefings')}
 export async function createBriefing(fd:FormData){
- const {s,user}=await adminClient()
+ const {s,user,profile}=await approvedClient()
+ requireManager(profile.role)
  const files=workPhotoFiles(fd)
+ const eventId=uuid.parse(fd.get('event_id'))
+ const rawWorkplace=String(fd.get('workplace_id')||'').trim()
+ const workplaceId=rawWorkplace?uuid.parse(rawWorkplace):null
+ if(profile.role==='responsible_lead'&&!workplaceId)throw new Error('Kies een toegewezen werkplek.')
  const {data,error}=await s.from('briefings').insert({
-  event_id:uuid.parse(fd.get('event_id')),
+  event_id:eventId,
+  workplace_id:workplaceId,
   title:text.parse(fd.get('title')),
   body:z.string().trim().min(1).max(20000).parse(fd.get('body')),
   created_by:user.id,
@@ -164,10 +171,16 @@ export async function createBriefing(fd:FormData){
  revalidatePath('/briefings')
 }
 export async function createPersonalInstruction(fd:FormData){
- const {s,user}=await adminClient()
+ const {s,user,profile}=await approvedClient()
+ requireManager(profile.role)
  const files=workPhotoFiles(fd)
+ const eventId=uuid.parse(fd.get('event_id'))
+ const rawWorkplace=String(fd.get('workplace_id')||'').trim()
+ const workplaceId=rawWorkplace?uuid.parse(rawWorkplace):null
+ if(profile.role==='responsible_lead'&&!workplaceId)throw new Error('Kies een toegewezen werkplek.')
  const {data,error}=await s.from('personal_instructions').insert({
-  event_id:uuid.parse(fd.get('event_id')),
+  event_id:eventId,
+  workplace_id:workplaceId,
   user_id:uuid.parse(fd.get('user_id')),
   title:text.parse(fd.get('title')),
   body:z.string().trim().min(1).max(20000).parse(fd.get('body')),
@@ -179,7 +192,8 @@ export async function createPersonalInstruction(fd:FormData){
  revalidatePath('/briefings')
 }
 export async function updateBriefing(fd:FormData){
- const {s,user}=await adminClient()
+ const {s,user,profile}=await approvedClient()
+ requireManager(profile.role)
  const id=uuid.parse(fd.get('id'))
  const files=workPhotoFiles(fd)
  const paths=await uploadWorkPhotos(s,user.id,{type:'briefing',id},files)
@@ -191,7 +205,8 @@ export async function updateBriefing(fd:FormData){
  revalidatePath('/briefings')
 }
 export async function updatePersonalInstruction(fd:FormData){
- const {s,user}=await adminClient()
+ const {s,user,profile}=await approvedClient()
+ requireManager(profile.role)
  const id=uuid.parse(fd.get('id'))
  const files=workPhotoFiles(fd)
  const paths=await uploadWorkPhotos(s,user.id,{type:'instruction',id},files)

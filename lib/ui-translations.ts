@@ -393,6 +393,15 @@ export const UI_TRANSLATIONS: Record<string, Translation> = {
   "Wachtwoord moet minstens 8 tekens bevatten.": { fr: "Le mot de passe doit contenir au moins 8 caractères.", en: "Password must contain at least 8 characters." },
   "Wachtwoorden komen niet overeen.": { fr: "Les mots de passe ne correspondent pas.", en: "Passwords do not match." },
   "De chatfoto mag maximaal 10 MB zijn.": { fr: "La photo de discussion peut faire maximum 10 Mo.", en: "The chat photo may be up to 10 MB." },
+  "Diensten kunnen enkel door admin worden aangemaakt of aangepast.": { fr: "Les services peuvent uniquement être créés ou modifiés par l’administrateur.", en: "Shifts can only be created or changed by the administrator." },
+  "Geen actieve werkplekken gevonden.": { fr: "Aucun poste de travail actif trouvé.", en: "No active workplaces found." },
+  "Geen toegewezen diensten.": { fr: "Aucun service attribué.", en: "No assigned shifts." },
+  "Taken zijn beschikbaar vanaf de start van een toegewezen evenement.": { fr: "Les tâches sont disponibles à partir du début d’un événement attribué.", en: "Tasks are available from the start of an assigned event." },
+  "Instructies zijn beschikbaar vanaf de start van een toegewezen evenement.": { fr: "Les instructions sont disponibles à partir du début d’un événement attribué.", en: "Instructions are available from the start of an assigned event." },
+  "Evenementen zijn beschikbaar vanaf de start van een toegewezen evenement.": { fr: "Les événements sont disponibles à partir du début d’un événement attribué.", en: "Events are available from the start of an assigned event." },
+  "Werk & pauze is beschikbaar vanaf de start van een toegewezen evenement.": { fr: "Travail et pause sont disponibles à partir du début d’un événement attribué.", en: "Work & break is available from the start of an assigned event." },
+  "Werk & pauze is alleen beschikbaar voor je toegewezen dienst tijdens een lopend evenement.": { fr: "Travail et pause sont uniquement disponibles pour votre service attribué pendant un événement en cours.", en: "Work & break is only available for your assigned shift during an active event." },
+  "Alleen admin kan diensten aanmaken of aanpassen.": { fr: "Seul l’administrateur peut créer ou modifier des services.", en: "Only the administrator can create or change shifts." },
 }
 
 export function translateUiText(value: string, locale: UiLocale) {

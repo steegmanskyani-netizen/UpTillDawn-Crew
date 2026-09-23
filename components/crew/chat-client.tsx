@@ -15,12 +15,14 @@ export function ChatClient({
   crewDirectory,
   privatePeers,
   isAdmin,
+  profilePhotoUrls,
 }: {
   channels: Tables<'chat_channels'>[]
   userId: string
   crewDirectory: CrewMember[]
   privatePeers: PrivatePeer[]
   isAdmin: boolean
+  profilePhotoUrls: Record<string, string>
 }) {
   const router = useRouter()
   const [selected, setSelected] = useState(channels[0]?.id || '')
@@ -166,16 +168,34 @@ export function ChatClient({
       {messages.map(m => {
         const sender = crewDirectory.find(c => c.id === m.sender_id)
         const moderated = Boolean(m.moderated_at)
-        return <article key={m.id} className="rounded-xl border p-3">
-          <p className="whitespace-pre-wrap">{moderated ? 'Bericht verwijderd door administrator' : m.body}</p>
-          {!moderated && attachments[m.id]?.map(url => <a key={url} href={url} target="_blank" rel="noreferrer" className="mt-3 block overflow-hidden rounded-xl border">
-            {/* Private signed storage URL. */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={url} alt="Chatfoto" className="max-h-80 w-full object-contain bg-black/20"/>
-          </a>)}
-          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-            <p className="text-xs text-muted-foreground">{m.sender_id === userId ? 'Jij' : sender?.full_name || 'Crew'} · {new Date(m.created_at).toLocaleString('nl-BE')}</p>
-            {isAdmin && !moderated && <button type="button" disabled={busy} onClick={() => moderate(m.id)} className="text-xs underline">Modereer</button>}
+        const senderName = m.sender_id === userId ? 'Jij' : sender?.full_name || 'Crew'
+        const initials = senderName === 'Jij'
+          ? (crewDirectory.find(c => c.id === userId)?.full_name || 'J').split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase()
+          : senderName.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase()
+        const photoUrl = profilePhotoUrls[m.sender_id]
+
+        return <article key={m.id} className="flex gap-3 rounded-2xl border bg-card p-3">
+          <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border bg-muted">
+            {photoUrl
+              ? <>
+                  {/* Private signed storage URL. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={photoUrl} alt={`Profielfoto van ${senderName}`} className="h-full w-full object-cover"/>
+                </>
+              : <div className="flex h-full w-full items-center justify-center text-xs font-black">{initials}</div>}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+              <p className="font-bold">{senderName}</p>
+              <time className="text-xs text-muted-foreground" dateTime={m.created_at}>{new Date(m.created_at).toLocaleString('nl-BE')}</time>
+            </div>
+            <p className="mt-1 whitespace-pre-wrap break-words">{moderated ? 'Bericht verwijderd door administrator' : m.body}</p>
+            {!moderated && attachments[m.id]?.map(url => <a key={url} href={url} target="_blank" rel="noreferrer" className="mt-3 block overflow-hidden rounded-xl border">
+              {/* Private signed storage URL. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={url} alt="Chatfoto" className="max-h-80 w-full object-contain bg-black/20"/>
+            </a>)}
+            {isAdmin && !moderated && <div className="mt-2 text-right"><button type="button" disabled={busy} onClick={() => moderate(m.id)} className="text-xs underline">Modereer</button></div>}
           </div>
         </article>
       })}

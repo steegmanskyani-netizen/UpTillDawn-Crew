@@ -272,7 +272,7 @@ export function ChatClient({
           ? crewDirectory.find(member => member.id === userId)?.full_name || 'Jij'
           : senderName
         const initials = fullNameForInitials.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase()
-        const photoUrl = profilePhotoUrls[message.sender_id]
+        const photoUrl = message.sender_id ? profilePhotoUrls[message.sender_id] : undefined
         const timestamp = selectedChannel.kind === 'organization'
           ? new Date(message.created_at).toLocaleString('nl-BE')
           : new Date(message.created_at).toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })

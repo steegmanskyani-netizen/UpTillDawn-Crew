@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { MessageCircle } from "lucide-react"
 import { AppSidebar } from "@/components/layout/sidebar"
 import { Topbar } from "@/components/layout/topbar"
 import { MobileBottomNav } from "@/components/layout/mobile-nav"
+import { FloatingChatButton } from "@/components/layout/floating-chat-button"
 import { QueueStatus } from "@/components/crew/queue-status"
 import { createClient } from "@/lib/supabase/crew-client"
 import { useAuth } from "@/lib/providers"
@@ -103,16 +103,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         </div>
         <div className="print:hidden"><MobileBottomNav incidentMissed={incidentMissed} /></div>
       </div>
-      {!pathname.startsWith("/chat") && <div className="fixed bottom-20 left-4 right-4 z-50 flex items-center justify-between print:hidden md:hidden">
-        {(hasActiveEvent || testRole !== null) && <Link href="/incidents" className="relative rounded-full bg-red-600 px-5 py-4 font-black text-white">
+      {!pathname.startsWith("/chat") && <>
+        {(hasActiveEvent || testRole !== null) && <Link href="/incidents" className="fixed bottom-20 left-4 z-50 rounded-full bg-red-600 px-5 py-4 font-black text-white print:hidden md:hidden">
           URGENT
           <CountBadge count={incidentMissed} />
         </Link>}
-        <Link href="/chat" aria-label={chatMissed ? `Chat, ${chatMissed} gemiste berichten` : "Chat"} className="relative flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black text-white shadow-lg">
-          <MessageCircle className="h-7 w-7" />
-          <CountBadge count={chatMissed} />
-        </Link>
-      </div>}
+        <FloatingChatButton count={chatMissed} />
+      </>}
     </div>
   )
 }

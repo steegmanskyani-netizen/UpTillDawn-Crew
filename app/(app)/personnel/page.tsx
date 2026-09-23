@@ -1,7 +1,8 @@
 import { getCurrentUser } from '@/lib/actions/auth'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/crew-server'
-import { setAccountStatus } from '@/lib/actions/uptilldawn'\nimport { nlRole, nlStatus } from '@/lib/ui-nl'
+import { setAccountStatus } from '@/lib/actions/uptilldawn'
+import { nlRole, nlStatus } from '@/lib/ui-nl'
 
 export const dynamic = 'force-dynamic'
 

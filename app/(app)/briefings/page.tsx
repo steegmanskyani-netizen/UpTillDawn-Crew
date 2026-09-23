@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/crew-server'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/actions/auth'
+import { ManagerOnly } from '@/components/auth/manager-only'
 import {
   acknowledgeBriefing,
   acknowledgeInstruction,
@@ -185,7 +186,7 @@ export default async function Page() {
       {isResponsible && <p className="text-sm text-muted-foreground">Je kunt alleen instructies beheren voor personeel binnen je toegewezen werkplekken.</p>}
     </div>
 
-    {manager && (isAdmin || workplaces.length > 0) && <div className="grid gap-4 lg:grid-cols-2">
+    {manager && (isAdmin || workplaces.length > 0) && <ManagerOnly><div className="grid gap-4 lg:grid-cols-2">
       <form action={createBriefing} className="grid gap-3 rounded-xl border p-4">
         <h2 className="font-bold">Nieuwe algemene instructie</h2>
         <AssignmentScopeFields
@@ -218,7 +219,7 @@ export default async function Page() {
         <PhotoInput />
         <button className="rounded-xl bg-violet-600 p-3">Instructie toewijzen</button>
       </form>
-    </div>}
+    </div></ManagerOnly>}
 
     {error && <p>Instructies konden niet worden geladen.</p>}
 
@@ -228,13 +229,13 @@ export default async function Page() {
       <PhotoGallery rows={briefingPhotos(briefing.id)} urls={photoUrls}/>
 
       {manager
-        ? <form action={updateBriefing} className="grid gap-2 border-t pt-3">
+        ? <ManagerOnly><form action={updateBriefing} className="grid gap-2 border-t pt-3">
             <input type="hidden" name="id" value={briefing.id}/>
             <input name="title" defaultValue={briefing.title} required className="border bg-background p-2"/>
             <textarea name="body" defaultValue={briefing.body} required className="border bg-background p-2"/>
             <PhotoInput />
             <button className="rounded-lg border p-2">Wijzig instructie + nieuwe bevestiging</button>
-          </form>
+          </form></ManagerOnly>
         : acks?.some(ack => ack.briefing_id === briefing.id && ack.version === briefing.version)
           ? <p>INSTRUCTIE GELEZEN</p>
           : <form action={acknowledgeBriefing}>
@@ -249,13 +250,13 @@ export default async function Page() {
       <PhotoGallery rows={instructionPhotos(instruction.id)} urls={photoUrls}/>
 
       {manager
-        ? <form action={updatePersonalInstruction} className="grid gap-2 border-t pt-3">
+        ? <ManagerOnly><form action={updatePersonalInstruction} className="grid gap-2 border-t pt-3">
             <input type="hidden" name="id" value={instruction.id}/>
             <input name="title" defaultValue={instruction.title} required className="border bg-background p-2"/>
             <textarea name="body" defaultValue={instruction.body} required className="border bg-background p-2"/>
             <PhotoInput />
             <button className="rounded-lg border p-2">Wijzig instructie + nieuwe bevestiging</button>
-          </form>
+          </form></ManagerOnly>
         : packs?.some(ack => ack.instruction_id === instruction.id && ack.version === instruction.version)
           ? <p>Gelezen</p>
           : <form action={acknowledgeInstruction}>

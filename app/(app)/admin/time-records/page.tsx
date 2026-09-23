@@ -49,7 +49,8 @@ export default async function Page() {
     return <main className="p-8">Tijdregistraties konden niet volledig worden geladen.</main>
   }
 
-  const name = (id: string) => people?.find(person => person.id === id)?.full_name || 'Crewlid'
+  const name = (id: string) => people?.find(person => person.id === id)?.full_name || 'Personeelslid'
+  const fieldName = (value: string) => value === 'started_at' ? 'Starttijd' : value === 'ended_at' ? 'Eindtijd' : value
   const eventName = (id: string) => events?.find(event => event.id === id)?.name || 'Evenement'
 
   return <main className="mx-auto max-w-6xl space-y-6 p-4 pb-28 md:p-8">
@@ -73,7 +74,7 @@ export default async function Page() {
     <section className="space-y-2">
       <h2 className="text-xl font-bold">Recente correctiegeschiedenis</h2>
       {(corrections || []).map(correction => <article key={correction.id} className="rounded-xl border p-3 text-sm">
-        <p className="font-semibold">{name(correction.user_id)} · {correction.field_name}</p>
+        <p className="font-semibold">{name(correction.user_id)} · {fieldName(correction.field_name)}</p>
         <p>{new Date(correction.original_value).toLocaleString('nl-BE')} → {new Date(correction.corrected_value).toLocaleString('nl-BE')}</p>
         <p className="text-muted-foreground">{correction.reason} · {new Date(correction.corrected_at).toLocaleString('nl-BE')}</p>
       </article>)}

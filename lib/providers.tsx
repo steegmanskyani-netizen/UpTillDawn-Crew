@@ -9,6 +9,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react"
 import { usePathname } from "next/navigation"
 import { createClient } from "@/lib/supabase/crew-client"
+import { clearOfflineIdentity } from "@/lib/crew-offline-snapshot"
 import type { User, Session } from "@supabase/supabase-js"
 import type { UserRole } from "@/types/database"
 
@@ -85,6 +86,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         setProfile(null)
         setRoles([])
+        void clearOfflineIdentity().catch(() => {})
         setLoading(false)
       }
     })
@@ -99,6 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else {
           setProfile(null)
           setRoles([])
+          void clearOfflineIdentity().catch(() => {})
         }
       }
     )

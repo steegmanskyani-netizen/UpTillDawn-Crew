@@ -8,9 +8,9 @@ import { Menu, X, Eye, EyeOff, Loader2, AlertCircle, ArrowRight, ShieldCheck, Us
 import { signIn } from "@/lib/actions/auth"
 
 const portals = {
-  staff: { label: "Staff Login", icon: Users },
-  responsible: { label: "Responsible Login", icon: UserCog },
-  admin: { label: "Admin Login", icon: ShieldCheck },
+  staff: { label: "Staff", icon: Users },
+  responsible: { label: "Responsible", icon: UserCog },
+  admin: { label: "Admin", icon: ShieldCheck },
 } as const
 
 type Portal = keyof typeof portals
@@ -40,7 +40,7 @@ export default function LoginPage() {
     <main className="min-h-screen bg-black text-white relative overflow-hidden">
       <button
         type="button"
-        aria-label="Open login menu"
+        aria-label="Open inlogmenu"
         aria-expanded={menuOpen}
         onClick={() => setMenuOpen(v => !v)}
         className="fixed left-5 top-5 z-50 grid h-12 w-12 place-items-center rounded-xl border border-white/15 bg-black/70 backdrop-blur hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white"

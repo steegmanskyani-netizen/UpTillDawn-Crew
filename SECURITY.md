@@ -14,6 +14,7 @@ Only the latest Uptilldawn code on the active release branch / merged `main` sho
 - Sensitive media is stored in private Supabase Storage buckets and exposed with scoped policies / short-lived signed URLs.
 - Timekeeping and approval timestamps are server authoritative.
 - Offline replay uses immutable operation IDs and conflict detection.
+- RPC/trigger-only operational tables have direct authenticated INSERT/UPDATE/DELETE grants revoked; validated RPCs are the mutation boundary.
 
 SECURITY DEFINER RPCs are intentionally exposed only where the authenticated application must perform a validated privileged workflow. They must keep explicit caller/role/ownership checks and a fixed `search_path`.
 

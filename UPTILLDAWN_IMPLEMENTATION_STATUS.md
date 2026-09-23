@@ -2,51 +2,72 @@
 
 This is a verified hardening milestone, **not a production-complete release**.
 
-## Verified in this change
+**Current implementation estimate: ~88%.** This estimate counts only implemented and verified work; production deployment, browser/device E2E and the remaining offline/Web Push work are not counted as complete.
 
-- Connected to the existing project `eakoavcieossazqzplke`; the obsolete project was not used.
-- Restored 16 already-applied migration files from remote migration history. New changes use new migrations; corrective migrations remain in history.
-- Repaired recursive profile RLS. Authentication and the client provider use `profiles.approved` and `profiles.role`, not retired StaffPortal tables. Removed raw database errors from login responses. Approval is checked server-side and in database operations.
-- Revoked browser-role TRUNCATE privileges. Restricted sensitive profile columns; administrators have an authorized RPC to retrieve them. Added audited account changes.
-- Added restrictive approval policies. Scoped work/break reads to the responsible lead's workplace. Restricted workplace chat/attachments. Disabled uncontrolled direct writes to operational messages, incidents, attachments and synchronization records.
-- One 60-minute paid-break allowance per employee/event, shared chronologically across work sessions. The implementation treats one event as one work period; a separate multi-day work-period model is not yet defined.
-- Added controlled, atomic synchronization with operation IDs, payload-conflict checks and advisory locks. Replayed time and urgent operations return the existing result. IndexedDB preserves pending actions per account; retries retain errors. A failed time action does not block independent urgent reports/messages.
-- Added check-in/out UI, approval UI, signed selfie retrieval, explicit work/break controls, current summary, valid active-shift transition check and separate checkout controls after stopping work.
-- Remote selfie paths must belong to the caller, exist in private storage, be uploaded within ten minutes and not have been used for another check-in. Browser camera behavior remains a device test gate; the current capture input is a camera hint, not proof of original capture time.
-- GPS captured only for explicit start/stop/urgent actions. Server computes radius status from coordinates and accuracy; denied/unavailable/offline/poor accuracy are not marked verified. Coordinates are device-reported, not cryptographically attested.
-- Added event creation, editing of name/location/GPS settings, archive and configuration duplication. Duplication copies workplaces, briefings and task templates, not personnel assignments or historical operations.
-- Added task assignment/progress UI, briefing and personal-instruction acknowledgement UI, in-app check-in/out notifications, urgent notifications, realtime text chat and server-scheduled break warnings.
-- The minute cron job inserts the staff warning at 55 minutes and responsible/admin warning at 70 minutes only while a break is active, with deduplication. Delivery is in-app, not Web Push.
-- Replaced export with a real ExcelJS `.xlsx`, admin authorization and audit. Rows represent workplace segments; durations are not duplicated in separate total rows. Tests cover paid-break allocation, midnight and DST. Exports fail visibly at the current 1,000-row pagination boundary.
-- Removed obsolete office/leave/kiosk routes and actions that depend on tables absent from this database. See `LEGACY_REMOVAL.md`. Kept the existing Uptilldawn architecture, login design/logo, migrations and applicable core components.
-- Replaced the service worker's cached authenticated homepage with a public offline fallback. User-specific HTML and APIs are not cached.
-- Re-enabled TypeScript enforcement in production builds. Added Cloudflare Workers/OpenNext configuration and a lockfile with exact Supabase package versions.
+## Verified implementation
+
+- Target Supabase project is `eakoavcieossazqzplke`; the obsolete project is not used.
+- Authentication and authorization use `profiles.approved` and `profiles.role`. Unapproved accounts are rejected with `ACCOUNT NOT APPROVED`. Raw database errors are not exposed from login.
+- Profile RLS recursion was repaired. Browser TRUNCATE privileges were revoked. Sensitive personnel fields are not directly readable by ordinary crew.
+- Full personnel profile workflow is available for name, address, phone, date of birth, Belgian national-register number, IBAN and permanent private profile photo. Self-service access uses scoped RPCs; admins have a protected personnel-details RPC. Sensitive values are not written into audit metadata.
+- Safe crew-directory data is limited to approved users' name, phone and profile photo. Private profile-photo reads use storage policies and signed URLs.
+- Admin account approval and role changes are server-authorized and audited. Users cannot promote or approve themselves.
+- Event creation/edit/archive and configuration duplication are implemented. Duplication copies reusable configuration but not work sessions, check-ins, incidents or other historical operational records.
+- Workplaces and multiple Responsible assignments are implemented. Responsible users see and manage only assigned workplaces.
+- Shift creation/edit/cancellation is available to admins and scoped Responsible leads. New shift RPCs validate event membership, authorization and time ranges, reject overlaps unless explicitly allowed, and block destructive edits while an active work session exists.
+- Check-in/check-out requests, Responsible/Admin decisions and signed remote-selfie retrieval are implemented. Remote selfie ownership/existence/freshness/non-reuse validation remains server-side.
+- Work/break timing uses server-authoritative RPCs. Only one active work session and one active break are allowed. START WORK / START BREAK / STOP BREAK / STOP WORK and workplace transitions are implemented.
+- One 60-minute paid-break allowance is shared chronologically per employee/event. Excess break is deducted from payable time. The current work-period model treats one event as one work period.
+- Staff warning at 55 minutes and Responsible/Admin warning at 70 minutes are generated while a break is active, with deduplication.
+- GPS is captured only for explicit operational actions. Radius/accuracy status is computed server-side; denied/unavailable/poor-accuracy states are not falsely marked verified.
+- Responsible live crew-status UI shows visible active work sessions, break state, workplace and safe contact data.
+- Admin time-correction UI uses the audited correction RPC and preserves original/corrected values in correction history.
+- Briefings support create/edit/versioning and renewed acknowledgement after content changes. Personal instructions support authoring, editing, versioning and per-user acknowledgement.
+- Task packages support assignment/progress. Responsible leads can create/remove assignments only within their own workplace.
+- URGENT incidents support persistent text, explicit GPS evidence and optional private photos. Incident acknowledgement/resolution is limited to Admin or the Responsible for the linked workplace and is audited. Authorized incident photos are shown through short-lived signed URLs.
+- Organization/event/workplace chat access is enforced in the database. Private 1:1 chat creation, realtime text, online private photo attachments, safe sender names and audited Admin moderation are implemented. Ordinary users have no delete/moderation action.
+- In-app notifications include check-in/out, URGENT, briefing changes, personal-instruction changes and task assignments. Internal notification links and controlled mark-read behavior are implemented.
+- IndexedDB keeps pending operational actions per user. Sync uses unique operation IDs, advisory locking, payload-conflict detection and idempotent replay. Failed ordered time actions do not silently disappear.
+- A dedicated Synchronisatie screen shows pending operations, retry state and conflicts and requires explicit confirmation before discarding an unconfirmed local operation.
+- Text/time/task/URGENT queue operations can be retained offline. File uploads are intentionally not silently faked: chat/profile/incident/check-in photo uploads still require online handling unless specifically supported.
+- Private storage buckets exist for profile photos, check-in selfies, incident photos and chat attachments with MIME/size constraints and scoped read policies.
+- ExcelJS export is Admin-only and audited. It exports workplace-segment rows without double counting and now paginates PostgREST datasets beyond the former 1,000-row boundary.
+- Export still reports overtime as `Niet vastgesteld` because no approved overtime rule has been defined.
+- Obsolete StaffPortal office/leave/kiosk routes/actions that depended on absent tables were removed. See `LEGACY_REMOVAL.md`.
+- Authenticated homepage HTML/API responses are not cached by the service worker. A public offline fallback remains available.
+- TypeScript enforcement is enabled in production builds. Cloudflare Workers/OpenNext configuration is present.
+
+## Database migrations added in this hardening continuation
+
+The following migrations have been applied successfully to the target project:
+
+- `uptilldawn_incident_resolution`
+- `uptilldawn_profile_details`
+- `uptilldawn_responsible_management`
+- `uptilldawn_chat_management`
+- `uptilldawn_incident_photo_submission`
+- `uptilldawn_notification_links`
+
+Generated TypeScript database types were refreshed from the live target schema after these changes.
 
 ## Verification executed
 
-- `npm ci --ignore-scripts --no-audit --no-fund` completed at baseline.
-- Initial baseline: 35 Node tests passed, typecheck failed, production build failed; lint had 757 warnings.
-- Updated Node suite: 39 tests passed, including four behavioral time-allocation tests.
-- Updated TypeScript check passed.
-- Updated ESLint passed with warnings; warnings have not been represented as a clean lint report.
-- Next.js production build passed with typechecking enabled.
-- OpenNext Cloudflare build passed.
-- Wrangler deployment dry-run passed after correcting repeated-build environment-output duplication. No production deployment was performed.
-- Local production HTTP smoke tests passed: login/admin login/signup 200, protected operations/events/personnel redirected to login, anonymous XLSX access 401, offline fallback and service worker 200. These are HTTP checks, not authenticated browser end-to-end tests.
-- Dependency resolution while adding the adapter selected Next.js 16.3.6; Next/React and Supabase runtime versions are pinned in package.json and the lockfile.
-- `tests/sql/operational-security.sql` executed against the target database in a transaction and rolled back. It tests profile isolation, self-promotion denial, cross-workplace access/approval denial, unapproved accounts, anonymous RPC privileges, sensitive-column denial, shared break allowance, repeated operation delivery, payload conflicts, geofence/accuracy behavior, briefing acknowledgement, event duplication without historical records, a successful work/break lifecycle, stored GPS evidence and warning deduplication.
-- Supabase security advisors: the mutable function search-path warning was repaired. Intentional authenticated SECURITY DEFINER entry points remain flagged for review; the private warning-receipt table has RLS and no client policy/access. Leaked-password protection remains disabled. Advisor output is not a substitute for the explicit role tests.
+- Node suite: 39 tests passed at the established baseline, including paid-break allocation, midnight and DST behavior.
+- Recent GitHub CI runs pass lint, TypeScript checking, Node tests and the Next.js production build for the current implementation commits.
+- Next.js production build, OpenNext Cloudflare build and Wrangler dry-run passed at the prior deployment-hardening milestone. This is not a production deployment.
+- Local HTTP smoke tests previously passed for public/auth redirects, anonymous export denial, offline fallback and service worker. These are not authenticated browser E2E tests.
+- `tests/sql/operational-security.sql` was rerun against the target database inside a transaction and rolled back successfully after the new migrations. It covers profile isolation, self-promotion denial, cross-workplace access denial, unapproved accounts, anonymous RPC privileges, shared break allowance, sync replay/conflicts, GPS assessment, briefing acknowledgement, event duplication, work/break lifecycle, stored GPS evidence and warning deduplication.
+- `tests/sql/new-feature-security.sql` was executed against the target database inside a transaction and rolled back successfully. It verifies self-service sensitive-profile privacy, private chat membership, moderation authorization/audit, Responsible workplace-scoped shift creation, overlap prevention, cross-workplace denial and the URGENT acknowledge/resolve lifecycle.
+- Current Supabase security advisor has no new missing public-table RLS finding from these migrations. It still reports the intentionally private `upt_private.break_warning_receipts` table as RLS-without-policy, flags authenticated `SECURITY DEFINER` RPC entry points for review, and reports leaked-password protection disabled. Advisor output is not treated as a complete security audit.
 
 ## Still required before production
 
-1. Cloudflare authentication and production environment/redirect configuration; deployment and production smoke tests. No URL has been created or verified.
-2. Real-browser end-to-end tests using separate Admin, Responsible and Staff accounts, including denied permissions, GPS/camera hardware, signed storage retrieval, mobile layouts, session expiry, concurrent devices and offline reload.
-3. Full offline application shell for reopening while disconnected; queued upload support; a usable conflict-resolution screen and complete sequencing of time actions that begin offline. The present offline fallback is not a full offline-first application.
-4. Web Push subscriptions and delivery; additional briefing/task change notifications and operational notification links.
-5. Complete personnel forms for address, birth date, national number, IBAN and permanent photo, plus safe crew directory UI. Sensitive columns are already protected.
-6. Complete Responsible management UI, crew live-status dashboard, incident resolution UI, admin time-correction UI, editing/personal-instruction authoring workflows and private-chat creation/moderation/photo attachments.
-7. Export pagination and an explicit overtime/work-period policy. Overtime is visibly marked “Niet vastgesteld”; no invented overtime values are exported.
-8. More extensive storage/attachment and complete table-by-table RLS/privilege regression coverage. The tested subset must not be described as a complete security audit.
-9. Replay the entire historical schema on an isolated database before claiming a fresh-install workflow. The live project's manually evolved baseline and recovered migrations have not been reset or recreated.
+1. **Production deployment:** Cloudflare authentication, production environment variables/redirects, deployment and production smoke tests. No production URL or `pages.dev` address has been verified.
+2. **Real browser/device E2E:** separate Admin/Responsible/Staff accounts, denied-permission scenarios, GPS/camera behavior, signed storage retrieval, mobile layouts, session expiry, concurrent devices and offline reload.
+3. **Full offline-first shell:** authenticated operational screens still cannot be treated as a complete reopen-offline application. Queued file uploads for photos/attachments remain incomplete.
+4. **Web Push:** in-app notifications are implemented, but push subscription and external push delivery are not.
+5. **Policy decision:** define overtime and, if required, a work-period model different from the current one-event allowance model. The system deliberately does not invent payroll policy.
+6. **Broader security regression coverage:** add more storage-object/attachment abuse cases and a complete table-by-table RLS/privilege matrix before describing the system as security-audited.
+7. **Fresh-install proof:** replay the complete historical migration chain on an isolated database before claiming a clean-from-zero installation path.
 
-The database migrations in this branch have already been applied to the target project. The application code is isolated on a Git branch for review. Do not deploy or mark this complete solely because the build passes.
+The application code remains isolated on `codex/uptilldawn-production-hardening`. Production deployment must not be inferred solely from green CI.

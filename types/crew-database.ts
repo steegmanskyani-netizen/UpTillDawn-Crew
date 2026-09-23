@@ -938,6 +938,7 @@ export type Database = {
           updated_at: string
           user_id: string
           version: number
+          workplace_id: string | null
         }
         Insert: {
           body: string
@@ -963,6 +964,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           version?: number
+          workplace_id?: string | null
         }
         Relationships: [
           {

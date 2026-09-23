@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/crew-server'
-import { markNotificationRead } from '@/lib/actions/uptilldawn'\nimport { nlStatus } from '@/lib/ui-nl'
+import { markNotificationRead } from '@/lib/actions/uptilldawn'
+import { nlStatus } from '@/lib/ui-nl'
 
 export const dynamic = 'force-dynamic'
 

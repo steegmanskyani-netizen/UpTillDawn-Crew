@@ -22,11 +22,20 @@ export default async function Page() {
   const { data: { user } } = await s.auth.getUser()
   if (!user) return null
 
-  const [{ data: profile }, { data: events }, { data, error }, { data: activeEvents }] = await Promise.all([
+  const [
+    { data: profile },
+    { data: events },
+    { data, error },
+    { data: activeEvents },
+    { data: ownMemberships },
+    { data: availabilityRows },
+  ] = await Promise.all([
     s.from('profiles').select('role').eq('id', user.id).single(),
     s.from('events').select('id,name').neq('status', 'archived').order('start_at'),
     s.from('task_assignments').select('id,user_id,status,tasks(id,title,description,event_id,workplace_id)').order('created_at'),
     s.from('events').select('id').lte('start_at', 'now').gte('end_at', 'now'),
+    s.from('event_members').select('event_id').eq('user_id', user.id),
+    s.from('event_availability').select('event_id,user_id').eq('response', 'can'),
   ])
 
   const isAdmin = profile?.role === 'admin'
@@ -38,11 +47,7 @@ export default async function Page() {
   if (!manager) {
     visibleAssignments = visibleAssignments.filter(item => item.tasks && activeEventIds.has(item.tasks.event_id))
   }
-  const hasStaffTask = (data || []).some(item =>
-    item.user_id === user.id
-    && item.tasks
-    && activeEventIds.has(item.tasks.event_id)
-  )
+  const hasActiveAssignedEvent = (ownMemberships || []).some(member => activeEventIds.has(member.event_id))
 
   const attachmentRows: Tables<'work_attachments'>[] = []
   const taskIds = visibleAssignments.map(item => item.tasks?.id).filter((id): id is string => Boolean(id))
@@ -108,7 +113,7 @@ export default async function Page() {
     <div>
       <h1 className="text-3xl font-black">Taken</h1>
       {isResponsible && <p className="text-sm text-muted-foreground">Je beheert alleen taakpakketten binnen je eigen werkplek.</p>}
-      <StaffUnavailableMessage available={hasStaffTask}>
+      <StaffUnavailableMessage available={hasActiveAssignedEvent}>
         <p className="mt-3 rounded-xl border p-4 text-muted-foreground">Taken zijn beschikbaar vanaf de start van een toegewezen evenement.</p>
       </StaffUnavailableMessage>
     </div>
@@ -121,6 +126,8 @@ export default async function Page() {
         memberships={memberships}
         isAdmin={isAdmin}
         workplaceRequired={!isAdmin}
+        multiplePeople
+        availability={availabilityRows || []}
       />
       <input name="title" required maxLength={200} placeholder="Taaknaam" className="border bg-background p-3"/>
       <textarea name="description" maxLength={4000} placeholder="Omschrijving" className="border bg-background p-3 md:col-span-2"/>

@@ -100,10 +100,56 @@ export async function createEvent(fd:FormData){
 export async function addWorkplace(fd:FormData){
  const {s}=await adminClient();const {error}=await s.from('workplaces').insert({event_id:uuid.parse(fd.get('event_id')),name:text.parse(fd.get('name'))});check(error);revalidatePath('/workplaces')
 }
+export async function setEventAvailability(fd:FormData){
+ const {s,user}=await approvedClient()
+ const eventId=uuid.parse(fd.get('event_id'))
+ const response=z.enum(['can','cannot']).parse(fd.get('response'))
+ const {error}=await s.from('event_availability').upsert({
+  event_id:eventId,
+  user_id:user.id,
+  response,
+  responded_at:new Date().toISOString(),
+  updated_at:new Date().toISOString(),
+ },{onConflict:'event_id,user_id'})
+ check(error)
+ revalidatePath('/events')
+}
+
 export async function addEventMember(fd:FormData){
- const {s}=await adminClient();const user_id=uuid.parse(fd.get('user_id'))
- const {data:p}=await s.from('profiles').select('approved').eq('id',user_id).single();if(!p?.approved)throw new Error('Account niet goedgekeurd.')
- const {error}=await s.from('event_members').upsert({event_id:uuid.parse(fd.get('event_id')),user_id,event_role:'employee'},{onConflict:'event_id,user_id'});check(error);revalidatePath('/events')
+ const {s}=await adminClient()
+ const eventId=uuid.parse(fd.get('event_id'))
+ const userId=uuid.parse(fd.get('user_id'))
+ const [{data:p},{data:availability}]=await Promise.all([
+  s.from('profiles').select('approved').eq('id',userId).single(),
+  s.from('event_availability').select('response').eq('event_id',eventId).eq('user_id',userId).maybeSingle(),
+ ])
+ if(!p?.approved)throw new Error('Account niet goedgekeurd.')
+ if(availability?.response!=='can')throw new Error('Selecteer iemand die heeft aangeduid dat die kan.')
+ const {error}=await s.from('event_members').upsert({event_id:eventId,user_id:userId,event_role:'employee'},{onConflict:'event_id,user_id'})
+ check(error)
+ revalidatePath('/events');revalidatePath('/tasks');revalidatePath('/briefings');revalidatePath('/shifts')
+}
+
+export async function addAvailableEventMembers(fd:FormData){
+ const {s}=await adminClient()
+ const eventId=uuid.parse(fd.get('event_id'))
+ const userIds=[...new Set(fd.getAll('user_id').map(value=>uuid.parse(value)))]
+ if(!userIds.length)throw new Error('Selecteer minstens één persoon.')
+ const [{data:available,error:availabilityError},{data:approved,error:profileError}]=await Promise.all([
+  s.from('event_availability').select('user_id').eq('event_id',eventId).eq('response','can').in('user_id',userIds),
+  s.from('profiles').select('id').eq('approved',true).in('id',userIds),
+ ])
+ check(availabilityError);check(profileError)
+ const allowed=new Set((available||[]).map(row=>row.user_id))
+ const approvedIds=new Set((approved||[]).map(row=>row.id))
+ const valid=userIds.filter(id=>allowed.has(id)&&approvedIds.has(id))
+ if(valid.length!==userIds.length)throw new Error('Een selectie is niet langer beschikbaar voor dit evenement.')
+ const {error}=await s.from('event_members').upsert(
+  valid.map(user_id=>({event_id:eventId,user_id,event_role:'employee'})),
+  {onConflict:'event_id,user_id'}
+ )
+ check(error)
+ revalidatePath('/events');revalidatePath('/tasks');revalidatePath('/briefings');revalidatePath('/shifts')
 }
 export async function assignResponsible(fd:FormData){
  const {s,user}=await adminClient();const workplace_id=uuid.parse(fd.get('workplace_id')),user_id=uuid.parse(fd.get('user_id'))
@@ -193,24 +239,12 @@ export async function createPersonalInstruction(fd:FormData){
   eventId=uuid.parse(fd.get('event_id'))
  }
  const targetUser=uuid.parse(fd.get('user_id'))
- if(workplaceId){
-  const {data:assigned,error:assignedError}=await s.from('shifts')
-   .select('id')
-   .eq('event_id',eventId)
-   .eq('workplace_id',workplaceId)
-   .eq('user_id',targetUser)
-   .neq('status','cancelled')
-   .limit(1)
-   .maybeSingle()
-  check(assignedError);if(!assigned)throw new Error('Selecteer personeel dat aan deze werkplek is toegewezen.')
- }else{
-  const {data:member,error:memberError}=await s.from('event_members')
-   .select('user_id')
-   .eq('event_id',eventId)
-   .eq('user_id',targetUser)
-   .maybeSingle()
-  check(memberError);if(!member)throw new Error('Selecteer personeel dat aan dit evenement is toegewezen.')
- }
+ const {data:member,error:memberError}=await s.from('event_members')
+  .select('user_id')
+  .eq('event_id',eventId)
+  .eq('user_id',targetUser)
+  .maybeSingle()
+ check(memberError);if(!member)throw new Error('Selecteer personeel dat aan dit evenement is toegewezen.')
  const {data,error}=await s.from('personal_instructions').insert({
   event_id:eventId,
   workplace_id:workplaceId,
@@ -266,16 +300,39 @@ export async function createTask(fd:FormData){
   if(profile.role!=='admin')throw new Error('Verantwoordelijke kan alleen taken voor de eigen werkplek aanmaken.')
   eventId=uuid.parse(fd.get('event_id'))
  }
+
+ const userIds=[...new Set(fd.getAll('user_id').map(value=>uuid.parse(value)))]
+ if(!userIds.length)throw new Error('Selecteer minstens één medewerker.')
+
+ const [{data:members,error:memberError},{data:available,error:availabilityError}]=await Promise.all([
+  s.from('event_members').select('user_id').eq('event_id',eventId).in('user_id',userIds),
+  s.from('event_availability').select('user_id').eq('event_id',eventId).eq('response','can').in('user_id',userIds),
+ ])
+ check(memberError);check(availabilityError)
+ const memberIds=new Set((members||[]).map(row=>row.user_id))
+ const availableIds=new Set((available||[]).map(row=>row.user_id))
+ if(userIds.some(id=>!memberIds.has(id)||!availableIds.has(id)))throw new Error('Selecteer alleen toegevoegde medewerkers die hebben aangeduid dat ze kunnen.')
+
+ const [first,...rest]=userIds
  const {data:taskId,error}=await s.rpc('upt_create_assigned_task',{
   p_event:eventId,
   p_workplace:workplaceId as unknown as string,
-  p_user:uuid.parse(fd.get('user_id')),
+  p_user:first,
   p_title:text.parse(fd.get('title')),
   p_description:String(fd.get('description')||'').slice(0,4000),
  })
  check(error);if(!taskId)throw new Error('Taak kon niet worden aangemaakt.')
- try{await uploadWorkPhotos(s,user.id,{type:'task',id:taskId},files)}
- catch(error){await s.from('tasks').delete().eq('id',taskId);throw error}
+
+ try{
+  for(const target of rest){
+   const {error:assignError}=await s.rpc('upt_assign_task',{p_task:taskId,p_user:target})
+   check(assignError)
+  }
+  await uploadWorkPhotos(s,user.id,{type:'task',id:taskId},files)
+ }catch(error){
+  await s.from('tasks').delete().eq('id',taskId)
+  throw error
+ }
  revalidatePath('/tasks')
 }
 export async function removeTaskAssignment(fd:FormData){

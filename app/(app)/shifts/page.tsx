@@ -1,5 +1,6 @@
 import { DateInput } from '@/components/crew/date-input'
 import { AdminOnly } from '@/components/auth/admin-only'
+import { StaffAvailability, StaffUnavailableMessage } from '@/components/auth/staff-availability'
 import { createClient } from '@/lib/supabase/crew-server'
 import { cancelShift, createShift, updateShift } from '@/lib/actions/uptilldawn'
 import { nlStatus } from '@/lib/ui-nl'
@@ -19,8 +20,6 @@ export default async function Page() {
   ])
 
   const isAdmin = profile?.role === 'admin'
-  const isResponsible = profile?.role === 'responsible_lead'
-
   let workplaces: Array<{ id: string; name: string; event_id: string; events: { name: string } | null }> = []
   let people: CrewOption[] = []
   const managedWorkplaces = new Set<string>()
@@ -59,11 +58,14 @@ export default async function Page() {
 
     {isAdmin && !workplaces.length && <AdminOnly><p className="rounded-xl border p-4 text-muted-foreground">Geen actieve werkplekken gevonden.</p></AdminOnly>}
     {shiftsError && <p>Diensten konden niet worden geladen.</p>}
+    <StaffUnavailableMessage available={Boolean(shifts?.some(shift => shift.user_id === user.id))}>
+      <p className="rounded-xl border p-4 text-muted-foreground">Geen toegewezen diensten.</p>
+    </StaffUnavailableMessage>
 
     <div className="grid gap-3">
       {shifts?.map(x => {
         const canManage = isAdmin && managedWorkplaces.has(x.workplace_id)
-        return <article key={x.id} className="rounded-xl border p-4">
+        return <StaffAvailability key={x.id} available={x.user_id === user.id}><article className="rounded-xl border p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <b>{people.find(q => q.id === x.user_id)?.full_name || (x.user_id === user.id ? 'Jij' : 'Personeelslid')}</b> · {x.events?.name} / {x.workplaces?.name}
@@ -88,7 +90,7 @@ export default async function Page() {
               <button className="rounded-lg bg-red-700 px-4 py-3 font-bold text-white">ANNULEER DIENST</button>
             </form>
           </details></AdminOnly>}
-        </article>
+        </article></StaffAvailability>
       })}
     </div>
   </main>

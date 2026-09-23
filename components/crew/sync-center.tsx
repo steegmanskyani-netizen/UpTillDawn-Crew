@@ -30,7 +30,7 @@ export function SyncCenter() {
   const userId = user?.id
   const [ops, setOps] = useState<QueuedOperation[]>([])
   const [uploads, setUploads] = useState<QueuedUpload[]>([])
-  const [online, setOnline] = useState(true)
+  const [online, setOnline] = useState(() => typeof navigator === 'undefined' ? true : navigator.onLine)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
 
@@ -42,7 +42,6 @@ export function SyncCenter() {
   }
 
   useEffect(() => {
-    setOnline(navigator.onLine)
     if (!userId) return
     let alive = true
     const update = () => {

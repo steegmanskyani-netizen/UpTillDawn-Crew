@@ -60,3 +60,19 @@ export async function saveOperationsSnapshot(snapshot: OfflineOperationsSnapshot
     db.close()
   }
 }
+
+
+export async function clearOfflineIdentity() {
+  const db = await openDb()
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction('meta', 'readwrite')
+      tx.objectStore('meta').delete('activeUserId')
+      tx.oncomplete = () => resolve()
+      tx.onerror = () => reject(tx.error)
+      tx.onabort = () => reject(tx.error)
+    })
+  } finally {
+    db.close()
+  }
+}

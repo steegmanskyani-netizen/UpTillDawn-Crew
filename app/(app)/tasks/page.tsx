@@ -1,7 +1,7 @@
 import { createTask, removeTaskAssignment } from '@/lib/actions/uptilldawn'
 import { createClient } from '@/lib/supabase/crew-server'
 import { TaskControls } from '@/components/crew/task-controls'
-import { ResponsibleTaskTest } from '@/components/crew/responsible-task-test'
+import { ResponsibleTaskTest } from '@/components/crew/responsible-task-test'\nimport { nlStatus } from '@/lib/ui-nl'
 
 export const dynamic = 'force-dynamic'
 
@@ -62,11 +62,11 @@ export default async function Page() {
 
     {manager && (isAdmin || workplaces.length > 0) && <form action={createTask} className="grid gap-3 rounded-xl border p-4 md:grid-cols-2">
       {isAdmin && <select name="event_id" required className="border bg-background p-3">
-        <option value="">Event…</option>
+        <option value="">Evenement…</option>
         {events?.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
       </select>}
       <select name="workplace_id" required={!isAdmin} className="border bg-background p-3">
-        {isAdmin && <option value="">Geen werkplek — eventbreed</option>}
+        {isAdmin && <option value="">Geen werkplek — voor heel evenement</option>}
         {!isAdmin && <option value="">Werkplek…</option>}
         {workplaces.map(w => <option key={w.id} value={w.id}>{w.events?.name} — {w.name}</option>)}
       </select>
@@ -87,7 +87,7 @@ export default async function Page() {
           <div>
             <h2 className="font-bold">{task?.title}</h2>
             <p className="whitespace-pre-wrap">{task?.description}</p>
-            <p className="mt-2 text-sm text-muted-foreground">Voor: {t.user_id === user.id ? 'Jij' : people.find(p => p.id === t.user_id)?.full_name || 'Crew'} · {t.status}</p>
+            <p className="mt-2 text-sm text-muted-foreground">Voor: {t.user_id === user.id ? 'Jij' : people.find(p => p.id === t.user_id)?.full_name || 'Personeelslid'} · {nlStatus(t.status)}</p>
           </div>
           {t.user_id === user.id && <TaskControls id={t.id} userId={user.id}/>}
         </div>

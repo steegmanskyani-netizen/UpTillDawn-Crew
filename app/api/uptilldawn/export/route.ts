@@ -24,10 +24,10 @@ async function allPages<T>(
 export async function GET() {
   const s = await createClient()
   const { data: { user } } = await s.auth.getUser()
-  if (!user) return new NextResponse('Unauthorized', { status: 401 })
+  if (!user) return new NextResponse('Aanmelden vereist.', { status: 401 })
 
   const { data: profile } = await s.from('profiles').select('role,approved').eq('id', user.id).single()
-  if (!profile?.approved || profile.role !== 'admin') return new NextResponse('Forbidden', { status: 403 })
+  if (!profile?.approved || profile.role !== 'admin') return new NextResponse('Geen toegang.', { status: 403 })
 
   let sessions: Tables<'work_sessions'>[]
   let breaks: Tables<'break_sessions'>[]
@@ -94,7 +94,7 @@ export async function GET() {
 
   const wb = new ExcelJS.Workbook()
   const ws = wb.addWorksheet('Werkpleksegmenten')
-  const headers = ['Date','Event','Employee','Workplace','Role','Responsible Lead','Shift Start','Shift End','Gross Duration','Regular Break','Excess Break','Net Hours','Overtime','Briefing Confirmed','Task Package Confirmed','Check-in Status']
+  const headers = ['Datum','Evenement','Medewerker','Werkplek','Rol','Verantwoordelijke','Dienst start','Dienst einde','Brutoduur','Betaalde pauze','Onbetaalde pauze','Netto-uren','Overwerk','Instructies bevestigd','Taken bevestigd','Inklokstatus']
   ws.columns = headers.map(h => ({ header: h, key: h, width: 24 }))
 
   for (const row of rows) {
@@ -106,22 +106,22 @@ export async function GET() {
     const own = assignments.filter(a => a.user_id === row.userId && tasks.some(t => t.id === a.task_id && t.event_id === row.eventId && (!t.workplace_id || t.workplace_id === row.workplaceId)))
 
     ws.addRow({
-      'Date': date(row.start),
-      'Event': event?.name,
-      'Employee': people.find(p => p.id === row.userId)?.full_name,
-      'Workplace': workplaces.find(w => w.id === row.workplaceId)?.name,
-      'Role': shift?.role_name,
-      'Responsible Lead': leads.filter(l => l.workplace_id === row.workplaceId).map(l => people.find(p => p.id === l.user_id)?.full_name || l.user_id).join(', '),
-      'Shift Start': shift ? date(Date.parse(shift.scheduled_start)) : '',
-      'Shift End': shift ? date(Date.parse(shift.scheduled_end)) : '',
-      'Gross Duration': row.grossSeconds / 3600,
-      'Regular Break': row.regularBreakSeconds / 3600,
-      'Excess Break': row.excessBreakSeconds / 3600,
-      'Net Hours': row.netSeconds / 3600,
-      'Overtime': 'Niet vastgesteld',
-      'Briefing Confirmed': required.every(b => acks.some(a => a.briefing_id === b.id && a.user_id === row.userId && a.version === b.version)) ? 'Ja' : 'Nee',
-      'Task Package Confirmed': own.length ? own.every(a => a.status === 'COMPLETED') ? 'Ja' : 'Nee' : 'N.v.t.',
-      'Check-in Status': checkins.some(c => c.user_id === row.userId && c.event_id === row.eventId && c.status === 'approved') ? 'approved' : 'Niet goedgekeurd',
+      'Datum': date(row.start),
+      'Evenement': event?.name,
+      'Medewerker': people.find(p => p.id === row.userId)?.full_name,
+      'Werkplek': workplaces.find(w => w.id === row.workplaceId)?.name,
+      'Rol': shift?.role_name,
+      'Verantwoordelijke': leads.filter(l => l.workplace_id === row.workplaceId).map(l => people.find(p => p.id === l.user_id)?.full_name || l.user_id).join(', '),
+      'Dienst start': shift ? date(Date.parse(shift.scheduled_start)) : '',
+      'Dienst einde': shift ? date(Date.parse(shift.scheduled_end)) : '',
+      'Brutoduur': row.grossSeconds / 3600,
+      'Betaalde pauze': row.regularBreakSeconds / 3600,
+      'Onbetaalde pauze': row.excessBreakSeconds / 3600,
+      'Netto-uren': row.netSeconds / 3600,
+      'Overwerk': 'Niet vastgesteld',
+      'Instructies bevestigd': required.every(b => acks.some(a => a.briefing_id === b.id && a.user_id === row.userId && a.version === b.version)) ? 'Ja' : 'Nee',
+      'Taken bevestigd': own.length ? own.every(a => a.status === 'COMPLETED') ? 'Ja' : 'Nee' : 'N.v.t.',
+      'Inklokstatus': checkins.some(c => c.user_id === row.userId && c.event_id === row.eventId && c.status === 'approved') ? 'Goedgekeurd' : 'Niet goedgekeurd',
     })
   }
 

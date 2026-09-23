@@ -72,7 +72,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }, [pathname, roles, user])
 
   useEffect(() => {
-    void refreshMissed()
+    queueMicrotask(() => void refreshMissed())
     const timer = window.setInterval(() => void refreshMissed(), 10_000)
     const onFocus = () => void refreshMissed()
     window.addEventListener("focus", onFocus)

@@ -17,10 +17,10 @@ export default async function Page() {
 
   return <main className="space-y-4 p-4 md:p-8">
     <div>
-      <h1 className="text-3xl font-black">Audit Log</h1>
+      <h1 className="text-3xl font-black">Auditlog</h1>
       <p className="text-sm text-muted-foreground">Laatste 200 server-auditgebeurtenissen.</p>
     </div>
-    {error && <p className="rounded-xl border border-red-500/40 p-4">Audit log kon niet worden geladen.</p>}
+    {error && <p className="rounded-xl border border-red-500/40 p-4">Auditlog kon niet worden geladen.</p>}
     <div className="space-y-2">
       {(data || []).map(entry => <article className="rounded-xl border p-3 text-sm" key={entry.id}>
         <p><strong>{entry.action}</strong> · {entry.entity_type}</p>

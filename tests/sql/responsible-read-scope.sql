@@ -41,7 +41,7 @@ VALUES(
  (SELECT id FROM upt_scope_ids WHERE name='staff')
 );
 
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1
@@ -51,7 +51,7 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'FAIL responsible assignment did not create event membership';
   END IF;
-END $;
+END $$;
 
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_scope_ids WHERE name='lead'),true);
 SET LOCAL ROLE authenticated;

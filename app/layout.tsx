@@ -17,8 +17,8 @@ export const metadata: Metadata = {
     title: 'UPTILLDAWN Crew',
   },
   icons: {
-    icon: '/uptilldawn-logo.jpeg',
-    apple: '/uptilldawn-logo.jpeg',
+    icon: '/uptilldawn-mark.svg',
+    apple: '/uptilldawn-mark.svg',
   },
 }
 

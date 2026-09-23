@@ -2,7 +2,7 @@
 
 This is a verified hardening milestone, **not a production-complete release**.
 
-**Current implementation estimate: ~96%.** This estimate counts only implemented and verified work; production deployment, browser/device E2E and the remaining offline/Web Push work are not counted as complete.
+**Current implementation estimate: ~97%.** This estimate counts only implemented and verified work; production deployment, browser/device E2E and the remaining offline/Web Push work are not counted as complete.
 
 ## Verified implementation
 
@@ -81,6 +81,11 @@ Generated TypeScript database types were refreshed from the live target schema a
 - Current Supabase performance advisor no longer reports unindexed foreign keys. Current Supabase security advisor no longer reports the private break-warning table as policy-less. Remaining warnings are the authenticated `SECURITY DEFINER` RPC entry points that intentionally implement validated application workflows/helpers, plus leaked-password protection being disabled at project level. A source scan found no authenticated SECURITY DEFINER entry point lacking either direct auth checks or a validated authorization helper. Advisor output is not treated as a complete security audit.
 - `npm ci` and `npm audit` now report **0 known vulnerabilities** after pinning the vulnerable transitive `uuid` dependency to patched v11.1.1; the full Next/OpenNext build remains green with that override.
 - Database cleanup removed exact redundant indexes and now covers every public foreign key with a valid leading index. `tests/sql/foreign-key-indexes.sql` passes against the target database. Direct INSERT/UPDATE/DELETE grants were also removed from RPC/trigger-only operational tables; the privilege matrix now asserts those mutation grants remain absent. Supabase's remaining performance notices are unused-index INFO findings only; the database currently has almost no production traffic, so unused-index statistics are not representative.
+
+## Latest release-gate verification
+
+- GitHub CI run #203 passed on commit `1de2167b876398d1482db99bbdd76b4ed641f3c4`: dependency audit, lint, TypeScript, Node tests, Next.js production build, OpenNext Cloudflare build and Wrangler deployment dry-run all succeeded.
+- The current remaining blockers require external production credentials/settings or real browser/device execution; they cannot be truthfully marked complete from repository CI alone.
 
 ## Still required before production
 

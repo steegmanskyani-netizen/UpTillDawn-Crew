@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { CalendarDays, Clock3, MapPin, AlertTriangle, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/crew-server'
+import { ManagerOnly } from '@/components/auth/manager-only'
 
 export const dynamic = 'force-dynamic'
 
@@ -43,7 +44,7 @@ export default async function Dashboard() {
     <section className="grid gap-4 md:grid-cols-3">
       <Card href="/events" icon={CalendarDays} title="Evenementen" value={events.length}/>
       <Card href="/shifts" icon={Clock3} title="Mijn diensten" value={shifts.length}/>
-      <Card href="/incidents" icon={AlertTriangle} title="Open incidenten" value={incidentsResult.count ?? 0}/>
+      <ManagerOnly><Card href="/incidents" icon={AlertTriangle} title="Open incidenten" value={incidentsResult.count ?? 0}/></ManagerOnly>
     </section>
     <section>
       <h2 className="mb-3 text-lg font-bold">Komende evenementen</h2>

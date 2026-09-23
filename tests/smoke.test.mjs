@@ -19,7 +19,7 @@ test('next.config.mjs loads and exports a valid config object', async () => {
 })
 
 test('core entry points exist', async () => {
-  const entries = ['middleware.ts', 'app', 'lib', 'components', 'package.json']
+  const entries = ['proxy.ts', 'app', 'lib', 'components', 'package.json']
   for (const entry of entries) {
     await assert.doesNotReject(
       access(fileURLToPath(new URL(entry, root))),

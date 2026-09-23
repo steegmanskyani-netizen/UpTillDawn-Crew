@@ -248,10 +248,10 @@ export function ChatClient({
         <div className="mt-3 border-t pt-3">
           <p className="px-2 pb-2 text-[11px] font-bold uppercase tracking-[.16em] text-muted-foreground">Nieuwe privéchat</p>
           <div className="flex gap-2">
-            <select aria-label="Crewlid voor privéchat" value={target} onChange={e => setTarget(e.target.value)} className="min-w-0 flex-1 rounded-xl border bg-background p-2.5 text-sm">
-              <option value="">Crewlid kiezen…</option>
+            <select aria-label="Personeelslid voor privégesprek" value={target} onChange={e => setTarget(e.target.value)} className="min-w-0 flex-1 rounded-xl border bg-background p-2.5 text-sm">
+              <option value="">Personeelslid kiezen…</option>
               {crewDirectory.filter(member => member.id !== userId).map(member =>
-                <option key={member.id} value={member.id}>{member.full_name || 'Crewlid'}</option>,
+                <option key={member.id} value={member.id}>{member.full_name || 'Personeelslid'}</option>,
               )}
             </select>
             <button type="button" disabled={!target || busy} onClick={createPrivateChat} className="rounded-xl bg-violet-600 px-4 text-sm font-bold text-white disabled:opacity-50">Open</button>
@@ -267,7 +267,7 @@ export function ChatClient({
         const sender = crewDirectory.find(member => member.id === message.sender_id)
         const mine = message.sender_id === userId
         const moderated = Boolean(message.moderated_at)
-        const senderName = mine ? 'Jij' : sender?.full_name || 'Crew'
+        const senderName = mine ? 'Jij' : sender?.full_name || 'Personeelslid'
         const fullNameForInitials = mine
           ? crewDirectory.find(member => member.id === userId)?.full_name || 'Jij'
           : senderName
@@ -291,7 +291,7 @@ export function ChatClient({
           <div className={`max-w-[82%] ${mine ? 'items-end' : 'items-start'} flex flex-col`}>
             {!mine && <p className="mb-1 px-1 text-xs font-bold text-muted-foreground">{senderName}</p>}
             <div className={`rounded-2xl px-3.5 py-2.5 shadow-sm ${mine ? 'rounded-br-md bg-violet-600 text-white' : 'rounded-bl-md border bg-card'}`}>
-              <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{moderated ? 'Bericht verwijderd door administrator' : message.body}</p>
+              <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{moderated ? 'Bericht verwijderd door beheerder' : message.body}</p>
 
               {!moderated && attachments[message.id]?.map(url => <a key={url} href={url} target="_blank" rel="noreferrer" className="mt-2 block overflow-hidden rounded-xl border border-white/15">
                 {/* Private signed storage URL. */}

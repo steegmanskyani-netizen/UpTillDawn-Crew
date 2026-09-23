@@ -1,127 +1,18 @@
-# Retired StaffPortal code
+# Legacy StaffPortal removal
 
-These routes/actions depended on tables absent from the Uptilldawn project (departments, leave, attendance, purchase requests and office workflows). Git history preserves their source. Existing Uptilldawn routes, logo, auth UI and all historical migrations are retained.
+The repository originated from a broader StaffPortal codebase. The active runtime has been reduced to Uptilldawn crew management.
 
-- `app/(app)/directory/directory-client.tsx`
-- `app/(app)/directory/page.tsx`
-- `app/(app)/directory/loading.tsx`
-- `app/(app)/directory/[userId]/page.tsx`
-- `app/(app)/directory/[userId]/profile-client.tsx`
-- `app/(app)/analytics/analytics-client.tsx`
-- `app/(app)/analytics/page.tsx`
-- `app/(app)/manager/approvals/page.tsx`
-- `app/(app)/manager/approvals/approvals-client.tsx`
-- `app/(app)/manager/approvals/loading.tsx`
-- `app/(app)/diary/diary-client.tsx`
-- `app/(app)/diary/page.tsx`
-- `app/(app)/diary/loading.tsx`
-- `app/(app)/diary/[id]/page.tsx`
-- `app/(app)/diary/new/page.tsx`
-- `app/(app)/timesheets/user-selector.tsx`
-- `app/(app)/timesheets/page.tsx`
-- `app/(app)/timesheets/timesheets-client.tsx`
-- `app/(app)/timesheets/loading.tsx`
-- `app/(app)/timesheets/date-range-selector.tsx`
-- `app/(app)/corrections/page.tsx`
-- `app/(app)/corrections/loading.tsx`
-- `app/(app)/attendance/page.tsx`
-- `app/(app)/attendance/attendance-client.tsx`
-- `app/(app)/attendance/loading.tsx`
-- `app/(app)/help/page.tsx`
-- `app/(app)/complaints/page.tsx`
-- `app/(app)/complaints/loading.tsx`
-- `app/(app)/complaints/new/new-complaint-client.tsx`
-- `app/(app)/complaints/new/page.tsx`
-- `app/(app)/announcements/page.tsx`
-- `app/(app)/announcements/announcements-client.tsx`
-- `app/(app)/notice-board/page.tsx`
-- `app/(app)/notice-board/notice-board-client.tsx`
-- `app/(app)/calendar/page.tsx`
-- `app/(app)/calendar/calendar-client.tsx`
-- `app/(app)/calendar/loading.tsx`
-- `app/(app)/calendar/new/page.tsx`
-- `app/(app)/it/page.tsx`
-- `app/(app)/it/it-tickets-client.tsx`
-- `app/(app)/it/[id]/page.tsx`
-- `app/(app)/it/[id]/it-ticket-detail-client.tsx`
-- `app/(app)/feedback/page.tsx`
-- `app/(app)/feedback/loading.tsx`
-- `app/(app)/feedback/new/page.tsx`
-- `app/(app)/feedback/new/new-feedback-client.tsx`
-- `app/(app)/admin/users/create-user-modal.tsx`
-- `app/(app)/admin/users/users-management-client.tsx`
-- `app/(app)/admin/users/page.tsx`
-- `app/(app)/admin/users/loading.tsx`
-- `app/(app)/admin/system/page.tsx`
-- `app/(app)/admin/notifications/notifications-client.tsx`
-- `app/(app)/admin/notifications/page.tsx`
-- `app/(app)/admin/sso/sso-client.tsx`
-- `app/(app)/admin/sso/page.tsx`
-- `app/(app)/admin/timesheets/page.tsx`
-- `app/(app)/admin/wellness/page.tsx`
-- `app/(app)/admin/wellness/admin-wellness-client.tsx`
-- `app/(app)/admin/staff-summary/page.tsx`
-- `app/(app)/admin/staff-summary/staff-summary-client.tsx`
-- `app/(app)/admin/attendance/wfh-management-client.tsx`
-- `app/(app)/admin/attendance/page.tsx`
-- `app/(app)/admin/attendance/attendance-client.tsx`
-- `app/(app)/admin/attendance/loading.tsx`
-- `app/(app)/admin/forgotten-clockouts/forgotten-clockouts-client.tsx`
-- `app/(app)/admin/forgotten-clockouts/page.tsx`
-- `app/(app)/admin/templates/page.tsx`
-- `app/(app)/admin/templates/templates-client.tsx`
-- `app/(app)/admin/audit/page.tsx`
-- `app/(app)/admin/kiosk-settings/kiosk-settings-client.tsx`
-- `app/(app)/admin/kiosk-settings/page.tsx`
-- `app/(app)/admin/org/page.tsx`
-- `app/(app)/admin/org/dept-head-select.tsx`
-- `app/(app)/admin/it/it-admin-client.tsx`
-- `app/(app)/admin/it/page.tsx`
-- `app/(app)/admin/roll-call/roll-call-client.tsx`
-- `app/(app)/admin/roll-call/page.tsx`
-- `app/kiosk/kiosk-client.tsx`
-- `app/kiosk/page.tsx`
-- `app/kiosk/layout.tsx`
-- `app/api/cron/missing-attendance/route.ts`
-- `app/api/cron/absent-reminder/route.ts`
-- `app/api/cron/birthday-reminder/route.ts`
-- `app/api/cron/it-ticket-cleanup/route.ts`
-- `app/api/cron/diary-reminders/route.ts`
-- `app/api/cron/forgotten-clockout/route.ts`
-- `app/api/cron/year-end-rollover/route.ts`
-- `app/api/cron/stretch-reminder/route.ts`
-- `app/api/chat/route.ts`
-- `app/api/gdpr/export/route.ts`
-- `components/chat/chat-bubble.tsx`
-- `lib/actions/leave-rollover.ts`
-- `lib/actions/expenses.ts`
-- `lib/actions/notifications.ts`
-- `lib/actions/reception.ts`
-- `lib/actions/contacts.ts`
-- `lib/actions/leave-accrual.ts`
-- `lib/actions/announcements.ts`
-- `lib/actions/kiosk.ts`
-- `lib/actions/polls.ts`
-- `lib/actions/app-settings.ts`
-- `lib/actions/system-status.ts`
-- `lib/actions/leave-allowances-export.ts`
-- `lib/actions/sso.ts`
-- `lib/actions/diary.ts`
-- `lib/actions/calendar.ts`
-- `lib/actions/timesheet-export.ts`
-- `lib/actions/approvals.ts`
-- `lib/actions/attendance.ts`
-- `lib/actions/admin.ts`
-- `lib/actions/visitors.ts`
-- `lib/actions/leave.ts`
-- `lib/actions/corrections.ts`
-- `lib/actions/settings.ts`
-- `lib/actions/notice-board.ts`
-- `lib/actions/schedule.ts`
-- `lib/actions/it-tickets.ts`
-- `lib/actions/leave-export.ts`
-- `lib/actions/wellness.ts`
-- `app/(app)/dashboard-client.tsx`
-- `app/(app)/settings/settings-client.tsx`
-- `components/shared/calendar-event-item.tsx`
-- `components/shared/delete-diary-button.tsx`
+Removed from the runtime:
+
+- attendance, leave, expenses, purchase requests and office workflows
+- kiosk, visitors, diary, complaints, feedback, IT, wellness and SSO routes
+- legacy cron and GDPR endpoints
+- StaffPortal server actions and service-role client
+- unused UI/editor/chart components
+- legacy PWA manifests, Vercel cron config and StaffPortal branding
+- legacy helper modules and their unit tests
+- the old manual `supabase/run-in-sql-editor.sql` script
+
+Historical migrations `001`–`025` remain intentionally because they are part of the target Supabase migration history. Later Uptilldawn migrations retire the old exposed schema and establish the current crew schema.
+
+Git history preserves deleted source if a historical comparison is needed.

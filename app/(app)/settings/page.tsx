@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/crew-server'
-import { ProfileForm } from '@/components/crew/profile-form'\nimport { LanguageSwitcher } from '@/components/language-switcher'
+import { ProfileForm } from '@/components/crew/profile-form'
+import { LanguageSwitcher } from '@/components/language-switcher'
 
 export const dynamic = 'force-dynamic'
 

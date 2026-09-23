@@ -84,9 +84,11 @@ export function ChatClient({
 
   const privatePeerByChannel = new Map(privatePeers.map(p => [p.channel_id, p]))
   const channelName = (channel: Tables<'chat_channels'>) =>
-    channel.kind === 'private'
-      ? privatePeerByChannel.get(channel.id)?.full_name || 'Privé gesprek'
-      : channel.name || channel.kind
+    channel.kind === 'organization'
+      ? 'Algemene chat'
+      : channel.kind === 'private'
+        ? privatePeerByChannel.get(channel.id)?.full_name || 'Privé gesprek'
+        : channel.name || channel.kind
 
   async function createPrivateChat() {
     if (!target || busy) return
@@ -173,6 +175,10 @@ export function ChatClient({
           ? (crewDirectory.find(c => c.id === userId)?.full_name || 'J').split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase()
           : senderName.split(/\s+/).map(part => part[0]).join('').slice(0, 2).toUpperCase()
         const photoUrl = profilePhotoUrls[m.sender_id]
+        const selectedChannel = channels.find(channel => channel.id === selected)
+        const timestamp = selectedChannel?.kind === 'organization'
+          ? new Date(m.created_at).toLocaleString('nl-BE')
+          : new Date(m.created_at).toLocaleTimeString('nl-BE', { hour: '2-digit', minute: '2-digit' })
 
         return <article key={m.id} className="flex gap-3 rounded-2xl border bg-card p-3">
           <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full border bg-muted">
@@ -187,7 +193,7 @@ export function ChatClient({
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
               <p className="font-bold">{senderName}</p>
-              <time className="text-xs text-muted-foreground" dateTime={m.created_at}>{new Date(m.created_at).toLocaleString('nl-BE')}</time>
+              <time className="text-xs text-muted-foreground" dateTime={m.created_at}>{timestamp}</time>
             </div>
             <p className="mt-1 whitespace-pre-wrap break-words">{moderated ? 'Bericht verwijderd door administrator' : m.body}</p>
             {!moderated && attachments[m.id]?.map(url => <a key={url} href={url} target="_blank" rel="noreferrer" className="mt-3 block overflow-hidden rounded-xl border">

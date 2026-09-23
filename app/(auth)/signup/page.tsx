@@ -163,7 +163,7 @@ export default function SignupPage() {
         <p className="text-center text-sm text-muted-foreground">
           Heb je al een account?{" "}
           <Link href="/login" className="font-medium text-brand-taupe hover:underline">
-            Sign in
+            Inloggen
           </Link>
         </p>
       </CardContent>

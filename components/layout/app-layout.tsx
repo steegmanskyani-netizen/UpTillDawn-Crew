@@ -3,7 +3,6 @@
 import { AppSidebar } from "@/components/layout/sidebar"
 import { Topbar } from "@/components/layout/topbar"
 import { MobileBottomNav } from "@/components/layout/mobile-nav"
-import { Footer } from "@/components/shared/footer"
 import Link from "next/link"
 import { QueueStatus } from "@/components/crew/queue-status"
 
@@ -17,7 +16,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <main className="min-h-[calc(100dvh-theme(spacing.16)-theme(spacing.12))] pb-20 md:pb-0 print:min-h-0 print:pb-0">
             {children}
           </main>
-          <div className="print:hidden"><Footer /></div>
         </div>
         <div className="print:hidden"><MobileBottomNav /></div>
       </div>

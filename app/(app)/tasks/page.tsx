@@ -2,6 +2,7 @@ import { createTask, removeTaskAssignment } from '@/lib/actions/uptilldawn'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/crew-server'
 import { TaskControls } from '@/components/crew/task-controls'
+import { ManagerOnly } from '@/components/auth/manager-only'
 import { ResponsibleTaskTest } from '@/components/crew/responsible-task-test'
 import {
   AssignmentScopeFields,
@@ -30,10 +31,25 @@ export default async function Page() {
   const isResponsible = profile?.role === 'responsible_lead'
   const manager = isAdmin || isResponsible
 
-  if (!manager && !data?.length) redirect('/')
+  let visibleAssignments = data || []
+  if (!manager) {
+    const now = new Date().toISOString()
+    const { data: activeEvents } = await s
+      .from('events')
+      .select('id')
+      .lte('start_at', now)
+      .gte('end_at', now)
+
+    const activeEventIds = new Set((activeEvents || []).map(event => event.id))
+    visibleAssignments = visibleAssignments.filter(item => item.tasks && activeEventIds.has(item.tasks.event_id))
+
+    if (!visibleAssignments.length) {
+      return <main className="p-8">Taken zijn beschikbaar vanaf de start van een toegewezen evenement.</main>
+    }
+  }
 
   const attachmentRows: Tables<'work_attachments'>[] = []
-  const taskIds = (data || []).map(item => item.tasks?.id).filter((id): id is string => Boolean(id))
+  const taskIds = visibleAssignments.map(item => item.tasks?.id).filter((id): id is string => Boolean(id))
   if (taskIds.length) {
     const { data: media } = await s.from('work_attachments').select('*').in('task_id', taskIds).order('created_at')
     attachmentRows.push(...(media || []))
@@ -98,7 +114,7 @@ export default async function Page() {
       {isResponsible && <p className="text-sm text-muted-foreground">Je beheert alleen taakpakketten binnen je eigen werkplek.</p>}
     </div>
 
-    {manager && (isAdmin || workplaces.length > 0) && <form action={createTask} className="grid gap-3 rounded-xl border p-4 md:grid-cols-2">
+    {manager && (isAdmin || workplaces.length > 0) && <ManagerOnly><form action={createTask} className="grid gap-3 rounded-xl border p-4 md:grid-cols-2">
       <AssignmentScopeFields
         events={events || []}
         workplaces={workplaces.map(workplace => ({ id: workplace.id, name: workplace.name, event_id: workplace.event_id }))}
@@ -115,12 +131,12 @@ export default async function Page() {
         <span className="text-xs text-muted-foreground">Maximaal 5 foto&apos;s per taak, maximaal 10 MB per foto.</span>
       </label>
       <button className="rounded-xl bg-violet-600 p-3 font-bold md:col-span-2">TAAK AANMAKEN & TOEWIJZEN</button>
-    </form>}
+    </form></ManagerOnly>}
 
-    {error ? <p>Taken konden niet worden geladen.</p> : !data?.length ? <p>Geen toegewezen taken.</p> : data.map(t => {
+    {error ? <p>Taken konden niet worden geladen.</p> : !visibleAssignments.length ? <p>Geen toegewezen taken.</p> : visibleAssignments.map(t => {
       const task = t.tasks
       const canManage = Boolean(manager && task && (isAdmin || (task.workplace_id && managedWorkplaces.has(task.workplace_id))))
-      return <article key={t.id} className="rounded-xl border p-4">
+      const article = <article className="rounded-xl border p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="font-bold">{task?.title}</h2>
@@ -140,11 +156,14 @@ export default async function Page() {
           </div>
           {t.user_id === user.id && <TaskControls id={t.id} userId={user.id}/>}
         </div>
-        {canManage && <form action={removeTaskAssignment} className="mt-3 border-t pt-3">
+        {canManage && <ManagerOnly><form action={removeTaskAssignment} className="mt-3 border-t pt-3">
           <input type="hidden" name="assignment_id" value={t.id}/>
           <button className="rounded-lg border px-3 py-2 text-sm">Toewijzing verwijderen</button>
-        </form>}
+        </form></ManagerOnly>}
       </article>
+      return t.user_id === user.id
+        ? <div key={t.id}>{article}</div>
+        : <ManagerOnly key={t.id}>{article}</ManagerOnly>
     })}
   </main>
 }

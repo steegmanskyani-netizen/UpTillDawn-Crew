@@ -54,13 +54,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "break_sessions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "break_sessions_work_session_id_fkey"
             columns: ["work_session_id"]
             isOneToOne: false
@@ -104,13 +97,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "briefing_acknowledgements_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -158,13 +144,6 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "briefings_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -253,13 +232,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "chat_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       check_ins: {
@@ -341,24 +313,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "check_ins_approved_by_fkey"
-            columns: ["approved_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "check_ins_decided_by_fkey"
             columns: ["decided_by"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "check_ins_decided_by_fkey"
-            columns: ["decided_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -373,13 +331,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "check_ins_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -434,13 +385,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "check_outs_decided_by_fkey"
-            columns: ["decided_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "check_outs_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
@@ -452,13 +396,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "check_outs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -509,13 +446,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "crew_notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       event_members: {
@@ -555,13 +485,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "event_members_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       event_templates: {
@@ -592,13 +515,6 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "event_templates_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -676,13 +592,6 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "events_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -766,13 +675,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "incidents_acknowledged_by_fkey"
-            columns: ["acknowledged_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "incidents_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
@@ -787,24 +689,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "incidents_reporter_id_fkey"
-            columns: ["reporter_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "incidents_resolved_by_fkey"
             columns: ["resolved_by"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "incidents_resolved_by_fkey"
-            columns: ["resolved_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -815,24 +703,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "incidents_responsible_lead_id_fkey"
-            columns: ["responsible_lead_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "incidents_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "incidents_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -942,29 +816,8 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "messages_moderated_by_fkey"
-            columns: ["moderated_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "messages_sender_id_fkey"
             columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_sender_id_fkey"
-            columns: ["sender_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "messages_user_id_fkey"
-            columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -973,7 +826,7 @@ export type Database = {
             foreignKeyName: "messages_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "user_profiles"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1030,13 +883,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "offline_operation_records_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       personal_instruction_acknowledgements: {
@@ -1074,13 +920,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "personal_instruction_acknowledgements_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1131,13 +970,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "personal_instructions_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "personal_instructions_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
@@ -1149,13 +981,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "personal_instructions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1236,13 +1061,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "responsible_assignments_assigned_by_fkey"
-            columns: ["assigned_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "responsible_assignments_event_id_fkey"
             columns: ["event_id"]
             isOneToOne: false
@@ -1254,13 +1072,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "responsible_assignments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1343,24 +1154,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "shifts_responsible_lead_id_fkey"
-            columns: ["responsible_lead_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "shifts_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "shifts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1412,13 +1209,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "task_assignments_assigned_by_fkey"
-            columns: ["assigned_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "task_assignments_task_id_fkey"
             columns: ["task_id"]
             isOneToOne: false
@@ -1430,13 +1220,6 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "task_assignments_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1493,29 +1276,8 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "tasks_assigned_user_id_fkey"
-            columns: ["assigned_user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "tasks_completed_by_fkey"
             columns: ["completed_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tasks_completed_by_fkey"
-            columns: ["completed_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tasks_created_by_fkey"
-            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1524,7 +1286,7 @@ export type Database = {
             foreignKeyName: "tasks_created_by_fkey"
             columns: ["created_by"]
             isOneToOne: false
-            referencedRelation: "user_profiles"
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1596,24 +1358,10 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "time_corrections_corrected_by_fkey"
-            columns: ["corrected_by"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "time_corrections_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "time_corrections_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1659,13 +1407,6 @@ export type Database = {
             columns: ["actor_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "upt_audit_logs_actor_id_fkey"
-            columns: ["actor_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1744,13 +1485,6 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "work_sessions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
         ]
       }
       workplace_transitions: {
@@ -1804,13 +1538,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "workplace_transitions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_profiles"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "workplace_transitions_work_session_id_fkey"
             columns: ["work_session_id"]
             isOneToOne: false
@@ -1858,7 +1585,9 @@ export type Database = {
         ]
       }
     }
-    Views: Record<string, never>
+    Views: {
+      [_ in never]: never
+    }
     Functions: {
       upt_acknowledge_briefing: {
         Args: { p_briefing: string }
@@ -1939,6 +1668,7 @@ export type Database = {
         Returns: boolean
       }
       upt_can_read_channel: { Args: { p_channel: string }; Returns: boolean }
+      upt_can_read_profile_photo: { Args: { p_path: string }; Returns: boolean }
       upt_cancel_shift: {
         Args: { p_reason?: string; p_shift: string }
         Returns: undefined

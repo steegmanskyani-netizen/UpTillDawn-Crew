@@ -2,9 +2,7 @@ import { createTask, removeTaskAssignment } from '@/lib/actions/uptilldawn'
 import { createClient } from '@/lib/supabase/crew-server'
 import { TaskControls } from '@/components/crew/task-controls'
 import { ManagerOnly } from '@/components/auth/manager-only'
-import { AdminOnly } from '@/components/auth/admin-only'
 import { StaffAvailability, StaffUnavailableMessage } from '@/components/auth/staff-availability'
-import { ResponsibleTaskTest } from '@/components/crew/responsible-task-test'
 import {
   AssignmentScopeFields,
   type AssignmentMembership,
@@ -128,7 +126,6 @@ export default async function Page() {
   }
 
   return <main className="space-y-4 p-4 md:p-8">
-    {isAdmin && <AdminOnly><ResponsibleTaskTest workplaces={workplaces} people={people} /></AdminOnly>}
     <div>
       <h1 className="text-3xl font-black">Taken</h1>
       {isResponsible && <p className="text-sm text-muted-foreground">Je kunt taken voorbereiden voor evenementen waaraan je als verantwoordelijke bent toegewezen.</p>}

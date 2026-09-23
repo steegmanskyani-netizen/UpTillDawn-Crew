@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/crew-server'
 import { TaskControls } from '@/components/crew/task-controls'
 import { ResponsibleTaskTest } from '@/components/crew/responsible-task-test'
 import { nlStatus } from '@/lib/ui-nl'
+import type { Tables } from '@/types/crew-database'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,6 +20,19 @@ export default async function Page() {
     s.from('events').select('id,name').neq('status', 'archived').order('start_at'),
     s.from('task_assignments').select('id,user_id,status,tasks(id,title,description,event_id,workplace_id)').order('created_at'),
   ])
+
+  const attachmentRows: Tables<'work_attachments'>[] = []
+  const taskIds = (data || []).map(item => item.tasks?.id).filter((id): id is string => Boolean(id))
+  if (taskIds.length) {
+    const { data: media } = await s.from('work_attachments').select('*').in('task_id', taskIds).order('created_at')
+    attachmentRows.push(...(media || []))
+  }
+
+  const photoUrls = new Map<string, string>()
+  await Promise.all(attachmentRows.map(async attachment => {
+    const { data: signed } = await s.storage.from('work-media').createSignedUrl(attachment.storage_path, 300)
+    if (signed?.signedUrl) photoUrls.set(attachment.storage_path, signed.signedUrl)
+  }))
 
   const isAdmin = profile?.role === 'admin'
   const isResponsible = profile?.role === 'responsible_lead'
@@ -77,6 +91,11 @@ export default async function Page() {
       </select>
       <input name="title" required maxLength={200} placeholder="Taaknaam" className="border bg-background p-3"/>
       <textarea name="description" maxLength={4000} placeholder="Omschrijving" className="border bg-background p-3 md:col-span-2"/>
+      <label className="grid gap-1 text-sm md:col-span-2">
+        Foto&apos;s
+        <input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple className="rounded-lg border bg-background p-2"/>
+        <span className="text-xs text-muted-foreground">Maximaal 5 foto&apos;s per taak, maximaal 10 MB per foto.</span>
+      </label>
       <button className="rounded-xl bg-violet-600 p-3 font-bold md:col-span-2">TAAK AANMAKEN & TOEWIJZEN</button>
     </form>}
 
@@ -88,6 +107,17 @@ export default async function Page() {
           <div>
             <h2 className="font-bold">{task?.title}</h2>
             <p className="whitespace-pre-wrap">{task?.description}</p>
+            {!!task && attachmentRows.some(item => item.task_id === task.id) && <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {attachmentRows.filter(item => item.task_id === task.id).map(item => {
+                const url = photoUrls.get(item.storage_path)
+                if (!url) return null
+                return <a key={item.id} href={url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-xl border bg-black/10">
+                  {/* Private signed storage URL. */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={url} alt="Foto bij taak" className="h-36 w-full object-cover"/>
+                </a>
+              })}
+            </div>}
             <p className="mt-2 text-sm text-muted-foreground">Voor: {t.user_id === user.id ? 'Jij' : people.find(p => p.id === t.user_id)?.full_name || 'Personeelslid'} · {nlStatus(t.status)}</p>
           </div>
           {t.user_id === user.id && <TaskControls id={t.id} userId={user.id}/>}

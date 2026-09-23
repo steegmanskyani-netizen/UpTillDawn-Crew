@@ -52,7 +52,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       .eq("id", userId)
       .single()
 
-    if (error || !data?.approved) {
+    const role = data?.role
+    if (error || !data?.approved || (role !== "staff" && role !== "responsible_lead" && role !== "admin")) {
       setProfile(null)
       setRoles([])
       return
@@ -63,9 +64,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       full_name: data.full_name ?? "",
       profile_photo_url: data.profile_photo_url,
       approved: data.approved,
-      role: data.role,
+      role,
     })
-    setRoles([data.role === "staff" ? "employee" : data.role])
+    setRoles([role === "staff" ? "employee" : role])
   }, [supabase])
 
   useEffect(() => {

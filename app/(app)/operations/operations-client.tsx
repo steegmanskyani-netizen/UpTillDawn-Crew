@@ -1,5 +1,5 @@
 'use client'
-import { useEffect,useState } from 'react'
+import { useEffect,useMemo,useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/crew-client'
 import { enqueue } from '@/lib/crew-queue'
@@ -11,7 +11,7 @@ type CrewMember={id:string;full_name:string|null;phone_number:string|null;profil
 type Props={userId:string;shifts:Tables<'shifts'>[];events:Tables<'events'>[];workplaces:Tables<'workplaces'>[];activeSession:Tables<'work_sessions'>|null;activeBreak:Tables<'break_sessions'>|null;checkins:Tables<'check_ins'>[];checkouts:Tables<'check_outs'>[];manager:boolean;summary:Summary|null;liveSessions:Tables<'work_sessions'>[];liveBreaks:Tables<'break_sessions'>[];liveShifts:Tables<'shifts'>[];crewDirectory:CrewMember[]}
 export default function OperationsClient(p:Props){
  const router=useRouter();const [busy,setBusy]=useState(false),[msg,setMsg]=useState(''),[remote,setRemote]=useState(false),[file,setFile]=useState<File|null>(null)
- const s=createClient()
+ const s=useMemo(()=>createClient(),[])
  useEffect(()=>{const timer=setInterval(()=>{if(navigator.onLine)router.refresh()},15000);return()=>clearInterval(timer)},[router])
  useEffect(()=>{void saveOperationsSnapshot({
   version:1,

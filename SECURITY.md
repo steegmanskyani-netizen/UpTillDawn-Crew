@@ -32,6 +32,10 @@ Only `NEXT_PUBLIC_SUPABASE_URL`, the publishable/anon key and the public app URL
 
 Do not post credentials, private employee data or exploit details in a public issue. Contact the repository owner privately with the affected route/RPC, reproduction steps and impact.
 
+## Dependency verification
+
+CI runs `npm audit --audit-level=high`. The current lockfile resolves the transitive `uuid` dependency to patched v11.1.1 and the verified cleanup run reports 0 known npm vulnerabilities.
+
 ## Remaining project-level setting
 
 Supabase leaked-password protection should be enabled before production release. This is an Auth project setting, not an application-code permission.

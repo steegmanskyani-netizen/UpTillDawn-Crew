@@ -67,6 +67,21 @@ BEGIN
   IF v_executable_triggers IS NOT NULL THEN
     RAISE EXCEPTION 'FAIL directly executable trigger functions: %', v_executable_triggers;
   END IF;
-END $$;
 
-SELECT 'PASS: all public tables use RLS, anon has no public-table/Uptilldawn-RPC grants, PUBLIC has no crew RLS policies, trigger functions are non-callable' AS result;
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.role_table_grants
+    WHERE table_schema='public'
+      AND grantee='authenticated'
+      AND privilege_type IN ('INSERT','UPDATE','DELETE')
+      AND table_name = ANY(ARRAY[
+        'break_sessions','chat_channels','chat_members','crew_notifications',
+        'event_templates','shifts','tasks','upt_audit_logs',
+        'work_sessions','workplace_transitions'
+      ])
+  ) THEN
+    RAISE EXCEPTION 'FAIL direct mutation grant remains on an RPC-only table';
+  END IF;
+END $;
+
+SELECT 'PASS: public RLS/anon surface is locked down, trigger functions are non-callable and RPC-only tables have no direct mutation grants' AS result;

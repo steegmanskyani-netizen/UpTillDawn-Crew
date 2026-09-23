@@ -99,10 +99,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           URGENT
           <CountBadge count={incidentMissed} />
         </Link>
-        <Link href="/chat" aria-label={chatMissed ? `Chat, ${chatMissed} gemiste berichten` : "Chat"} className="relative flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black text-white shadow-lg">
+        {!pathname.startsWith("/chat") && <Link href="/chat" aria-label={chatMissed ? `Chat, ${chatMissed} gemiste berichten` : "Chat"} className="relative flex h-14 w-14 items-center justify-center rounded-full border border-white/30 bg-black text-white shadow-lg">
           <MessageCircle className="h-7 w-7" />
           <CountBadge count={chatMissed} />
-        </Link>
+        </Link>}
       </div>
     </div>
   )

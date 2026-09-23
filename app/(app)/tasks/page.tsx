@@ -22,12 +22,11 @@ export default async function Page() {
   const { data: { user } } = await s.auth.getUser()
   if (!user) return null
 
-  const nowIso = new Date().toISOString()
   const [{ data: profile }, { data: events }, { data, error }, { data: activeEvents }] = await Promise.all([
     s.from('profiles').select('role').eq('id', user.id).single(),
     s.from('events').select('id,name').neq('status', 'archived').order('start_at'),
     s.from('task_assignments').select('id,user_id,status,tasks(id,title,description,event_id,workplace_id)').order('created_at'),
-    s.from('events').select('id').lte('start_at', nowIso).gte('end_at', nowIso),
+    s.from('events').select('id').lte('start_at', 'now').gte('end_at', 'now'),
   ])
 
   const isAdmin = profile?.role === 'admin'

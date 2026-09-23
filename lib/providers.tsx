@@ -127,9 +127,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    if (!realIsAdmin) { setTestRoleState(null); return }
+    if (!realIsAdmin) return
     const saved = window.sessionStorage.getItem("uptilldawn-admin-test-role")
-    setTestRoleState(saved === "employee" || saved === "responsible_lead" ? saved : null)
+    const restored = saved === "employee" || saved === "responsible_lead" ? saved : null
+    queueMicrotask(() => setTestRoleState(restored))
   }, [realIsAdmin])
 
   return <AuthContext.Provider value={{

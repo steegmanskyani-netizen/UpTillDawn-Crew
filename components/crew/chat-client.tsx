@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/crew-client'
-import { enqueue } from '@/lib/crew-queue'
+import { enqueue, enqueueChatPhoto } from '@/lib/crew-queue'
 import type { Database, Tables } from '@/types/crew-database'
 
 type CrewMember = Database['public']['Functions']['upt_crew_directory']['Returns'][number]
@@ -115,45 +115,22 @@ export function ChatClient({
     setBusy(true)
     setStatus('')
 
-    let uploadedPath: string | null = null
     try {
       if (file) {
-        if (!navigator.onLine) throw new Error('Foto verzenden vereist momenteel een internetverbinding.')
-        if (file.size > 10 * 1024 * 1024) throw new Error('De foto mag maximaal 10 MB zijn.')
-        const extByType: Record<string, string> = {'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}
-        const ext = extByType[file.type]
-        if (!ext) throw new Error('Gebruik een JPG-, PNG- of WEBP-foto.')
-
-        const s = createClient()
-        uploadedPath = `${userId}/${crypto.randomUUID()}.${ext}`
-        const { error: uploadError } = await s.storage.from('chat-attachments').upload(uploadedPath, file, {
-          contentType: file.type,
-          upsert: false,
-        })
-        if (uploadError) throw new Error('Foto uploaden mislukt.')
-
-        const { error } = await s.rpc('upt_send_message', {
-          p_channel: selected,
-          p_body: trimmed || undefined,
-          p_attachment_path: uploadedPath,
-        })
-        if (error) throw new Error('Bericht verzenden mislukt.')
-
+        await enqueueChatPhoto(userId, selected, trimmed, file)
         setBody('')
         setFile(null)
         setFileKey(k => k + 1)
-        setStatus('Bericht verzonden.')
+        setStatus(navigator.onLine
+          ? 'Foto en bericht zijn bewaard voor serververwerking.'
+          : 'Foto en bericht zijn lokaal bewaard en worden verzonden zodra je online bent.')
       } else {
         await enqueue(userId, 'message', { channel_id: selected, body: trimmed })
         setBody('')
         setStatus('Bericht bewaard voor verzending.')
       }
     } catch (error) {
-      if (uploadedPath) {
-        const s = createClient()
-        await s.storage.from('chat-attachments').remove([uploadedPath])
-      }
-      setStatus(error instanceof Error ? error.message : 'Bericht kon niet worden verzonden.')
+      setStatus(error instanceof Error ? error.message : 'Bericht kon niet worden bewaard.')
     } finally {
       setBusy(false)
     }

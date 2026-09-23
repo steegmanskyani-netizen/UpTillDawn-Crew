@@ -92,6 +92,26 @@ RESET ROLE;
 
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_new_ids WHERE name='lead'),true);
 SET LOCAL ROLE authenticated;
+DO $$
+BEGIN
+ BEGIN
+   PERFORM public.upt_create_shift(
+     (SELECT id FROM upt_new_ids WHERE name='bar'),
+     (SELECT id FROM upt_new_ids WHERE name='staff'),
+     'Bar crew',
+     now()+interval '2 hours',
+     now()+interval '4 hours',
+     false
+   );
+   RAISE EXCEPTION 'FAIL responsible created shift';
+ EXCEPTION WHEN raise_exception THEN
+   IF SQLERRM='FAIL responsible created shift' THEN RAISE; END IF;
+ END;
+END $$;
+RESET ROLE;
+
+SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_new_ids WHERE name='admin'),true);
+SET LOCAL ROLE authenticated;
 SELECT set_config('upt.test.shift',
   public.upt_create_shift(
     (SELECT id FROM upt_new_ids WHERE name='bar'),
@@ -109,7 +129,7 @@ BEGIN
    SELECT 1 FROM public.shifts
    WHERE id=current_setting('upt.test.shift')::uuid
      AND workplace_id=(SELECT id FROM upt_new_ids WHERE name='bar')
- ) THEN RAISE EXCEPTION 'FAIL responsible shift creation'; END IF;
+ ) THEN RAISE EXCEPTION 'FAIL admin shift creation'; END IF;
 
  BEGIN
    PERFORM public.upt_create_shift(
@@ -123,20 +143,6 @@ BEGIN
    RAISE EXCEPTION 'FAIL overlap prevention';
  EXCEPTION WHEN raise_exception THEN
    IF SQLERRM='FAIL overlap prevention' THEN RAISE; END IF;
- END;
-
- BEGIN
-   PERFORM public.upt_create_shift(
-     (SELECT id FROM upt_new_ids WHERE name='ticket'),
-     (SELECT id FROM upt_new_ids WHERE name='staff'),
-     'Unauthorized',
-     now()+interval '6 hours',
-     now()+interval '7 hours',
-     false
-   );
-   RAISE EXCEPTION 'FAIL cross-workplace shift';
- EXCEPTION WHEN raise_exception THEN
-   IF SQLERRM='FAIL cross-workplace shift' THEN RAISE; END IF;
  END;
 END $$;
 RESET ROLE;
@@ -191,5 +197,5 @@ BEGIN
 END $$;
 RESET ROLE;
 
-SELECT 'PASS: own profile RPC privacy, private chat, moderation authorization/audit, responsible scoped scheduling, overlap prevention, urgent incident resolution' AS result;
+SELECT 'PASS: own profile privacy, private chat, moderation audit, admin-only scheduling, overlap prevention and urgent incident resolution' AS result;
 ROLLBACK;

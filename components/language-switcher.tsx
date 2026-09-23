@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 const languages = [
   { value: "nl", label: "Nederlands" },
@@ -9,12 +9,11 @@ const languages = [
 ] as const
 
 export function LanguageSwitcher({ dark = false }: { dark?: boolean }) {
-  const [language, setLanguage] = useState("nl")
-
-  useEffect(() => {
+  const [language, setLanguage] = useState(() => {
+    if (typeof window === "undefined") return "nl"
     const stored = window.localStorage.getItem("uptilldawn-language")
-    setLanguage(stored === "fr" || stored === "en" ? stored : "nl")
-  }, [])
+    return stored === "fr" || stored === "en" ? stored : "nl"
+  })
 
   return <label className={`flex items-center justify-between gap-3 text-sm ${dark ? "text-zinc-300" : "text-muted-foreground"}`}>
     <span>Taal</span>

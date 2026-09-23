@@ -31,7 +31,7 @@ export function AppSidebar() {
       <div className="h-9 w-9 rounded-xl bg-violet-600 text-white grid place-items-center font-black">U</div>
       <div><div className="font-black tracking-wide">UPTILLDAWN</div><div className="text-[10px] text-muted-foreground tracking-[.18em]">CREW MANAGEMENT</div></div>
     </Link>
-    <nav className="p-3 space-y-1">{visible.map(i => { const active=i.href==='/'?pathname==='/':pathname.startsWith(i.href); const Icon=i.icon; return <Link key={i.href} href={i.href} className={cn("flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold", active?"bg-violet-600 text-white":"text-muted-foreground hover:bg-muted hover:text-foreground")}><Icon className="h-5 w-5"/>{i.label}</Link> })}</nav>
+    <nav className="p-3 space-y-1">{visible.map(i => { const href=i.href==='/'&&roles.includes('admin')?'/admin':i.href; const active=href==='/'?pathname==='/':pathname.startsWith(href); const Icon=i.icon; return <Link key={i.href} href={href} className={cn("flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold", active?"bg-violet-600 text-white":"text-muted-foreground hover:bg-muted hover:text-foreground")}><Icon className="h-5 w-5"/>{i.label}</Link> })}</nav>
     <div className="mt-auto p-4 text-[11px] text-muted-foreground flex gap-2"><Shield className="h-4 w-4"/>Secure crew operations</div>
   </aside>
 }

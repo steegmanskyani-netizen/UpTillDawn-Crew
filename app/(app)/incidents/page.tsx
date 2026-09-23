@@ -41,7 +41,7 @@ export default async function Page() {
 
   const manager = profile?.role === 'admin' || profile?.role === 'responsible_lead'
   const activeEventIds = new Set((events || []).map(event => event.id))
-  const visibleIncidents = (incidents || []).filter(incident => activeEventIds.has(incident.event_id))
+  const visibleIncidents = (incidents || []).filter(incident => Boolean(incident.event_id && activeEventIds.has(incident.event_id)))
   const activeShifts = (shifts || []).filter(shift => activeEventIds.has(shift.event_id))
   const activeShift = activeShifts.find(shift => shift.id === activeSession?.shift_id)
   const contexts = activeShifts.map(shift => ({

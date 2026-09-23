@@ -192,10 +192,29 @@ export async function createPersonalInstruction(fd:FormData){
   if(profile.role!=='admin')throw new Error('Kies een toegewezen werkplek.')
   eventId=uuid.parse(fd.get('event_id'))
  }
+ const targetUser=uuid.parse(fd.get('user_id'))
+ if(workplaceId){
+  const {data:assigned,error:assignedError}=await s.from('shifts')
+   .select('id')
+   .eq('event_id',eventId)
+   .eq('workplace_id',workplaceId)
+   .eq('user_id',targetUser)
+   .neq('status','cancelled')
+   .limit(1)
+   .maybeSingle()
+  check(assignedError);if(!assigned)throw new Error('Selecteer personeel dat aan deze werkplek is toegewezen.')
+ }else{
+  const {data:member,error:memberError}=await s.from('event_members')
+   .select('user_id')
+   .eq('event_id',eventId)
+   .eq('user_id',targetUser)
+   .maybeSingle()
+  check(memberError);if(!member)throw new Error('Selecteer personeel dat aan dit evenement is toegewezen.')
+ }
  const {data,error}=await s.from('personal_instructions').insert({
   event_id:eventId,
   workplace_id:workplaceId,
-  user_id:uuid.parse(fd.get('user_id')),
+  user_id:targetUser,
   title:text.parse(fd.get('title')),
   body:z.string().trim().min(1).max(20000).parse(fd.get('body')),
   created_by:user.id,

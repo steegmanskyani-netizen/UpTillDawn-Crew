@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation"
 import Link from "next/link"
 import Image from "next/image"
 import { Menu, X, Eye, EyeOff, Loader2, AlertCircle, ArrowRight, ShieldCheck, Users, UserCog } from "lucide-react"
-import { signIn } from "@/lib/actions/auth"\nimport { LanguageSwitcher } from "@/components/language-switcher"
+import { signIn } from "@/lib/actions/auth"
+import { LanguageSwitcher } from "@/components/language-switcher"
 
 const portals = {
   staff: { label: "Personeel", icon: Users },

@@ -15,6 +15,18 @@ function extractName(email: string): string {
         .split('.')
         .map(part => part.charAt(0).toUpperCase() + part.slice(1))
         .join(' ')
+        .slice(0, 200)
+}
+
+function appOrigin(): string | null {
+    const raw = process.env.NEXT_PUBLIC_APP_URL
+    if (!raw) return null
+    try {
+        const url = new URL(raw)
+        return url.protocol === 'http:' || url.protocol === 'https:' ? url.origin : null
+    } catch {
+        return null
+    }
 }
 
 // ── Sign Up ──────────────────────────────────────────────────

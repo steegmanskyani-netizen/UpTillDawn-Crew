@@ -1943,6 +1943,10 @@ export type Database = {
         Returns: boolean
       }
       upt_can_read_channel: { Args: { p_channel: string }; Returns: boolean }
+      upt_cancel_shift: {
+        Args: { p_reason?: string; p_shift: string }
+        Returns: undefined
+      }
       upt_confirm_workplace_transition: {
         Args: { p_to_workplace: string; p_work_session: string }
         Returns: string
@@ -1952,6 +1956,17 @@ export type Database = {
           p_description: string
           p_event: string
           p_title: string
+          p_user: string
+          p_workplace: string
+        }
+        Returns: string
+      }
+      upt_create_shift: {
+        Args: {
+          p_end: string
+          p_overlap_allowed?: boolean
+          p_role_name: string
+          p_start: string
           p_user: string
           p_workplace: string
         }
@@ -2035,6 +2050,15 @@ export type Database = {
           profile_photo_url: string
         }[]
       }
+      upt_responsible_event_members: {
+        Args: { p_event: string; p_workplace: string }
+        Returns: {
+          full_name: string
+          id: string
+          phone_number: string
+          profile_photo_url: string
+        }[]
+      }
       upt_start_break: { Args: { p_work_session: string }; Returns: string }
       upt_start_work: {
         Args: { p_event: string; p_shift?: string }
@@ -2055,6 +2079,16 @@ export type Database = {
           p_national_register_number?: string
           p_phone_number?: string
           p_profile_photo_path?: string
+        }
+        Returns: undefined
+      }
+      upt_update_shift: {
+        Args: {
+          p_end: string
+          p_overlap_allowed?: boolean
+          p_role_name: string
+          p_shift: string
+          p_start: string
         }
         Returns: undefined
       }

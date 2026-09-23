@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/crew-server'
 import { IncidentForm } from '@/components/crew/incident-form'
-import { IncidentControls } from '@/components/crew/incident-controls'
+import { IncidentControls } from '@/components/crew/incident-controls'\nimport { nlStatus } from '@/lib/ui-nl'
 
 export const dynamic = 'force-dynamic'
 
@@ -21,7 +21,7 @@ export default async function Page() {
   const contexts = (shifts || []).map(shift => ({
     event_id: shift.event_id,
     workplace_id: shift.workplace_id,
-    event_name: shift.events?.name || 'Event',
+    event_name: shift.events?.name || 'Evenement',
     workplace_name: shift.workplaces?.name || 'Werkplek',
   }))
   const signedPhotos = new Map<string,string>()
@@ -43,7 +43,7 @@ export default async function Page() {
       <article key={i.id} className="rounded-xl border p-4">
         <div className="flex items-start justify-between gap-3">
           <p className="whitespace-pre-wrap">{i.message}</p>
-          <span className="rounded-full border px-2 py-1 text-xs font-bold">{i.status}</span>
+          <span className="rounded-full border px-2 py-1 text-xs font-bold">{nlStatus(i.status)}</span>
         </div>
         <p className="mt-2 text-sm text-muted-foreground">{new Date(i.created_at).toLocaleString('nl-BE')}</p>
         {i.acknowledged_at && <p className="text-sm text-muted-foreground">Erkend: {new Date(i.acknowledged_at).toLocaleString('nl-BE')}</p>}
@@ -58,7 +58,7 @@ export default async function Page() {
 function IncidentPhoto({ url }: { url?: string }) {
   if (!url) return <span className="mt-2 block text-sm text-muted-foreground">Incidentfoto niet beschikbaar.</span>
   return <a href={url} target="_blank" rel="noreferrer" className="mt-3 block overflow-hidden rounded-xl border">
-    {/* Signed private-storage URL; opening the original is intentionally short-lived. */}
+    {/* Ondertekende privéopslag-URL; de originele koppeling is bewust kort geldig. */}
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img src={url} alt="Incidentfoto" className="max-h-80 w-full object-contain bg-black/20"/>
   </a>

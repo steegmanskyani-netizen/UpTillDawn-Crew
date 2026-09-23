@@ -98,7 +98,52 @@ export async function createEvent(fd:FormData){
  check(error);revalidatePath('/events')
 }
 export async function addWorkplace(fd:FormData){
- const {s}=await adminClient();const {error}=await s.from('workplaces').insert({event_id:uuid.parse(fd.get('event_id')),name:text.parse(fd.get('name'))});check(error);revalidatePath('/workplaces')
+ const {s,user,profile}=await approvedClient()
+ const eventId=uuid.parse(fd.get('event_id'))
+ if(profile.role!=='admin'){
+  if(profile.role!=='responsible_lead')throw new Error('Geen toegang.')
+  const {data:membership,error:membershipError}=await s.from('event_members')
+   .select('event_id')
+   .eq('event_id',eventId)
+   .eq('user_id',user.id)
+   .eq('event_role','responsible_lead')
+   .maybeSingle()
+  check(membershipError)
+  if(!membership)throw new Error('Je bent niet als verantwoordelijke aan dit evenement toegewezen.')
+ }
+ const {error}=await s.from('workplaces').insert({
+  event_id:eventId,
+  name:text.parse(fd.get('name')),
+  description:String(fd.get('description')||'').trim().slice(0,1000)||null,
+  sort_order:z.coerce.number().int().min(0).max(10000).parse(fd.get('sort_order')||0),
+  is_active:true,
+ })
+ check(error);revalidatePath('/workplaces')
+}
+
+export async function updateWorkplace(fd:FormData){
+ const {s,user,profile}=await approvedClient()
+ const workplaceId=uuid.parse(fd.get('workplace_id'))
+ const {data:workplace,error:workplaceError}=await s.from('workplaces').select('event_id').eq('id',workplaceId).single()
+ check(workplaceError);if(!workplace)throw new Error('Werkplek niet gevonden.')
+ if(profile.role!=='admin'){
+  if(profile.role!=='responsible_lead')throw new Error('Geen toegang.')
+  const {data:membership,error:membershipError}=await s.from('event_members')
+   .select('event_id')
+   .eq('event_id',workplace.event_id)
+   .eq('user_id',user.id)
+   .eq('event_role','responsible_lead')
+   .maybeSingle()
+  check(membershipError)
+  if(!membership)throw new Error('Je bent niet als verantwoordelijke aan dit evenement toegewezen.')
+ }
+ const {error}=await s.from('workplaces').update({
+  name:text.parse(fd.get('name')),
+  description:String(fd.get('description')||'').trim().slice(0,1000)||null,
+  sort_order:z.coerce.number().int().min(0).max(10000).parse(fd.get('sort_order')||0),
+  is_active:fd.get('is_active')==='on',
+ }).eq('id',workplaceId)
+ check(error);revalidatePath('/workplaces')
 }
 export async function setEventAvailability(fd:FormData){
  const {s,user}=await approvedClient()
@@ -120,14 +165,15 @@ export async function addEventMember(fd:FormData){
  const eventId=uuid.parse(fd.get('event_id'))
  const userId=uuid.parse(fd.get('user_id'))
  const [{data:p},{data:availability}]=await Promise.all([
-  s.from('profiles').select('approved').eq('id',userId).single(),
+  s.from('profiles').select('approved,role').eq('id',userId).single(),
   s.from('event_availability').select('response').eq('event_id',eventId).eq('user_id',userId).maybeSingle(),
  ])
  if(!p?.approved)throw new Error('Account niet goedgekeurd.')
  if(availability?.response!=='can')throw new Error('Selecteer iemand die heeft aangeduid dat die kan.')
- const {error}=await s.from('event_members').upsert({event_id:eventId,user_id:userId,event_role:'employee'},{onConflict:'event_id,user_id'})
+ const eventRole=p.role==='responsible_lead'?'responsible_lead':p.role==='admin'?'admin':'employee'
+ const {error}=await s.from('event_members').upsert({event_id:eventId,user_id:userId,event_role:eventRole},{onConflict:'event_id,user_id'})
  check(error)
- revalidatePath('/events');revalidatePath('/tasks');revalidatePath('/briefings');revalidatePath('/shifts')
+ revalidatePath('/events');revalidatePath('/tasks');revalidatePath('/briefings');revalidatePath('/shifts');revalidatePath('/workplaces')
 }
 
 export async function addAvailableEventMembers(fd:FormData){
@@ -137,19 +183,23 @@ export async function addAvailableEventMembers(fd:FormData){
  if(!userIds.length)throw new Error('Selecteer minstens één persoon.')
  const [{data:available,error:availabilityError},{data:approved,error:profileError}]=await Promise.all([
   s.from('event_availability').select('user_id').eq('event_id',eventId).eq('response','can').in('user_id',userIds),
-  s.from('profiles').select('id').eq('approved',true).in('id',userIds),
+  s.from('profiles').select('id,role').eq('approved',true).in('id',userIds),
  ])
  check(availabilityError);check(profileError)
  const allowed=new Set((available||[]).map(row=>row.user_id))
- const approvedIds=new Set((approved||[]).map(row=>row.id))
- const valid=userIds.filter(id=>allowed.has(id)&&approvedIds.has(id))
+ const approvedById=new Map((approved||[]).map(row=>[row.id,row.role]))
+ const valid=userIds.filter(id=>allowed.has(id)&&approvedById.has(id))
  if(valid.length!==userIds.length)throw new Error('Een selectie is niet langer beschikbaar voor dit evenement.')
  const {error}=await s.from('event_members').upsert(
-  valid.map(user_id=>({event_id:eventId,user_id,event_role:'employee'})),
+  valid.map(user_id=>({
+   event_id:eventId,
+   user_id,
+   event_role:approvedById.get(user_id)==='responsible_lead'?'responsible_lead':approvedById.get(user_id)==='admin'?'admin':'employee',
+  })),
   {onConflict:'event_id,user_id'}
  )
  check(error)
- revalidatePath('/events');revalidatePath('/tasks');revalidatePath('/briefings');revalidatePath('/shifts')
+ revalidatePath('/events');revalidatePath('/tasks');revalidatePath('/briefings');revalidatePath('/shifts');revalidatePath('/workplaces')
 }
 export async function assignResponsible(fd:FormData){
  const {s,user}=await adminClient();const workplace_id=uuid.parse(fd.get('workplace_id')),user_id=uuid.parse(fd.get('user_id'))

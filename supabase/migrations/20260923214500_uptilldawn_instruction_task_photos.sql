@@ -17,6 +17,7 @@ create table if not exists public.work_attachments (
 create index if not exists idx_work_attachments_briefing on public.work_attachments(briefing_id) where briefing_id is not null;
 create index if not exists idx_work_attachments_instruction on public.work_attachments(personal_instruction_id) where personal_instruction_id is not null;
 create index if not exists idx_work_attachments_task on public.work_attachments(task_id) where task_id is not null;
+create index if not exists idx_work_attachments_uploaded_by on public.work_attachments(uploaded_by);
 
 alter table public.work_attachments enable row level security;
 revoke all on table public.work_attachments from anon, authenticated;
@@ -37,7 +38,7 @@ on public.work_attachments
 for select
 to authenticated
 using (
-  uploaded_by = auth.uid()
+  uploaded_by = (select auth.uid())
   or public.upt_is_admin()
   or (
     briefing_id is not null
@@ -54,7 +55,7 @@ using (
       select 1
       from public.personal_instructions pi
       where pi.id = work_attachments.personal_instruction_id
-        and pi.user_id = auth.uid()
+        and pi.user_id = (select auth.uid())
     )
   )
   or (
@@ -68,7 +69,7 @@ using (
             select 1
             from public.task_assignments ta
             where ta.task_id = t.id
-              and ta.user_id = auth.uid()
+              and ta.user_id = (select auth.uid())
           )
           or (t.workplace_id is not null and public.upt_is_responsible(t.event_id, t.workplace_id))
         )
@@ -82,8 +83,8 @@ on public.work_attachments
 for insert
 to authenticated
 with check (
-  uploaded_by = auth.uid()
-  and split_part(storage_path, '/', 1) = auth.uid()::text
+  uploaded_by = (select auth.uid())
+  and split_part(storage_path, '/', 1) = (select auth.uid())::text
   and (
     public.upt_is_admin()
     or (
@@ -115,7 +116,7 @@ on public.work_attachments
 for delete
 to authenticated
 using (
-  uploaded_by = auth.uid()
+  uploaded_by = (select auth.uid())
   or public.upt_is_admin()
   or (
     briefing_id is not null

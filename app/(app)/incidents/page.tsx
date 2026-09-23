@@ -9,12 +9,21 @@ export default async function Page() {
   const { data: { user } } = await s.auth.getUser()
   if (!user) return null
 
-  const [{ data: events }, { data: profile }, { data, error }] = await Promise.all([
+  const [{ data: events }, { data: profile }, { data, error }, { data: shifts }, { data: activeSession }] = await Promise.all([
     s.from('events').select('id,name').neq('status', 'archived'),
     s.from('profiles').select('role').eq('id', user.id).single(),
     s.from('incidents').select('id,message,status,created_at,acknowledged_at,resolved_at,event_id,workplace_id,photo_path').order('created_at', { ascending: false }).limit(100),
+    s.from('shifts').select('id,event_id,workplace_id,events(name),workplaces(name)').eq('user_id', user.id).neq('status', 'cancelled').order('scheduled_start'),
+    s.from('work_sessions').select('event_id,shift_id').eq('user_id', user.id).is('ended_at', null).maybeSingle(),
   ])
   const manager = profile?.role === 'admin' || profile?.role === 'responsible_lead'
+  const activeShift = (shifts || []).find(shift => shift.id === activeSession?.shift_id)
+  const contexts = (shifts || []).map(shift => ({
+    event_id: shift.event_id,
+    workplace_id: shift.workplace_id,
+    event_name: shift.events?.name || 'Event',
+    workplace_name: shift.workplaces?.name || 'Werkplek',
+  }))
   const signedPhotos = new Map<string,string>()
   await Promise.all((data || []).filter(i => i.photo_path).map(async i => {
     const { data: signed } = await s.storage.from('incident-photos').createSignedUrl(i.photo_path!, 300)
@@ -23,7 +32,13 @@ export default async function Page() {
 
   return <main className="mx-auto max-w-4xl space-y-5 p-4 pb-28 md:p-8">
     <h1 className="text-3xl font-black">Incidenten</h1>
-    <IncidentForm userId={user.id} events={events || []}/>
+    <IncidentForm
+      userId={user.id}
+      events={events || []}
+      contexts={contexts}
+      defaultEventId={activeSession?.event_id}
+      defaultWorkplaceId={activeShift?.workplace_id}
+    />
     {error ? <p>Meldingen konden niet worden geladen.</p> : data?.map(i =>
       <article key={i.id} className="rounded-xl border p-4">
         <div className="flex items-start justify-between gap-3">

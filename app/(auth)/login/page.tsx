@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Menu, X, Eye, EyeOff, Loader2, AlertCircle, ArrowRight, ShieldCheck, Users, UserCog } from "lucide-react"
 import { signIn } from "@/lib/actions/auth"
 
@@ -67,11 +68,7 @@ export default function LoginPage() {
 
       <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col items-center px-6 pb-10 pt-20 sm:pt-12">
         <div className="flex min-h-[260px] w-full items-center justify-center sm:min-h-[330px]">
-          <img
-            src="/uptilldawn-logo.jpeg"
-            alt="Up Till Dawn crew"
-            className="max-h-[320px] w-full max-w-[500px] object-contain"
-          />
+          <Image src="/uptilldawn-logo.jpeg" alt="Up Till Dawn crew" width={500} height={320} priority className="max-h-[320px] w-full max-w-[500px] object-contain" />
         </div>
 
         <section className="w-full rounded-3xl border border-white/15 bg-zinc-950 p-6 shadow-2xl sm:p-8">

@@ -30,6 +30,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [showTasks, setShowTasks] = useState(false)
   const [showBriefings, setShowBriefings] = useState(false)
   const [showShifts, setShowShifts] = useState(false)
+  const [showWorkplaces, setShowWorkplaces] = useState(false)
   const [showIncidents, setShowIncidents] = useState(false)
 
   const refreshMissed = useCallback(async () => {
@@ -67,15 +68,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const effectiveResponsible = roles.includes("responsible_lead")
     const effectiveStaff = roles.includes("employee") && !effectiveResponsible && !roles.includes("admin")
 
-    const [{ data: memberships }, { data: shifts }, { data: responsibilities }] = await Promise.all([
-      supabase.from("event_members").select("event_id").eq("user_id", user.id),
+    const [{ data: memberships }, { data: shifts }] = await Promise.all([
+      supabase.from("event_members").select("event_id,event_role").eq("user_id", user.id),
       supabase.from("shifts").select("event_id").eq("user_id", user.id).neq("status", "cancelled"),
-      supabase.from("responsible_assignments").select("event_id").eq("user_id", user.id),
     ])
 
     const memberEventIds = new Set((memberships || []).map(row => row.event_id))
     const shiftEventIds = new Set((shifts || []).map(row => row.event_id))
-    const responsibleEventIds = new Set((responsibilities || []).map(row => row.event_id))
+    const responsibleEventIds = new Set(
+      (memberships || [])
+        .filter(row => row.event_role === "responsible_lead")
+        .map(row => row.event_id),
+    )
     const activeMemberEvents = activeEventIds.filter(id => memberEventIds.has(id) || shiftEventIds.has(id))
     const activeResponsibleEvents = activeEventIds.filter(id => responsibleEventIds.has(id))
 
@@ -86,6 +90,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       setShowTasks(true)
       setShowBriefings(true)
       setShowShifts(true)
+      setShowWorkplaces(true)
       setShowIncidents(active)
       setHasActiveEvent(active)
     } else if (effectiveResponsible) {
@@ -94,6 +99,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       setShowTasks(selectedForEvent)
       setShowBriefings(selectedForEvent)
       setShowShifts(memberEventIds.size > 0)
+      setShowWorkplaces(selectedForEvent)
       setShowIncidents(activeResponsibleEvents.length > 0)
       setHasActiveEvent(activeMemberEvents.length > 0 || activeResponsibleEvents.length > 0)
     } else if (effectiveStaff) {
@@ -102,6 +108,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       setShowTasks(selectedForEvent)
       setShowBriefings(selectedForEvent)
       setShowShifts(selectedForEvent)
+      setShowWorkplaces(false)
       setShowIncidents(false)
       setHasActiveEvent(activeMemberEvents.length > 0)
     } else {
@@ -109,6 +116,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       setShowTasks(false)
       setShowBriefings(false)
       setShowShifts(false)
+      setShowWorkplaces(false)
       setShowIncidents(false)
       setHasActiveEvent(false)
     }
@@ -174,6 +182,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         showTasks={showTasks}
         showBriefings={showBriefings}
         showShifts={showShifts}
+        showWorkplaces={showWorkplaces}
         showIncidents={showIncidents}
       /></div>
       <div className="flex flex-1 flex-col overflow-hidden print:block print:overflow-visible">

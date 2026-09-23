@@ -40,18 +40,17 @@ export function ChatClient({
   const [pickerOpen, setPickerOpen] = useState(false)
   const endRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    if (selected && channels.some(channel => channel.id === selected)) return
-    setSelected(defaultChannelId || channels[0]?.id || '')
-  }, [channels, defaultChannelId, selected])
+  const effectiveSelected = selected && channels.some(channel => channel.id === selected)
+    ? selected
+    : defaultChannelId || channels[0]?.id || ''
 
   useEffect(() => {
-    if (!selected) return
+    if (!effectiveSelected) return
     const s = createClient()
     let alive = true
 
     async function load() {
-      const { data, error } = await s.from('messages').select('*').eq('channel_id', selected).order('created_at', { ascending: false }).limit(100)
+      const { data, error } = await s.from('messages').select('*').eq('channel_id', effectiveSelected).order('created_at', { ascending: false }).limit(100)
       if (!alive) return
       if (error) {
         setStatus('Berichten konden niet worden geladen.')
@@ -81,8 +80,8 @@ export function ChatClient({
     }
 
     void load()
-    const channel = s.channel(`crew-chat-${selected}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `channel_id=eq.${selected}` }, () => void load())
+    const channel = s.channel(`crew-chat-${effectiveSelected}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'messages', filter: `channel_id=eq.${effectiveSelected}` }, () => void load())
       .subscribe()
     const timer = setInterval(() => void load(), 10_000)
     return () => {
@@ -90,11 +89,11 @@ export function ChatClient({
       clearInterval(timer)
       void s.removeChannel(channel)
     }
-  }, [selected])
+  }, [effectiveSelected])
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: 'end' })
-  }, [messages.length, selected])
+  }, [messages.length, effectiveSelected])
 
   const privatePeerByChannel = useMemo(
     () => new Map(privatePeers.map(peer => [peer.channel_id, peer])),
@@ -108,7 +107,7 @@ export function ChatClient({
         ? privatePeerByChannel.get(channel.id)?.full_name || 'Privé gesprek'
         : channel.name || channel.kind
 
-  const selectedChannel = channels.find(channel => channel.id === selected)
+  const selectedChannel = channels.find(channel => channel.id === effectiveSelected)
   const selectedPeer = selectedChannel?.kind === 'private'
     ? privatePeerByChannel.get(selectedChannel.id)
     : undefined
@@ -150,13 +149,13 @@ export function ChatClient({
 
   async function sendMessage() {
     const trimmed = body.trim()
-    if (busy || !selected || (!trimmed && !file)) return
+    if (busy || !effectiveSelected || (!trimmed && !file)) return
     setBusy(true)
     setStatus('')
 
     try {
       if (file) {
-        await enqueueChatPhoto(userId, selected, trimmed, file)
+        await enqueueChatPhoto(userId, effectiveSelected, trimmed, file)
         setBody('')
         setFile(null)
         setFileKey(key => key + 1)
@@ -164,7 +163,7 @@ export function ChatClient({
           ? 'Foto en bericht zijn bewaard voor serververwerking.'
           : 'Foto en bericht zijn lokaal bewaard en worden verzonden zodra je online bent.')
       } else {
-        await enqueue(userId, 'message', { channel_id: selected, body: trimmed })
+        await enqueue(userId, 'message', { channel_id: effectiveSelected, body: trimmed })
         setBody('')
       }
     } catch (error) {
@@ -236,7 +235,7 @@ export function ChatClient({
               type="button"
               key={channel.id}
               onClick={() => chooseChannel(channel.id)}
-              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left ${channel.id === selected ? 'bg-violet-600 text-white' : 'hover:bg-muted'}`}
+              className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left ${channel.id === effectiveSelected ? 'bg-violet-600 text-white' : 'hover:bg-muted'}`}
             >
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-current/15 bg-black/10">
                 <Users className="h-4 w-4"/>
@@ -348,7 +347,7 @@ export function ChatClient({
         />
 
         <button
-          disabled={busy || !selected || (!body.trim() && !file)}
+          disabled={busy || !effectiveSelected || (!body.trim() && !file)}
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-violet-600 text-white disabled:opacity-40"
           aria-label="Versturen"
         >

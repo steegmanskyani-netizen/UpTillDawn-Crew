@@ -1961,6 +1961,18 @@ export type Database = {
         }
         Returns: string
       }
+      upt_create_incident: {
+        Args: {
+          p_accuracy_m?: number
+          p_event: string
+          p_latitude?: number
+          p_longitude?: number
+          p_message: string
+          p_photo_path?: string
+          p_workplace: string
+        }
+        Returns: string
+      }
       upt_create_private_chat: { Args: { p_user: string }; Returns: string }
       upt_create_shift: {
         Args: {

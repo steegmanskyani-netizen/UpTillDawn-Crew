@@ -36,6 +36,9 @@
 - Added a database constraint limiting profile roles to Staff, Responsible Lead or Admin.
 - Fixed the crew dashboard so "Komende events" excludes finished events.
 - Rechecked live generated Supabase types and local/remote migration history for exact alignment.
+- Added coverage for every remaining public foreign key and a regression query that fails if an FK loses its leading index.
+- Added repository-hygiene tests for service-role leakage, retired StaffPortal schema references, public environment variables and migration-version uniqueness.
+- Corrected stale deployment-size documentation and aligned local verification commands with CI.
 
 - Retired StaffPortal application routes and actions are removed from the runtime.
 - Legacy runtime utilities, UI components, tests, manifests and deployment config were removed while historical database migrations remain intact.

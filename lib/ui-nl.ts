@@ -3,6 +3,9 @@ export function nlStatus(value: string | null | undefined) {
   const key = value.trim().toLowerCase().replaceAll(" ", "_")
   const labels: Record<string, string> = {
     draft: "Concept",
+    published: "Gepubliceerd",
+    scheduled: "Gepland",
+    confirmed: "Bevestigd",
     active: "Actief",
     archived: "Gearchiveerd",
     pending: "In afwachting",
@@ -25,6 +28,11 @@ export function nlStatus(value: string | null | undefined) {
     check_outs: "Uitklokken",
     briefing: "Instructie",
     info: "Informatie",
+    suspended: "Geschorst",
+    private: "Privé",
+    organization: "Organisatie",
+    event: "Evenement",
+    workplace: "Werkplek",
   }
   return labels[key] || value
 }

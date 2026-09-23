@@ -14,7 +14,8 @@ export default async function Page(){
  if(!current?.isAdmin) redirect('/')
  const s=await createClient()
  const now=new Date()
- const soon=new Date(now.getTime()+60*60*1000)
+ const nowMs=now.getTime()
+ const soon=new Date(nowMs+60*60*1000)
 
  const [events,sessions,breaks,pendingIns,pendingOuts,incidents,assignments,shifts,profiles,workplaces,syncIssues,approvedChecks]=await Promise.all([
   s.from('events').select('id,name,start_at,end_at,status').neq('status','archived').order('start_at'),
@@ -34,7 +35,7 @@ export default async function Page(){
  if(results.some(x=>x.error)) return <main className="p-4 md:p-8"><h1 className="text-3xl font-black">Admin dashboard</h1><p className="mt-4">Dashboardgegevens konden niet volledig worden geladen.</p></main>
 
  const eventRows=events.data||[],sessionRows=sessions.data||[],breakRows=breaks.data||[],inRows=pendingIns.data||[],outRows=pendingOuts.data||[],incidentRows=incidents.data||[],assignmentRows=assignments.data||[],shiftRows=shifts.data||[],profileRows=profiles.data||[],workplaceRows=workplaces.data||[],syncRows=syncIssues.data||[],checkRows=approvedChecks.data||[]
- const activeEvents=eventRows.filter(e=>Date.parse(e.start_at)<=Date.now()&&Date.parse(e.end_at)>=Date.now())
+ const activeEvents=eventRows.filter(e=>Date.parse(e.start_at)<=nowMs&&Date.parse(e.end_at)>=nowMs)
  const missing=shiftRows.filter(shift=>!checkRows.some(check=>check.user_id===shift.user_id&&check.event_id===shift.event_id&&check.workplace_id===shift.workplace_id))
  const people=new Map(profileRows.map(p=>[p.id,p]))
  const eventMap=new Map(eventRows.map(e=>[e.id,e]))

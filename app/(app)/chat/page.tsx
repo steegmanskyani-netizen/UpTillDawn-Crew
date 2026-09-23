@@ -31,6 +31,8 @@ export default async function Page() {
       .eq('user_id', user.id),
     s.from('events')
       .select('id,start_at,end_at')
+      .lte('start_at', 'now')
+      .gte('end_at', 'now')
       .order('start_at'),
   ])
 
@@ -47,15 +49,10 @@ export default async function Page() {
     return (a.name || '').localeCompare(b.name || '', 'nl')
   })
 
-  const now = Date.now()
-  const activeEventIds = new Set((events || [])
-    .filter(event => new Date(event.start_at).getTime() <= now && now <= new Date(event.end_at).getTime())
-    .map(event => event.id))
+  const activeEventIds = new Set((events || []).map(event => event.id))
 
   const activeShifts = (shifts || []).filter(shift => activeEventIds.has(shift.event_id))
-  const currentShift = activeShifts.find(shift =>
-    new Date(shift.scheduled_start).getTime() <= now && now <= new Date(shift.scheduled_end).getTime(),
-  ) || activeShifts[0]
+  const currentShift = activeShifts[0]
 
   const currentResponsible = !currentShift
     ? (responsibleAssignments || []).find(assignment => activeEventIds.has(assignment.event_id))

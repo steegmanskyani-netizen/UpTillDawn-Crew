@@ -23,3 +23,11 @@ test('service worker caches the current offline shell version', async () => {
   assert.match(sw, /event\.request\.mode==='navigate'/)
   assert.match(sw, /publicRoute\?['"]\/offline-public\.html['"]:['"]\/offline\.html['"]/)
 })
+
+
+test('all public auth routes use the privacy-safe offline fallback', async () => {
+  const sw = await readFile(new URL('../public/sw.js', import.meta.url), 'utf8')
+  for (const route of ['/signup','/forgot-password','/verify-email','/disabled','/unauthorized']) {
+    assert.ok(sw.includes(`url.pathname==='${route}'`), `${route} must be treated as public offline`)
+  }
+})

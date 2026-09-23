@@ -18,11 +18,13 @@ export function MobileBottomNav({
  incidentMissed = 0,
  taskMissed = 0,
  showOperations = false,
+ showEvents = false,
  showTasks = false,
 }: {
  incidentMissed?: number
  taskMissed?: number
  showOperations?: boolean
+ showEvents?: boolean
  showTasks?: boolean
 }) {
  const pathname=usePathname()
@@ -31,6 +33,7 @@ export function MobileBottomNav({
   {items.filter(i=>{
    if(!roles.some(r=>i.roles.includes(r))) return false
    if(i.href==="/operations") return showOperations
+   if(i.href==="/events") return showEvents
    if(i.href==="/tasks") return showTasks
    return true
   }).map(i=>{

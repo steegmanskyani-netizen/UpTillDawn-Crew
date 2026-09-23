@@ -86,9 +86,13 @@ export async function signUp(formData: FormData) {
 // ── Sign In ──────────────────────────────────────────────────
 
 export async function signIn(formData: FormData) {
-    const email = (formData.get('email') as string)?.trim().toLowerCase()
-    const password = formData.get('password') as string
-    const requestedPortal = ((formData.get('portal') as string) || 'staff').toLowerCase()
+    const email = String(formData.get('email') || '').trim().toLowerCase()
+    const password = String(formData.get('password') || '')
+    const requestedPortal = String(formData.get('portal') || 'staff').toLowerCase()
+
+    if (!['staff', 'responsible', 'admin'].includes(requestedPortal)) {
+        return { error: 'Ongeldig inlogportaal.', code: 'invalid_portal' }
+    }
 
     if (!email || !password) {
         return { error: 'E-mail en wachtwoord zijn verplicht.' }
@@ -188,7 +192,11 @@ export async function forgotPassword(formData: FormData) {
     }
 
 
-    const origin = process.env.NEXT_PUBLIC_APP_URL
+    const origin = appOrigin()
+    if (!origin) {
+        console.error('[Auth] NEXT_PUBLIC_APP_URL is missing or invalid')
+        return { error: 'De applicatieconfiguratie is onvolledig. Neem contact op met de beheerder.' }
+    }
 
     const supabase = await createClient()
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -240,7 +248,11 @@ export async function resendVerificationEmail(formData: FormData) {
         return { error: 'Vul je e-mailadres in.' }
     }
 
-    const origin = process.env.NEXT_PUBLIC_APP_URL
+    const origin = appOrigin()
+    if (!origin) {
+        console.error('[Auth] NEXT_PUBLIC_APP_URL is missing or invalid')
+        return { error: 'De applicatieconfiguratie is onvolledig. Neem contact op met de beheerder.' }
+    }
 
     const supabase = await createClient()
     const { error } = await supabase.auth.resend({

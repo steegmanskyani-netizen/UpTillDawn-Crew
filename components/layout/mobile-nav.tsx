@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation"
 import { useAuth } from "@/lib/providers"
 import { cn } from "@/lib/utils"
 import { LayoutDashboard, CalendarDays, Clock3, AlertTriangle, Users } from "lucide-react"
+
 const items=[
  {href:"/",label:"Dashboard",icon:LayoutDashboard,roles:["employee","responsible_lead","admin"]},
  {href:"/events",label:"Events",icon:CalendarDays,roles:["employee","responsible_lead","admin"]},
@@ -11,4 +12,23 @@ const items=[
  {href:"/incidents",label:"Incidenten",icon:AlertTriangle,roles:["responsible_lead","admin"]},
  {href:"/crew",label:"Crew",icon:Users,roles:["employee","responsible_lead","admin"]},
 ]
-export function MobileBottomNav(){const pathname=usePathname();const{roles}=useAuth();return <nav className="fixed inset-x-0 bottom-0 z-50 flex justify-around border-t border-border bg-card/95 backdrop-blur p-1.5 md:hidden">{items.filter(i=>roles.some(r=>i.roles.includes(r))).map(i=>{const href=i.href==='/'&&roles.includes('admin')?'/admin':i.href;const I=i.icon;const a=href==='/'?pathname==='/':pathname.startsWith(href);return <Link key={i.href} href={href} className={cn("flex min-w-14 flex-col items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold",a?"text-violet-400":"text-muted-foreground")}><I className="h-5 w-5"/>{i.label}</Link>})}</nav>}
+
+export function MobileBottomNav({ incidentMissed = 0 }: { incidentMissed?: number }) {
+ const pathname=usePathname()
+ const {roles}=useAuth()
+ return <nav className="fixed inset-x-0 bottom-0 z-50 flex justify-around border-t border-border bg-card/95 backdrop-blur p-1.5 md:hidden">
+  {items.filter(i=>roles.some(r=>i.roles.includes(r))).map(i=>{
+   const href=i.href==='/'&&roles.includes('admin')?'/admin':i.href
+   const I=i.icon
+   const active=href==='/'?pathname==='/':pathname.startsWith(href)
+   const count=i.href==="/incidents"?incidentMissed:0
+   return <Link key={i.href} href={href} className={cn("flex min-w-14 flex-col items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold",active?"text-violet-400":"text-muted-foreground")}>
+    <span className="relative">
+     <I className="h-5 w-5"/>
+     {count>0&&<span className="absolute -right-3 -top-3 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-black leading-none text-white shadow ring-2 ring-card">{count>99?"99+":count}</span>}
+    </span>
+    {i.label}
+   </Link>
+  })}
+ </nav>
+}

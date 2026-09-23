@@ -78,7 +78,7 @@ export default async function Page() {
 
   return <main className="mx-auto max-w-4xl p-0 pb-24 md:p-8 md:pb-8">
     {error
-      ? <p className="p-4">Chat kon niet worden geladen.</p>
+      ? <p className="p-4">Gesprekken konden niet worden geladen.</p>
       : <ChatClient
           channels={orderedChannels}
           defaultChannelId={defaultChannelId}

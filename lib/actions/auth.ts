@@ -25,12 +25,12 @@ export async function signUp(formData: FormData) {
     const fullName = (formData.get('full_name') as string)?.trim() || extractName(email || '')
 
     if (!email || !password) {
-        return { error: 'Email and password are required.' }
+        return { error: 'E-mail en wachtwoord zijn verplicht.' }
     }
 
 
     if (password.length < 8) {
-        return { error: 'Password must be at least 8 characters.' }
+        return { error: 'Wachtwoord moet minstens 8 tekens bevatten.' }
     }
 
     const origin = process.env.NEXT_PUBLIC_APP_URL
@@ -49,7 +49,7 @@ export async function signUp(formData: FormData) {
 
     if (error) {
         if (error.message.includes('already registered')) {
-            return { error: 'An account with this email already exists. Please sign in.' }
+            return { error: 'Er bestaat al een account met dit e-mailadres. Log in.' }
         }
         console.error('[Auth]', { code: error.code, status: error.status })
         return { error: 'De aanvraag kon niet worden verwerkt. Probeer opnieuw.' }
@@ -57,7 +57,7 @@ export async function signUp(formData: FormData) {
 
     return {
         success: true,
-        message: `Check your email (${email}) for a verification link before signing in.`,
+        message: `Controleer ${email} voor de verificatielink voordat je inlogt.`,
         userId: data.user?.id,
     }
 }
@@ -83,14 +83,14 @@ export async function signIn(formData: FormData) {
     if (error || !data.user) {
         if (error?.message.includes('Email not confirmed')) {
             return {
-                error: 'Please verify your email address first.',
+                error: 'Verifieer eerst je e-mailadres.',
                 code: 'email_not_confirmed',
             }
         }
 
         if (error?.message.includes('Invalid login credentials')) {
             return {
-                error: 'Incorrect email or password. Please try again.',
+                error: 'Onjuist e-mailadres of wachtwoord.',
                 code: 'invalid_credentials',
             }
         }
@@ -129,7 +129,6 @@ export async function signIn(formData: FormData) {
             : requestedPortal === 'responsible'
                 ? role === 'responsible_lead' || role === 'admin'
                 : role === 'staff' ||
-                  role === 'employee' ||
                   role === 'responsible_lead' ||
                   role === 'admin'
 
@@ -164,7 +163,7 @@ export async function forgotPassword(formData: FormData) {
     const email = (formData.get('email') as string)?.trim().toLowerCase()
 
     if (!email) {
-        return { error: 'Please enter your email address.' }
+        return { error: 'Vul je e-mailadres in.' }
     }
 
 
@@ -182,7 +181,7 @@ export async function forgotPassword(formData: FormData) {
 
     return {
         success: true,
-        message: 'If that account exists, a reset link has been sent to your email.',
+        message: 'Als dit account bestaat, is een herstel-link naar het e-mailadres verstuurd.',
     }
 }
 
@@ -193,7 +192,7 @@ export async function updatePassword(formData: FormData) {
     const confirmPassword = formData.get('confirm_password') as string
 
     if (password !== confirmPassword) {
-        return { error: 'Passwords do not match.' }
+        return { error: 'Wachtwoorden komen niet overeen.' }
     }
 
     if (password.length < 8) {
@@ -208,7 +207,7 @@ export async function updatePassword(formData: FormData) {
         return { error: 'De aanvraag kon niet worden verwerkt. Probeer opnieuw.' }
     }
 
-    return { success: true, message: 'Password updated successfully.' }
+    return { success: true, message: 'Wachtwoord is bijgewerkt.' }
 }
 
 // ── Resend Verification Email ─────────────────────────────────
@@ -234,7 +233,7 @@ export async function resendVerificationEmail(formData: FormData) {
         return { error: 'De aanvraag kon niet worden verwerkt. Probeer opnieuw.' }
     }
 
-    return { success: true, message: 'Verification email resent. Please check your inbox.' }
+    return { success: true, message: 'Verificatiemail opnieuw verstuurd. Controleer je inbox.' }
 }
 
 // ── Get Current User with Profile ────────────────────────────
@@ -251,14 +250,12 @@ export async function getCurrentUser() {
         .eq('id', user.id)
         .single()
     if (error || !profile || !profile.approved) return null
-    // Compatibility fields for legacy components; authorization uses profiles.role.
     const roles = [profile.role === 'staff' ? 'employee' : profile.role]
     return {
-        ...profile, id: user.id, email: user.email ?? '', roles,
-        display_name: profile.full_name, avatar_url: profile.profile_photo_url,
-        department: null, location: null, department_id: null, location_id: null,
-        is_active: profile.approved, job_title: null, desk_extension: null,
-        isAdmin: profile.role === 'admin', isDirector: false,
-        isAccounts: false, isReception: false,
+        ...profile,
+        id: user.id,
+        email: user.email ?? '',
+        roles,
+        isAdmin: profile.role === 'admin',
     }
 }

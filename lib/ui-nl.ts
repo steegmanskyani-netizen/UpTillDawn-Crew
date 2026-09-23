@@ -18,6 +18,13 @@ export function nlStatus(value: string | null | undefined) {
     synced: "Gesynchroniseerd",
     failed: "Mislukt",
     conflict: "Conflict",
+    incident: "Incident",
+    task: "Taak",
+    message: "Bericht",
+    check_ins: "Inklokken",
+    check_outs: "Uitklokken",
+    briefing: "Instructie",
+    info: "Informatie",
   }
   return labels[key] || value
 }

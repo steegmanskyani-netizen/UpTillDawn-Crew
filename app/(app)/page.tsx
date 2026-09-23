@@ -37,9 +37,9 @@ export default async function Dashboard() {
     <div>
       <p className="text-xs font-bold tracking-[.2em] text-violet-400">UP TILL DAWN PERSONEELSBEHEER</p>
       <h1 className="mt-1 text-3xl font-black">Welkom, {profile?.full_name || 'Personeelslid'}</h1>
-      <p className="text-muted-foreground">Je operationele crew-overzicht.</p>
+      <p className="text-muted-foreground">Je operationele personeelsoverzicht.</p>
     </div>
-    {hasLoadError && <p className="rounded-xl border border-amber-500/40 p-4">Een deel van het dashboard kon niet worden geladen.</p>}
+    {hasLoadError && <p className="rounded-xl border border-amber-500/40 p-4">Een deel van het overzicht kon niet worden geladen.</p>}
     <section className="grid gap-4 md:grid-cols-3">
       <Card href="/events" icon={CalendarDays} title="Evenementen" value={events.length}/>
       <Card href="/shifts" icon={Clock3} title="Mijn diensten" value={shifts.length}/>

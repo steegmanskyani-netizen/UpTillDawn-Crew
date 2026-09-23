@@ -7,17 +7,17 @@ import { cn } from "@/lib/utils"
 import { LayoutDashboard, CalendarDays, MapPin, Clock3, AlertTriangle, Users, Shield, Settings, ScrollText } from "lucide-react"
 
 const items = [
+  { href: "/", label: "Dashboard", icon: LayoutDashboard, roles: ["employee","responsible_lead","admin"] },
   { href: "/operations", label: "Werk & pauze", icon: Clock3, roles: ["employee","responsible_lead","admin"] },
+  { href: "/events", label: "Events", icon: CalendarDays, roles: ["employee","responsible_lead","admin"] },
+  { href: "/workplaces", label: "Werkplekken", icon: MapPin, roles: ["responsible_lead","admin"] },
+  { href: "/shifts", label: "Shifts", icon: Clock3, roles: ["employee","responsible_lead","admin"] },
   { href: "/briefings", label: "Briefings", icon: ScrollText, roles: ["employee","responsible_lead","admin"] },
   { href: "/tasks", label: "Taken", icon: ScrollText, roles: ["employee","responsible_lead","admin"] },
   { href: "/chat", label: "Chat", icon: Users, roles: ["employee","responsible_lead","admin"] },
   { href: "/crew", label: "Crew", icon: Users, roles: ["employee","responsible_lead","admin"] },
+  { href: "/incidents", label: "Incidenten", icon: AlertTriangle, roles: ["responsible_lead","admin"] },
   { href: "/exports", label: "Excel", icon: ScrollText, roles: ["admin"] },
-  { href: "/", label: "Dashboard", icon: LayoutDashboard, roles: ["employee","responsible_lead","admin"] },
-  { href: "/events", label: "Events", icon: CalendarDays, roles: ["employee","responsible_lead","admin"] },
-  { href: "/workplaces", label: "Werkplekken", icon: MapPin, roles: ["responsible_lead","admin"] },
-  { href: "/shifts", label: "Shifts", icon: Clock3, roles: ["employee","responsible_lead","admin"] },
-  { href: "/incidents", label: "Incidents", icon: AlertTriangle, roles: ["responsible_lead","admin"] },
   { href: "/personnel", label: "Personeel", icon: Users, roles: ["admin"] },
   { href: "/audit", label: "Auditlog", icon: ScrollText, roles: ["admin"] },
   { href: "/settings", label: "Instellingen", icon: Settings, roles: ["employee","responsible_lead","admin"] },

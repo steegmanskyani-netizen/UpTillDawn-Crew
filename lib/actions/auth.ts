@@ -32,20 +32,29 @@ function appOrigin(): string | null {
 // ── Sign Up ──────────────────────────────────────────────────
 
 export async function signUp(formData: FormData) {
-    const email = (formData.get('email') as string)?.trim().toLowerCase()
-    const password = formData.get('password') as string
-    const fullName = (formData.get('full_name') as string)?.trim() || extractName(email || '')
+    const email = String(formData.get('email') || '').trim().toLowerCase()
+    const password = String(formData.get('password') || '')
+    const confirmPassword = String(formData.get('confirm_password') || '')
+    const fullName = String(formData.get('full_name') || '').trim() || extractName(email)
 
     if (!email || !password) {
         return { error: 'E-mail en wachtwoord zijn verplicht.' }
     }
-
-
+    if (!fullName || fullName.length > 200) {
+        return { error: 'Volledige naam moet tussen 1 en 200 tekens bevatten.' }
+    }
     if (password.length < 8) {
         return { error: 'Wachtwoord moet minstens 8 tekens bevatten.' }
     }
+    if (confirmPassword && password !== confirmPassword) {
+        return { error: 'Wachtwoorden komen niet overeen.' }
+    }
 
-    const origin = process.env.NEXT_PUBLIC_APP_URL
+    const origin = appOrigin()
+    if (!origin) {
+        console.error('[Auth] NEXT_PUBLIC_APP_URL is missing or invalid')
+        return { error: 'De applicatieconfiguratie is onvolledig. Neem contact op met de beheerder.' }
+    }
 
     const supabase = await createClient()
     const { data, error } = await supabase.auth.signUp({

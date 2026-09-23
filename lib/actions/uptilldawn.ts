@@ -112,7 +112,7 @@ export async function assignResponsible(fd:FormData){
  const {error}=await s.from('responsible_assignments').upsert({event_id:w.event_id,workplace_id,user_id,assigned_by:user.id},{onConflict:'workplace_id,user_id'});check(error);revalidatePath('/workplaces')
 }
 export async function createShift(fd:FormData){
- const {s}=await approvedClient()
+ const {s}=await adminClient()
  const [start,end]=dates(fd,'start','end')
  const {error}=await s.rpc('upt_create_shift',{
   p_workplace:uuid.parse(fd.get('workplace_id')),
@@ -125,7 +125,7 @@ export async function createShift(fd:FormData){
  check(error);revalidatePath('/shifts');revalidatePath('/operations')
 }
 export async function updateShift(fd:FormData){
- const {s}=await approvedClient()
+ const {s}=await adminClient()
  const [start,end]=dates(fd,'start','end')
  const {error}=await s.rpc('upt_update_shift',{
   p_shift:uuid.parse(fd.get('shift_id')),
@@ -137,7 +137,7 @@ export async function updateShift(fd:FormData){
  check(error);revalidatePath('/shifts');revalidatePath('/operations')
 }
 export async function cancelShift(fd:FormData){
- const {s}=await approvedClient()
+ const {s}=await adminClient()
  const reason=String(fd.get('reason')||'').trim().slice(0,500)
  const {error}=await s.rpc('upt_cancel_shift',{p_shift:uuid.parse(fd.get('shift_id')),...(reason?{p_reason:reason}:{})})
  check(error);revalidatePath('/shifts');revalidatePath('/operations')
@@ -252,6 +252,7 @@ export async function updatePersonalInstruction(fd:FormData){
 }
 export async function createTask(fd:FormData){
  const {s,user,profile}=await approvedClient()
+ requireManager(profile.role)
  const files=workPhotoFiles(fd)
  const rawWorkplace=String(fd.get('workplace_id')||'').trim()
  let eventId:string
@@ -278,7 +279,8 @@ export async function createTask(fd:FormData){
  revalidatePath('/tasks')
 }
 export async function removeTaskAssignment(fd:FormData){
- const {s}=await approvedClient()
+ const {s,profile}=await approvedClient()
+ requireManager(profile.role)
  const {error}=await s.rpc('upt_remove_task_assignment',{p_assignment:uuid.parse(fd.get('assignment_id'))})
  check(error);revalidatePath('/tasks')
 }

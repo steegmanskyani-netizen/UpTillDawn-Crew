@@ -1,4 +1,5 @@
 import { DateInput } from '@/components/crew/date-input'
+import { AdminOnly } from '@/components/auth/admin-only'
 import { createClient } from '@/lib/supabase/crew-server'
 import { getCurrentUser } from '@/lib/actions/auth'
 import {
@@ -33,7 +34,7 @@ export default async function Page() {
   return <main className="space-y-6 p-4 md:p-8">
     <h1 className="text-3xl font-black">Events</h1>
 
-    {user.isAdmin && <form action={createEvent} className="grid gap-3 rounded-2xl border p-4 md:grid-cols-3">
+    {user.isAdmin && <AdminOnly><form action={createEvent} className="grid gap-3 rounded-2xl border p-4 md:grid-cols-3">
       <input name="name" required maxLength={200} placeholder="Eventnaam" className={input}/>
       <input name="venue" maxLength={200} placeholder="Locatie" className={input}/>
       <input name="address" maxLength={500} placeholder="Adres" className={input}/>
@@ -44,7 +45,7 @@ export default async function Page() {
         <input name="radius" type="number" defaultValue="100" min="10" max="10000" className={input}/>
       </label>
       <button className="rounded-xl bg-violet-600 p-3 font-bold md:col-span-3">EVENT AANMAKEN</button>
-    </form>}
+    </form></AdminOnly>}
 
     {eventsResult.error && <p>Events konden niet worden geladen.</p>}
 
@@ -52,7 +53,7 @@ export default async function Page() {
       <h2 className="text-xl font-bold">{event.name}</h2>
       <p>{event.venue || 'Locatie nog niet ingesteld'} · {new Date(event.start_at).toLocaleString('nl-BE')} · {event.status}</p>
 
-      {user.isAdmin && <>
+      {user.isAdmin && <AdminOnly><>
         <form action={addEventMember} className="flex flex-wrap gap-2">
           <input type="hidden" name="event_id" value={event.id}/>
           <select name="user_id" required className={input}>
@@ -90,7 +91,7 @@ export default async function Page() {
           <input type="hidden" name="event_id" value={event.id}/>
           <button className="rounded-lg border p-2">Archiveren</button>
         </form>}
-      </>}
+      </></AdminOnly>}
     </article>)}
   </main>
 }

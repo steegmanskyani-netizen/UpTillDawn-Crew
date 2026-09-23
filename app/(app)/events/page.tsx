@@ -22,12 +22,13 @@ export default async function Page() {
   const user = await getCurrentUser()
   if (!user) return null
 
-  const [eventsResult, membershipResult, shiftResult] = await Promise.all([
+  const [eventsResult, membershipResult, shiftResult, startedResult] = await Promise.all([
     s.from('events')
       .select('id,name,venue,start_at,end_at,status,latitude,longitude,checkin_radius_m')
       .order('start_at'),
     s.from('event_members').select('event_id').eq('user_id', user.id),
     s.from('shifts').select('event_id').eq('user_id', user.id).neq('status', 'cancelled'),
+    s.from('events').select('id').lte('start_at', 'now'),
   ])
 
   const peopleResult = user.isAdmin
@@ -40,11 +41,9 @@ export default async function Page() {
     ...(membershipResult.data || []).map(row => row.event_id),
     ...(shiftResult.data || []).map(row => row.event_id),
   ])
-  const now = Date.now()
+  const startedEventIds = new Set((startedResult.data || []).map(event => event.id))
   const staffAvailable = events.some(event =>
-    assignedEventIds.has(event.id)
-    && now >= new Date(event.start_at).getTime()
-    && now <= new Date(event.end_at).getTime() + 3 * 24 * 60 * 60 * 1000
+    assignedEventIds.has(event.id) && startedEventIds.has(event.id)
   )
 
   return <main className="space-y-6 p-4 md:p-8">
@@ -72,8 +71,7 @@ export default async function Page() {
       const chatUntil = new Date(new Date(event.end_at).getTime() + 3 * 24 * 60 * 60 * 1000)
 
       const visibleForStaff = assignedEventIds.has(event.id)
-        && now >= new Date(event.start_at).getTime()
-        && now <= chatUntil.getTime()
+        && startedEventIds.has(event.id)
 
       return <StaffAvailability key={event.id} available={visibleForStaff}><article className="space-y-3 rounded-2xl border bg-card p-4">
       <h2 className="text-xl font-bold">{event.name}</h2>

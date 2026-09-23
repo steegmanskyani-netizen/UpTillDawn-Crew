@@ -13,7 +13,7 @@ export default function UnauthorizedPage() {
       </div>
     </CardHeader>
     <CardContent className="pt-2">
-      <Button variant="outline" className="h-11 w-full rounded-xl gap-2" asChild><Link href="/"><ArrowLeft className="h-4 w-4"/>Terug naar dashboard</Link></Button>
+      <Button variant="outline" className="h-11 w-full rounded-xl gap-2" asChild><Link href="/"><ArrowLeft className="h-4 w-4"/>Terug naar overzicht</Link></Button>
     </CardContent>
   </Card>
 }

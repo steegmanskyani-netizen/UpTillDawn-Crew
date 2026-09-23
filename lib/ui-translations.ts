@@ -390,6 +390,9 @@ export const UI_TRANSLATIONS: Record<string, Translation> = {
   "Incident werd niet bevestigd.": { fr: "L’incident n’a pas été confirmé.", en: "Incident was not confirmed." },
   "Ongeldige chat-upload.": { fr: "Téléversement de discussion invalide.", en: "Invalid chat upload." },
   "De incidentfoto mag maximaal 10 MB zijn.": { fr: "La photo de l’incident peut faire maximum 10 Mo.", en: "The incident photo may be up to 10 MB." },
+  "Wachtwoord moet minstens 8 tekens bevatten.": { fr: "Le mot de passe doit contenir au moins 8 caractères.", en: "Password must contain at least 8 characters." },
+  "Wachtwoorden komen niet overeen.": { fr: "Les mots de passe ne correspondent pas.", en: "Passwords do not match." },
+  "De chatfoto mag maximaal 10 MB zijn.": { fr: "La photo de discussion peut faire maximum 10 Mo.", en: "The chat photo may be up to 10 MB." },
 }
 
 export function translateUiText(value: string, locale: UiLocale) {

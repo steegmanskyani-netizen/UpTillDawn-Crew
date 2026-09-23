@@ -124,6 +124,11 @@ export async function createTask(fd:FormData){
  })
  check(error);revalidatePath('/tasks')
 }
+export async function removeTaskAssignment(fd:FormData){
+ const {s}=await approvedClient()
+ const {error}=await s.rpc('upt_remove_task_assignment',{p_assignment:uuid.parse(fd.get('assignment_id'))})
+ check(error);revalidatePath('/tasks')
+}
 export async function archiveEvent(fd:FormData){const {s}=await adminClient();const {error}=await s.from('events').update({status:'archived'}).eq('id',uuid.parse(fd.get('event_id')));check(error);revalidatePath('/events')}
 export async function duplicateEvent(fd:FormData){const {s}=await adminClient();const [start,end]=dates(fd,'start_at','end_at');const {error}=await s.rpc('upt_duplicate_event',{p_event:uuid.parse(fd.get('event_id')),p_name:text.parse(fd.get('name')),p_start:start,p_end:end});check(error);revalidatePath('/events')}
 export async function updateEvent(fd:FormData){const {s}=await adminClient();const latitude=fd.get('latitude')?z.coerce.number().min(-90).max(90).parse(fd.get('latitude')):null;const longitude=fd.get('longitude')?z.coerce.number().min(-180).max(180).parse(fd.get('longitude')):null;if((latitude===null)!==(longitude===null))throw new Error('Vul beide coördinaten in.');const {error}=await s.from('events').update({name:text.parse(fd.get('name')),venue:String(fd.get('venue')||'').slice(0,200),latitude,longitude,checkin_radius_m:z.coerce.number().int().min(10).max(10000).parse(fd.get('radius'))}).eq('id',uuid.parse(fd.get('event_id')));check(error);revalidatePath('/events')}

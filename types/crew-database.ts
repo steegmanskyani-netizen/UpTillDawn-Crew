@@ -1872,6 +1872,10 @@ export type Database = {
         Args: { p_briefing: string }
         Returns: undefined
       }
+      upt_acknowledge_incident: {
+        Args: { p_incident: string }
+        Returns: undefined
+      }
       upt_acknowledge_personal_instruction: {
         Args: { p_instruction: string }
         Returns: string
@@ -1885,6 +1889,23 @@ export type Database = {
           p_target_type: string
         }
         Returns: string
+      }
+      upt_admin_personnel_details: {
+        Args: never
+        Returns: {
+          approved: boolean
+          date_of_birth: string
+          email: string
+          full_name: string
+          home_address: string
+          iban: string
+          id: string
+          national_register_number: string
+          phone_number: string
+          profile_photo_url: string
+          role: string
+          updated_at: string
+        }[]
       }
       upt_admin_profiles: {
         Args: never
@@ -1969,16 +1990,22 @@ export type Database = {
         Args: { event_uuid: string; uid?: string; workplace_uuid?: string }
         Returns: boolean
       }
+      upt_own_profile_details: {
+        Args: never
+        Returns: {
+          date_of_birth: string
+          email: string
+          full_name: string
+          home_address: string
+          iban: string
+          id: string
+          national_register_number: string
+          phone_number: string
+          profile_photo_url: string
+        }[]
+      }
       upt_remove_task_assignment: {
         Args: { p_assignment: string }
-        Returns: undefined
-      }
-      upt_acknowledge_incident: {
-        Args: { p_incident: string }
-        Returns: undefined
-      }
-      upt_resolve_incident: {
-        Args: { p_incident: string }
         Returns: undefined
       }
       upt_request_check_in: {
@@ -1998,6 +2025,7 @@ export type Database = {
         Args: { p_event: string; p_notes?: string }
         Returns: string
       }
+      upt_resolve_incident: { Args: { p_incident: string }; Returns: undefined }
       upt_responsible_crew_directory: {
         Args: { event_uuid: string; workplace_uuid: string }
         Returns: {
@@ -2017,6 +2045,18 @@ export type Database = {
       upt_sync_operation: {
         Args: { p_id: string; p_payload: Json; p_type: string }
         Returns: Json
+      }
+      upt_update_own_profile: {
+        Args: {
+          p_date_of_birth?: string
+          p_full_name: string
+          p_home_address?: string
+          p_iban?: string
+          p_national_register_number?: string
+          p_phone_number?: string
+          p_profile_photo_path?: string
+        }
+        Returns: undefined
       }
       upt_update_task_status: {
         Args: { p_assignment: string; p_status: string }
@@ -2168,4 +2208,3 @@ export const Constants = {
     Enums: {},
   },
 } as const
-

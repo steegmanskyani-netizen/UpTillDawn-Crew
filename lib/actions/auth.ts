@@ -70,7 +70,7 @@ export async function signIn(formData: FormData) {
     const requestedPortal = ((formData.get('portal') as string) || 'staff').toLowerCase()
 
     if (!email || !password) {
-        return { error: 'Email and password are required.' }
+        return { error: 'E-mail en wachtwoord zijn verplicht.' }
     }
 
     const supabase = await createClient()
@@ -135,7 +135,7 @@ export async function signIn(formData: FormData) {
     if (!allowed) {
         await supabase.auth.signOut()
         return {
-            error: `Dit account heeft geen toegang tot de ${requestedPortal} portal.`,
+            error: `Dit account heeft geen toegang tot het gekozen portaal (${requestedPortal}).`,
             code: 'wrong_portal',
         }
     }
@@ -196,7 +196,7 @@ export async function updatePassword(formData: FormData) {
     }
 
     if (password.length < 8) {
-        return { error: 'Password must be at least 8 characters.' }
+        return { error: 'Wachtwoord moet minstens 8 tekens bevatten.' }
     }
 
     const supabase = await createClient()
@@ -216,7 +216,7 @@ export async function resendVerificationEmail(formData: FormData) {
     const email = (formData.get('email') as string)?.trim().toLowerCase()
 
     if (!email) {
-        return { error: 'Please enter your email address.' }
+        return { error: 'Vul je e-mailadres in.' }
     }
 
     const origin = process.env.NEXT_PUBLIC_APP_URL

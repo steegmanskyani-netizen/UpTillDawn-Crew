@@ -35,7 +35,7 @@ export function SyncCenter() {
 
   async function refresh() {
     if (!user) return
-    const [nextOps, nextUploads] = await Promise.all([queued(user.id), queuedUploads(user.id)])
+    const [nextOps, nextUploads] = await Promise.all([queued(userId), queuedUploads(userId)])
     setOps(nextOps)
     setUploads(nextUploads)
   }
@@ -45,7 +45,7 @@ export function SyncCenter() {
     if (!user) return
     let alive = true
     const update = () => {
-      void Promise.all([queued(user.id), queuedUploads(user.id)]).then(([nextOps, nextUploads]) => {
+      void Promise.all([queued(userId), queuedUploads(userId)]).then(([nextOps, nextUploads]) => {
         if (!alive) return
         setOps(nextOps)
         setUploads(nextUploads)
@@ -65,6 +65,7 @@ export function SyncCenter() {
   }, [user])
 
   if (!user) return null
+  const userId = userId
 
   const total = ops.length + uploads.length
 
@@ -72,7 +73,7 @@ export function SyncCenter() {
     setBusy(true)
     setMessage('')
     try {
-      await synchronize(user.id)
+      await synchronize(userId)
       await refresh()
       setMessage('Synchronisatie opnieuw uitgevoerd. Alleen serverbevestigde acties zijn verwijderd uit de wachtrij.')
     } catch {
@@ -85,7 +86,7 @@ export function SyncCenter() {
   async function discardOperation(op: QueuedOperation) {
     const ok = window.confirm(`Deze ${labels[op.type] || op.type}-actie is NIET door de server bevestigd. Definitief verwijderen?`)
     if (!ok) return
-    await discardQueuedOperation(user.id, op.id)
+    await discardQueuedOperation(userId, op.id)
     await refresh()
     setMessage('Actie expliciet verwijderd uit de lokale wachtrij.')
   }
@@ -93,7 +94,7 @@ export function SyncCenter() {
   async function discardUpload(upload: QueuedUpload) {
     const ok = window.confirm('Dit bestand is mogelijk nog NIET door de server verwerkt. Definitief lokaal verwijderen?')
     if (!ok) return
-    await discardQueuedUpload(user.id, upload.id)
+    await discardQueuedUpload(userId, upload.id)
     await refresh()
     setMessage('Bestand expliciet verwijderd uit de lokale wachtrij.')
   }

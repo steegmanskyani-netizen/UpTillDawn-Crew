@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/actions/auth'
-import { createClient } from '@/lib/supabase/personeel-server'
+import { createClient } from '@/lib/supabase/crew-server'
 
 export const dynamic = 'force-dynamic'
 
@@ -32,10 +32,10 @@ export default async function Page(){
   s.from('check_ins').select('user_id,event_id,workplace_id').eq('status','approved'),
  ])
  const results=[events,sessions,breaks,pendingIns,pendingOuts,incidents,assignments,shifts,profiles,workplaces,syncIssues,approvedChecks]
- if(results.some(x=>x.error)) return <main className="p-4 md:p-8"><h1 className="text-3xl font-black">Beheeroverzicht</h1><p className="mt-4">Dashboardgegevens konden niet volledig worden geladen.</p></main>
+ if(results.some(x=>x.error)) return <main className="p-4 md:p-8"><h1 className="text-3xl font-black">Beheeroverzicht</h1><p className="mt-4">Overzichtsgegevens konden niet volledig worden geladen.</p></main>
 
  const eventRows=events.data||[],sessionRows=sessions.data||[],breakRows=breaks.data||[],inRows=pendingIns.data||[],outRows=pendingOuts.data||[],incidentRows=incidents.data||[],assignmentRows=assignments.data||[],shiftRows=shifts.data||[],profileRows=profiles.data||[],workplaceRows=workplaces.data||[],syncRows=syncIssues.data||[],checkRows=approvedChecks.data||[]
- const activeEvenements=eventRows.filter(e=>Date.parse(e.start_at)<=nowMs&&Date.parse(e.end_at)>=nowMs)
+ const activeEvents=eventRows.filter(e=>Date.parse(e.start_at)<=nowMs&&Date.parse(e.end_at)>=nowMs)
  const missing=shiftRows.filter(shift=>!checkRows.some(check=>check.user_id===shift.user_id&&check.event_id===shift.event_id&&check.workplace_id===shift.workplace_id))
  const people=new Map(profileRows.map(p=>[p.id,p]))
  const eventMap=new Map(eventRows.map(e=>[e.id,e]))
@@ -44,14 +44,14 @@ export default async function Page(){
  const paused=new Set(breakRows.map(x=>x.work_session_id))
 
  return <main className="mx-auto max-w-7xl space-y-7 p-4 pb-28 md:p-8">
-  <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold tracking-[.2em] text-violet-400">UP TILL DAWN BEHEER</p><h1 className="text-3xl font-black">Operationeel overzicht</h1><p className="text-muted-foreground">Actuele serverstatus voor personeel, goedkeuringen, incidenten, taken en synchronisatie.</p></div><div className="flex gap-2"><Link href="/admin/time-records" className="rounded-xl border px-4 py-3">Tijdcorrecties</Link><Link href="/audit" className="rounded-xl border px-4 py-3">Audit log</Link></div></div>
+  <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold tracking-[.2em] text-violet-400">UP TILL DAWN BEHEER</p><h1 className="text-3xl font-black">Operationeel overzicht</h1><p className="text-muted-foreground">Actuele serverstatus voor personeel, goedkeuringen, incidenten, taken en synchronisatie.</p></div><div className="flex gap-2"><Link href="/admin/time-records" className="rounded-xl border px-4 py-3">Tijdcorrecties</Link><Link href="/audit" className="rounded-xl border px-4 py-3">Auditlog</Link></div></div>
 
   <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
    <Stat href="/events" label="Actieve evenementen" value={activeEvents.length} detail={String(eventRows.length)+' niet gearchiveerd'}/>
    <Stat href="/operations" label="Aan het werk" value={sessionRows.length} detail={String(breakRows.length)+' op pauze'}/>
-   <Stat href="/operations" label="Wachtende goedkeuringen" value={inRows.length+outRows.length} detail={String(inRows.length)+' check-in · '+String(outRows.length)+' check-out'}/>
+   <Stat href="/operations" label="Wachtende goedkeuringen" value={inRows.length+outRows.length} detail={String(inRows.length)+' inklokverzoek · '+String(outRows.length)+' uitklokverzoek'}/>
    <Stat href="/incidents" label="Open incidenten" value={incidentRows.length}/>
-   <Stat href="/operations" label="Ontbrekende check-ins" value={missing.length} detail="Shift actief of binnen 60 min"/>
+   <Stat href="/operations" label="Ontbrekende inklokacties" value={missing.length} detail="Dienst actief of binnen 60 min"/>
    <Stat href="/tasks" label="Open taaktoewijzingen" value={assignmentRows.length}/>
    <Stat href="/sync" label="Serversynchronisatieproblemen" value={syncRows.length}/>
    <Stat href="/personnel" label="Goedgekeurd personeel" value={profileRows.length}/>
@@ -59,15 +59,15 @@ export default async function Page(){
 
   <section className="grid gap-5 lg:grid-cols-2">
    <div className="space-y-3 rounded-2xl border p-4"><div className="flex items-center justify-between"><h2 className="text-xl font-bold">Actief personeel</h2><span className="text-sm text-muted-foreground">{sessionRows.length} actief</span></div>
-    {!sessionRows.length&&<p className="text-muted-foreground">Niemand is momenteel server-bevestigd aan het werk.</p>}
+    {!sessionRows.length&&<p className="text-muted-foreground">Niemand is momenteel door de server bevestigd aan het werk.</p>}
     {sessionRows.map(ws=>{const person=people.get(ws.user_id);const shift=ws.shift_id?shiftMap.get(ws.shift_id):undefined;const workplace=shift?workplaceMap.get(shift.workplace_id):undefined;const event=eventMap.get(ws.event_id);const onBreak=paused.has(ws.id);return <article key={ws.id} className="rounded-xl border p-3"><div className="flex items-start justify-between gap-3"><div><p className="font-bold">{person?.full_name||'Personeelslid'}</p><p className="text-sm text-muted-foreground">{event?.name||'Evenement'} · {workplace?.name||'Werkplek'}</p><p className="text-xs text-muted-foreground">Gestart {new Date(ws.started_at).toLocaleString('nl-BE')}</p>{person?.phone_number&&<a href={'tel:'+person.phone_number} className="text-sm underline">{person.phone_number}</a>}</div><span className={onBreak?'rounded-full bg-amber-500/20 px-3 py-1 text-xs font-bold text-amber-300':'rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300'}>{onBreak?'PAUZE':'WERKT'}</span></div></article>})}
    </div>
 
    <div className="space-y-3 rounded-2xl border p-4"><div className="flex items-center justify-between"><h2 className="text-xl font-bold">Actie vereist</h2><Link href="/operations" className="text-sm underline">Goedkeuringen openen</Link></div>
     {!inRows.length&&!outRows.length&&!missing.length&&<p className="text-muted-foreground">Geen directe operationele acties vereist.</p>}
-    {inRows.slice(0,4).map(x=><article key={x.id} className="rounded-xl border p-3"><p className="font-semibold">CHECK-IN · {people.get(x.user_id)?.full_name||'Crewlid'}</p><p className="text-sm text-muted-foreground">{eventMap.get(x.event_id)?.name||'Evenement'} · {workplaceMap.get(x.workplace_id||'')?.name||'Werkplek'}</p></article>)}
-    {outRows.slice(0,4).map(x=><article key={x.id} className="rounded-xl border p-3"><p className="font-semibold">CHECK-OUT · {people.get(x.user_id)?.full_name||'Crewlid'}</p><p className="text-sm text-muted-foreground">{eventMap.get(x.event_id)?.name||'Evenement'} · {workplaceMap.get(x.workplace_id||'')?.name||'Werkplek'}</p></article>)}
-    {missing.slice(0,4).map(x=><article key={x.id} className="rounded-xl border border-amber-500/50 p-3"><p className="font-semibold">CHECK-IN ONTBREEKT · {people.get(x.user_id)?.full_name||'Crewlid'}</p><p className="text-sm text-muted-foreground">{eventMap.get(x.event_id)?.name||'Evenement'} · {workplaceMap.get(x.workplace_id)?.name||'Werkplek'}</p></article>)}
+    {inRows.slice(0,4).map(x=><article key={x.id} className="rounded-xl border p-3"><p className="font-semibold">INKLOKKEN · {people.get(x.user_id)?.full_name||'Personeelslid'}</p><p className="text-sm text-muted-foreground">{eventMap.get(x.event_id)?.name||'Evenement'} · {workplaceMap.get(x.workplace_id||'')?.name||'Werkplek'}</p></article>)}
+    {outRows.slice(0,4).map(x=><article key={x.id} className="rounded-xl border p-3"><p className="font-semibold">UITKLOKKEN · {people.get(x.user_id)?.full_name||'Personeelslid'}</p><p className="text-sm text-muted-foreground">{eventMap.get(x.event_id)?.name||'Evenement'} · {workplaceMap.get(x.workplace_id||'')?.name||'Werkplek'}</p></article>)}
+    {missing.slice(0,4).map(x=><article key={x.id} className="rounded-xl border border-amber-500/50 p-3"><p className="font-semibold">INKLOKKEN ONTBREEKT · {people.get(x.user_id)?.full_name||'Personeelslid'}</p><p className="text-sm text-muted-foreground">{eventMap.get(x.event_id)?.name||'Evenement'} · {workplaceMap.get(x.workplace_id)?.name||'Werkplek'}</p></article>)}
    </div>
   </section>
 

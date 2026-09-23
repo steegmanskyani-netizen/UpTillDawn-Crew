@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/crew-server'
+import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/actions/auth'
 import {
   acknowledgeBriefing,
@@ -154,6 +155,8 @@ export default async function Page() {
     }
   }
 
+  if (!manager && !(briefs?.length || personal?.length)) redirect('/')
+
   const attachments: Tables<'work_attachments'>[] = []
   const briefingIds = (briefs || []).map(item => item.id)
   const personalIds = (personal || []).map(item => item.id)
@@ -218,8 +221,6 @@ export default async function Page() {
     </div>}
 
     {error && <p>Instructies konden niet worden geladen.</p>}
-
-    {!manager && !(briefs?.length || personal?.length) && <p>Geen toegewezen instructies.</p>}
 
     {briefs?.map(briefing => <article key={briefing.id} className="space-y-3 rounded-xl border p-4">
       <h2 className="text-xl font-bold">{briefing.title} · v{briefing.version}</h2>

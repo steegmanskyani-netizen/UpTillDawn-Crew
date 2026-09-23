@@ -35,7 +35,7 @@ export default async function Dashboard() {
 
   return <main className="space-y-7 p-4 md:p-8">
     <div>
-      <p className="text-xs font-bold tracking-[.2em] text-violet-400">UPTILLDAWN CREW MANAGEMENT</p>
+      <p className="text-xs font-bold tracking-[.2em] text-violet-400">UP TILL DAWN CREW MANAGEMENT</p>
       <h1 className="mt-1 text-3xl font-black">Welkom, {profile?.full_name || 'Crew'}</h1>
       <p className="text-muted-foreground">Je operationele crew-overzicht.</p>
     </div>

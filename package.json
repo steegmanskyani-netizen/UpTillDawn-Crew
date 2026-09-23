@@ -115,5 +115,6 @@
   "overrides": {
     "postcss": "^8.5.15",
     "uuid": "^12.0.1"
-  }
+  },
+  "type": "module"
 }

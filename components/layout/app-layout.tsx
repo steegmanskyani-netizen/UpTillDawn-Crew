@@ -29,6 +29,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [showEvents, setShowEvents] = useState(false)
   const [showTasks, setShowTasks] = useState(false)
   const [showBriefings, setShowBriefings] = useState(false)
+  const [showShifts, setShowShifts] = useState(false)
+  const [showIncidents, setShowIncidents] = useState(false)
 
   const refreshMissed = useCallback(async () => {
     if (!user) return
@@ -69,40 +71,54 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const active = activeEventIds.length > 0
     setHasActiveEvent(active)
 
-    const manager = roles.includes("responsible_lead") || roles.includes("admin")
+    const realAdmin = roles.includes("admin") && testRole === null
+    const effectiveResponsible = roles.includes("responsible_lead")
+    const effectiveStaff = roles.includes("employee") && !effectiveResponsible && !roles.includes("admin")
 
-    if (manager) {
-      setShowOperations(active || testRole !== null)
-      setShowEvents(true)
+    const [{ data: memberships }, { data: shifts }, { data: responsibilities }] = await Promise.all([
+      supabase.from("event_members").select("event_id").eq("user_id", user.id),
+      supabase.from("shifts").select("event_id").eq("user_id", user.id).neq("status", "cancelled"),
+      supabase.from("responsible_assignments").select("event_id").eq("user_id", user.id),
+    ])
+
+    const memberEventIds = new Set((memberships || []).map(row => row.event_id))
+    const shiftEventIds = new Set((shifts || []).map(row => row.event_id))
+    const responsibleEventIds = new Set((responsibilities || []).map(row => row.event_id))
+    const activeMemberEvents = activeEventIds.filter(id => memberEventIds.has(id) || shiftEventIds.has(id))
+    const activeResponsibleEvents = activeEventIds.filter(id => responsibleEventIds.has(id))
+
+    setShowEvents(true)
+
+    if (realAdmin) {
+      setShowOperations(active)
       setShowTasks(true)
       setShowBriefings(true)
+      setShowShifts(true)
+      setShowIncidents(active)
+      setHasActiveEvent(active)
+    } else if (effectiveResponsible) {
+      const selectedForEvent = responsibleEventIds.size > 0
+      setShowOperations(activeMemberEvents.length > 0)
+      setShowTasks(selectedForEvent)
+      setShowBriefings(selectedForEvent)
+      setShowShifts(memberEventIds.size > 0)
+      setShowIncidents(activeResponsibleEvents.length > 0)
+      setHasActiveEvent(activeMemberEvents.length > 0 || activeResponsibleEvents.length > 0)
+    } else if (effectiveStaff) {
+      const selectedForEvent = memberEventIds.size > 0
+      setShowOperations(activeMemberEvents.length > 0)
+      setShowTasks(selectedForEvent)
+      setShowBriefings(selectedForEvent)
+      setShowShifts(selectedForEvent)
+      setShowIncidents(false)
+      setHasActiveEvent(activeMemberEvents.length > 0)
     } else {
-      const [{ data: memberships }, { data: shifts }, { data: assignedTasks }, { data: briefs }, { data: personal }] = await Promise.all([
-        supabase.from("event_members").select("event_id").eq("user_id", user.id),
-        supabase.from("shifts").select("event_id").eq("user_id", user.id).neq("status", "cancelled"),
-        supabase.from("task_assignments").select("id,tasks(event_id)").eq("user_id", user.id),
-        supabase.from("briefings").select("id,event_id"),
-        supabase.from("personal_instructions").select("id,event_id").eq("user_id", user.id),
-      ])
-
-      const assignedEventIds = new Set<string>([
-        ...(memberships || []).map(row => row.event_id),
-        ...(shifts || []).map(row => row.event_id),
-      ])
-      const activeAssignedEventIds = new Set(activeEventIds.filter(id => assignedEventIds.has(id)))
-      const startedAssigned = [...assignedEventIds].some(id => startedEventIds.has(id))
-
-      const hasActiveTask = (assignedTasks || []).some(row => {
-        const task = Array.isArray(row.tasks) ? row.tasks[0] : row.tasks
-        return Boolean(task?.event_id && activeAssignedEventIds.has(task.event_id))
-      })
-      const hasActiveBriefing = (briefs || []).some(row => activeAssignedEventIds.has(row.event_id))
-        || (personal || []).some(row => activeAssignedEventIds.has(row.event_id))
-
-      setShowOperations(activeAssignedEventIds.size > 0)
-      setShowEvents(startedAssigned)
-      setShowTasks(hasActiveTask)
-      setShowBriefings(hasActiveBriefing)
+      setShowOperations(false)
+      setShowTasks(false)
+      setShowBriefings(false)
+      setShowShifts(false)
+      setShowIncidents(false)
+      setHasActiveEvent(false)
     }
 
     if (pathname.startsWith("/tasks")) {
@@ -165,6 +181,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         showEvents={showEvents}
         showTasks={showTasks}
         showBriefings={showBriefings}
+        showShifts={showShifts}
+        showIncidents={showIncidents}
       /></div>
       <div className="flex flex-1 flex-col overflow-hidden print:block print:overflow-visible">
         <div className="print:hidden"><Topbar /><QueueStatus /></div>
@@ -179,6 +197,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           showOperations={showOperations}
           showEvents={showEvents}
           showTasks={showTasks}
+          showIncidents={showIncidents}
         /></div>
       </div>
       {!pathname.startsWith("/chat") && <>

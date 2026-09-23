@@ -54,22 +54,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
     const supabase = createClient()
 
-    const [{ data: activeEvents }, { data: startedEvents }] = await Promise.all([
-      supabase
-        .from("events")
-        .select("id")
-        .lte("start_at", now)
-        .gte("end_at", now),
-      supabase
-        .from("events")
-        .select("id")
-        .lte("start_at", now),
-    ])
+    const { data: activeEvents } = await supabase
+      .from("events")
+      .select("id")
+      .lte("start_at", now)
+      .gte("end_at", now)
 
     const activeEventIds = (activeEvents || []).map(event => event.id)
-    const startedEventIds = new Set((startedEvents || []).map(event => event.id))
     const active = activeEventIds.length > 0
-    setHasActiveEvent(active)
 
     const realAdmin = roles.includes("admin") && testRole === null
     const effectiveResponsible = roles.includes("responsible_lead")

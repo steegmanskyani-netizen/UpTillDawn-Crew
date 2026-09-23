@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { DateInput } from '@/components/crew/date-input'
 import { AdminOnly } from '@/components/auth/admin-only'
 import { createClient } from '@/lib/supabase/crew-server'
@@ -21,7 +22,7 @@ export default async function Page() {
 
   const eventsResult = await s
     .from('events')
-    .select('id,name,venue,start_at,status,latitude,longitude,checkin_radius_m')
+    .select('id,name,venue,start_at,end_at,status,latitude,longitude,checkin_radius_m')
     .order('start_at')
 
   const peopleResult = user.isAdmin
@@ -49,9 +50,18 @@ export default async function Page() {
 
     {eventsResult.error && <p>Events konden niet worden geladen.</p>}
 
-    {events.map(event => <article key={event.id} className="space-y-3 rounded-2xl border bg-card p-4">
+    {events.map(event => {
+      const ended = new Date(event.end_at).getTime() < Date.now()
+      const chatUntil = new Date(new Date(event.end_at).getTime() + 3 * 24 * 60 * 60 * 1000)
+
+      return <article key={event.id} className="space-y-3 rounded-2xl border bg-card p-4">
       <h2 className="text-xl font-bold">{event.name}</h2>
       <p>{event.venue || 'Locatie nog niet ingesteld'} · {new Date(event.start_at).toLocaleString('nl-BE')} · {event.status}</p>
+      {!user.isAdmin && ended && <div className="rounded-xl border border-violet-500/40 bg-violet-500/10 p-3 text-sm">
+        <p className="font-bold">Event afgelopen</p>
+        <p className="text-muted-foreground">Enkel de chats blijven nog beschikbaar tot {chatUntil.toLocaleString('nl-BE')}.</p>
+        <Link href="/chat" className="mt-2 inline-block rounded-lg bg-violet-600 px-3 py-2 font-bold text-white">Chats openen</Link>
+      </div>}
 
       {user.isAdmin && <AdminOnly><>
         <form action={addEventMember} className="flex flex-wrap gap-2">
@@ -92,6 +102,7 @@ export default async function Page() {
           <button className="rounded-lg border p-2">Archiveren</button>
         </form>}
       </></AdminOnly>}
-    </article>)}
+    </article>
+    })}
   </main>
 }

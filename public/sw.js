@@ -7,7 +7,7 @@ self.addEventListener('fetch',event=>{
  const url=new URL(event.request.url)
  if(url.origin!==self.location.origin)return
  if(event.request.mode==='navigate'){
-  const publicRoute=url.pathname==='/login'||url.pathname.startsWith('/auth/')||url.pathname.startsWith('/register')
+  const publicRoute=url.pathname==='/login'||url.pathname.startsWith('/login/')||url.pathname==='/signup'||url.pathname==='/forgot-password'||url.pathname==='/verify-email'||url.pathname==='/disabled'||url.pathname==='/unauthorized'||url.pathname.startsWith('/auth/')
   event.respondWith(fetch(event.request).catch(()=>caches.match(publicRoute?'/offline-public.html':'/offline.html')))
  }else if(PUBLIC_ASSETS.includes(url.pathname))event.respondWith(caches.match(event.request).then(hit=>hit||fetch(event.request)))
 })

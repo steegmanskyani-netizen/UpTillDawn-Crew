@@ -62,10 +62,10 @@ export default async function Page() {
     if (signed?.signedUrl) photoUrls.set(attachment.storage_path, signed.signedUrl)
   }))
 
+  let selectableEvents = events || []
   let workplaces: WorkplaceOption[] = []
   let people: CrewOption[] = []
   let memberships: AssignmentMembership[] = []
-  const managedWorkplaces = new Set<string>()
 
   if (isAdmin) {
     const [{ data: w }, { data: p }, { data: eventMembers }, { data: shiftRows }] = await Promise.all([
@@ -80,31 +80,50 @@ export default async function Page() {
       ...(eventMembers || []).map(row => ({ event_id: row.event_id, workplace_id: null, user_id: row.user_id })),
       ...(shiftRows || []).map(row => ({ event_id: row.event_id, workplace_id: row.workplace_id, user_id: row.user_id })),
     ]
-    for (const workplace of workplaces) managedWorkplaces.add(workplace.id)
   } else if (isResponsible) {
-    const { data: responsibilities } = await s.from('responsible_assignments').select('event_id,workplace_id').eq('user_id', user.id)
-    const ids = [...new Set((responsibilities || []).map(r => r.workplace_id))]
-    if (ids.length) {
-      const { data: w } = await s.from('workplaces').select('id,name,event_id,events(name)').in('id', ids).eq('is_active', true).order('sort_order')
-      workplaces = w || []
-      for (const workplace of workplaces) managedWorkplaces.add(workplace.id)
+    const { data: responsibleMemberships } = await s
+      .from('event_members')
+      .select('event_id')
+      .eq('user_id', user.id)
+      .eq('event_role', 'responsible_lead')
 
-      const directories = await Promise.all((responsibilities || []).map(async r => ({
-        responsibility: r,
-        result: await s.rpc('upt_responsible_event_members', { p_event: r.event_id, p_workplace: r.workplace_id }),
+    const eventIds = [...new Set((responsibleMemberships || []).map(row => row.event_id))]
+    if (eventIds.length) {
+      const [{ data: eventRows }, { data: workplaceRows }] = await Promise.all([
+        s.from('events')
+          .select('id,name')
+          .in('id', eventIds)
+          .neq('status', 'archived')
+          .gte('end_at', 'now')
+          .order('start_at'),
+        s.from('workplaces')
+          .select('id,name,event_id,events(name)')
+          .in('event_id', eventIds)
+          .eq('is_active', true)
+          .order('sort_order'),
+      ])
+
+      selectableEvents = eventRows || []
+      workplaces = workplaceRows || []
+
+      const directories = await Promise.all(eventIds.map(async eventId => ({
+        eventId,
+        result: await s.rpc('upt_responsible_event_members', { p_event: eventId, p_workplace: null }),
       })))
       const unique = new Map<string, CrewOption>()
       for (const directory of directories) {
         for (const member of directory.result.data || []) {
           unique.set(member.id, { id: member.id, full_name: member.full_name })
           memberships.push({
-            event_id: directory.responsibility.event_id,
-            workplace_id: directory.responsibility.workplace_id,
+            event_id: directory.eventId,
+            workplace_id: null,
             user_id: member.id,
           })
         }
       }
       people = [...unique.values()].sort((a, b) => (a.full_name || '').localeCompare(b.full_name || '', 'nl'))
+    } else {
+      selectableEvents = []
     }
   }
 
@@ -112,20 +131,21 @@ export default async function Page() {
     {isAdmin && <AdminOnly><ResponsibleTaskTest workplaces={workplaces} people={people} /></AdminOnly>}
     <div>
       <h1 className="text-3xl font-black">Taken</h1>
-      {isResponsible && <p className="text-sm text-muted-foreground">Je beheert alleen taakpakketten binnen je eigen werkplek.</p>}
+      {isResponsible && <p className="text-sm text-muted-foreground">Je kunt taken voorbereiden voor evenementen waaraan je als verantwoordelijke bent toegewezen.</p>}
       <StaffUnavailableMessage available={hasActiveAssignedEvent}>
         <p className="mt-3 rounded-xl border p-4 text-muted-foreground">Taken zijn beschikbaar vanaf de start van een toegewezen evenement.</p>
       </StaffUnavailableMessage>
     </div>
 
-    {manager && (isAdmin || workplaces.length > 0) && <ManagerOnly><form action={createTask} className="grid gap-3 rounded-xl border p-4 md:grid-cols-2">
+    {manager && (isAdmin || selectableEvents.length > 0) && <ManagerOnly><form action={createTask} className="grid gap-3 rounded-xl border p-4 md:grid-cols-2">
       <AssignmentScopeFields
-        events={events || []}
+        events={selectableEvents}
         workplaces={workplaces.map(workplace => ({ id: workplace.id, name: workplace.name, event_id: workplace.event_id }))}
         people={people}
         memberships={memberships}
         isAdmin={isAdmin}
-        workplaceRequired={!isAdmin}
+        showEventSelect
+        workplaceRequired={false}
         multiplePeople
         availability={availabilityRows || []}
       />
@@ -145,7 +165,7 @@ export default async function Page() {
         ? (manager || hasActiveAssignedEvent ? <p>Geen toegewezen taken.</p> : null)
         : visibleAssignments.map(t => {
       const task = t.tasks
-      const canManage = Boolean(manager && task && (isAdmin || (task.workplace_id && managedWorkplaces.has(task.workplace_id))))
+      const canManage = Boolean(manager && task)
       const article = <article className="rounded-xl border p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>

@@ -23,6 +23,23 @@ async function approvedClient(){
 }
 function check(error:{code?:string}|null){if(error){console.error('[Crew mutation]',{code:error.code});throw new Error('Opslaan mislukt. Controleer je invoer en probeer opnieuw.')}}
 function requireManager(role:string){if(!['admin','responsible_lead'].includes(role))throw new Error('Geen toegang.')}
+async function requireEventManager(
+ s: Awaited<ReturnType<typeof createClient>>,
+ userId: string,
+ role: string,
+ eventId: string,
+){
+ if(role==='admin')return
+ if(role!=='responsible_lead')throw new Error('Geen toegang.')
+ const {data,error}=await s.from('event_members')
+  .select('event_id')
+  .eq('event_id',eventId)
+  .eq('user_id',userId)
+  .eq('event_role','responsible_lead')
+  .maybeSingle()
+ check(error)
+ if(!data)throw new Error('Je bent niet als verantwoordelijke aan dit evenement toegewezen.')
+}
 
 type WorkPhotoTarget = { type: 'briefing' | 'instruction' | 'task'; id: string }
 const photoTypes = new Map([
@@ -258,9 +275,9 @@ export async function createBriefing(fd:FormData){
   check(wError);if(!w)throw new Error('Werkplek niet gevonden.')
   eventId=w.event_id
  }else{
-  if(profile.role!=='admin')throw new Error('Kies een toegewezen werkplek.')
   eventId=uuid.parse(fd.get('event_id'))
  }
+ await requireEventManager(s,user.id,profile.role,eventId)
  const {data,error}=await s.from('briefings').insert({
   event_id:eventId,
   workplace_id:workplaceId,
@@ -285,9 +302,9 @@ export async function createPersonalInstruction(fd:FormData){
   check(wError);if(!w)throw new Error('Werkplek niet gevonden.')
   eventId=w.event_id
  }else{
-  if(profile.role!=='admin')throw new Error('Kies een toegewezen werkplek.')
   eventId=uuid.parse(fd.get('event_id'))
  }
+ await requireEventManager(s,user.id,profile.role,eventId)
  const targetUser=uuid.parse(fd.get('user_id'))
  const {data:member,error:memberError}=await s.from('event_members')
   .select('user_id')
@@ -347,9 +364,9 @@ export async function createTask(fd:FormData){
   check(wError);if(!w)throw new Error('Werkplek niet gevonden.')
   eventId=w.event_id
  }else{
-  if(profile.role!=='admin')throw new Error('Verantwoordelijke kan alleen taken voor de eigen werkplek aanmaken.')
   eventId=uuid.parse(fd.get('event_id'))
  }
+ await requireEventManager(s,user.id,profile.role,eventId)
 
  const userIds=[...new Set(fd.getAll('user_id').map(value=>uuid.parse(value)))]
  if(!userIds.length)throw new Error('Selecteer minstens één medewerker.')

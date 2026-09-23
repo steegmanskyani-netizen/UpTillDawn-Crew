@@ -1,9 +1,9 @@
--- Responsible event/workplace visibility regression.
+-- Event-level Responsible and active staff workplace visibility regression.
 -- Synthetic data only; rolled back.
 BEGIN;
 
 CREATE TEMP TABLE upt_scope_ids(name text primary key, id uuid default gen_random_uuid());
-INSERT INTO upt_scope_ids(name) VALUES ('lead'),('staff'),('event');
+INSERT INTO upt_scope_ids(name) VALUES ('lead'),('staff'),('event'),('shift');
 GRANT SELECT ON upt_scope_ids TO authenticated;
 
 INSERT INTO auth.users(id,email)
@@ -25,33 +25,36 @@ VALUES(
  'active'
 );
 
-INSERT INTO public.responsible_assignments(event_id,workplace_id,user_id)
-SELECT
+INSERT INTO public.event_members(event_id,user_id,event_role)
+VALUES
+(
  (SELECT id FROM upt_scope_ids WHERE name='event'),
- w.id,
- (SELECT id FROM upt_scope_ids WHERE name='lead')
-FROM public.workplaces w
-WHERE w.event_id=(SELECT id FROM upt_scope_ids WHERE name='event')
-ORDER BY w.sort_order
-LIMIT 1;
-
-INSERT INTO public.event_members(event_id,user_id)
-VALUES(
+ (SELECT id FROM upt_scope_ids WHERE name='lead'),
+ 'responsible_lead'
+),
+(
  (SELECT id FROM upt_scope_ids WHERE name='event'),
- (SELECT id FROM upt_scope_ids WHERE name='staff')
+ (SELECT id FROM upt_scope_ids WHERE name='staff'),
+ 'employee'
 );
 
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1
-    FROM public.event_members
-    WHERE event_id=(SELECT id FROM upt_scope_ids WHERE name='event')
-      AND user_id=(SELECT id FROM upt_scope_ids WHERE name='lead')
-  ) THEN
-    RAISE EXCEPTION 'FAIL responsible assignment did not create event membership';
-  END IF;
-END $$;
+INSERT INTO public.shifts(
+ id,event_id,workplace_id,user_id,role_name,
+ start_time,end_time,scheduled_start,scheduled_end,status
+)
+SELECT
+ (SELECT id FROM upt_scope_ids WHERE name='shift'),
+ (SELECT id FROM upt_scope_ids WHERE name='event'),
+ w.id,
+ (SELECT id FROM upt_scope_ids WHERE name='staff'),
+ 'Personeel',
+ now()-interval '30 minutes',now()+interval '2 hours',
+ now()-interval '30 minutes',now()+interval '2 hours',
+ 'scheduled'
+FROM public.workplaces w
+WHERE w.event_id=(SELECT id FROM upt_scope_ids WHERE name='event')
+ORDER BY w.sort_order,w.id
+LIMIT 1;
 
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_scope_ids WHERE name='lead'),true);
 SET LOCAL ROLE authenticated;
@@ -60,6 +63,13 @@ DECLARE
   v_event_count integer;
   v_workplace_count integer;
 BEGIN
+  IF NOT upt_private.is_event_responsible(
+    (SELECT id FROM upt_scope_ids WHERE name='event'),
+    auth.uid()
+  ) THEN
+    RAISE EXCEPTION 'FAIL event responsible helper';
+  END IF;
+
   SELECT count(*) INTO v_event_count
   FROM public.events
   WHERE id=(SELECT id FROM upt_scope_ids WHERE name='event');
@@ -71,8 +81,8 @@ BEGIN
   IF v_event_count <> 1 THEN
     RAISE EXCEPTION 'FAIL responsible cannot read assigned event';
   END IF;
-  IF v_workplace_count <> 1 THEN
-    RAISE EXCEPTION 'FAIL responsible workplace scope: expected 1, got %',v_workplace_count;
+  IF v_workplace_count < 2 THEN
+    RAISE EXCEPTION 'FAIL event responsible cannot read event workplaces: got %',v_workplace_count;
   END IF;
 END $$;
 RESET ROLE;
@@ -87,11 +97,11 @@ BEGIN
   FROM public.workplaces
   WHERE event_id=(SELECT id FROM upt_scope_ids WHERE name='event');
 
-  IF v_count < 2 THEN
-    RAISE EXCEPTION 'FAIL staff event-member workplace visibility';
+  IF v_count <> 1 THEN
+    RAISE EXCEPTION 'FAIL staff workplace visibility should match active assigned shift: got %',v_count;
   END IF;
 END $$;
 RESET ROLE;
 
-SELECT 'PASS: responsible assignment creates event membership, reads assigned event and only assigned workplace; staff event member retains event workplace visibility' AS result;
+SELECT 'PASS: event responsible reads assigned event workplaces; staff sees only active shifted workplace' AS result;
 ROLLBACK;

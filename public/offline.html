@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#050505">
-<title>Uptilldawn — offline</title>
+<title>Up Till Dawn — geen verbinding</title>
 <style>
 :root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,sans-serif;background:#050505;color:#f7f7f8}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#171126 0,#050505 42%);min-height:100vh}
@@ -22,14 +22,14 @@ small{display:block;color:#a1a1aa;line-height:1.45}.urgent{border-color:#7f1d1d}
 </head>
 <body>
 <main>
-  <div class="top"><div><h1>UPTILLDAWN OFFLINE</h1><p class="muted">Lokale operationele modus</p></div><span class="pill">OFFLINE</span></div>
+  <div class="top"><div><h1>UP TILL DAWN — GEEN VERBINDING</h1><p class="muted">Lokale operationele modus</p></div><span class="pill">GEEN VERBINDING</span></div>
   <section id="notice" class="card notice">De server is niet bereikbaar. Alleen de laatst bevestigde serverstatus en lokale wachtrij worden gebruikt. Lokale acties krijgen geen verzonnen servertijd.</section>
   <section id="status" class="card"><h2>Werkstatus</h2><div id="statusBody" class="empty">Offline gegevens laden…</div></section>
-  <section id="shifts" class="card"><h2>Mijn shifts</h2><div id="shiftBody" class="empty">Offline gegevens laden…</div></section>
+  <section id="shifts" class="card"><h2>Mijn diensten</h2><div id="shiftBody" class="empty">Offline gegevens laden…</div></section>
   <section class="card urgent">
     <h2>URGENT lokaal bewaren</h2>
     <form id="urgentForm" class="grid">
-      <select id="urgentEvent" required><option value="">Selecteer event</option></select>
+      <select id="urgentEvent" required><option value="">Selecteer evenement</option></select>
       <select id="urgentWorkplace"><option value="">Geen specifieke werkplek</option></select>
       <textarea id="urgentMessage" maxlength="4000" required placeholder="Wat is er aan de hand?"></textarea>
       <input id="urgentPhoto" type="file" accept="image/jpeg,image/png,image/webp">
@@ -38,7 +38,7 @@ small{display:block;color:#a1a1aa;line-height:1.45}.urgent{border-color:#7f1d1d}
     <small id="urgentResult"></small>
   </section>
   <section id="queue" class="card"><h2>Lokale wachtrij</h2><div id="queueBody" class="empty">Wachtrij laden…</div></section>
-  <section class="card"><small>Offline snapshot bevat alleen je eigen operationele status, shifts, eventnamen en werkplekken. Check-in goedkeuringen blijven server-authoritatief. Remote check-in selfies kunnen niet offline worden hergebruikt.</small></section>
+  <section class="card"><small>De lokale momentopname bevat alleen je eigen operationele status, diensten, evenementnamen en werkplekken. Goedkeuringen voor inklokken blijven door de server bepaald. Selfies voor inklokken op afstand kunnen zonder verbinding niet worden hergebruikt.</small></section>
 </main>
 <div class="fixed"><div><button class="secondary" onclick="location.reload()">OPNIEUW VERBINDEN</button></div></div>
 <script>
@@ -102,7 +102,7 @@ function derive(){
  return {active,brk,workplace}
 }
 function shiftById(id){return snapshot?.shifts?.find(x=>x.id===id)}
-function eventName(id){return snapshot?.events?.find(x=>x.id===id)?.name||'Event'}
+function eventName(id){return snapshot?.events?.find(x=>x.id===id)?.name||'Evenement'}
 function workplaceName(id){return snapshot?.workplaces?.find(x=>x.id===id)?.name||'Werkplek'}
 function approved(shift){return snapshot?.checkins?.some(x=>x.event_id===shift.event_id&&x.workplace_id===shift.workplace_id&&x.status==='approved')}
 function dateTime(v){try{return new Date(v).toLocaleString('nl-BE')}catch{return v}}
@@ -129,25 +129,25 @@ async function queueTransition(state,shift){
 }
 function renderStatus(state,blocked){
  const el=document.getElementById('statusBody');el.innerHTML=''
- if(!snapshot){el.className='bad';el.textContent='Geen lokale snapshot beschikbaar. Open Werk & pauze minstens één keer online op dit toestel.';return}
+ if(!snapshot){el.className='bad';el.textContent='Geen lokale momentopname beschikbaar. Open Werk & pauze minstens één keer online op dit toestel.';return}
  const saved=document.createElement('small');saved.textContent='Laatst bevestigd/opgeslagen: '+dateTime(snapshot.savedAt);el.append(saved)
  if(blocked){const p=document.createElement('p');p.className='bad';p.textContent='Een eerdere tijdactie vereist controle. Nieuwe tijdacties zijn geblokkeerd tot synchronisatie.';el.append(p)}
  if(!state.active){const p=document.createElement('p');p.textContent='Geen actieve werksessie volgens bevestigde status + lokale wachtrij.';el.append(p);return}
  const p=document.createElement('p');p.innerHTML='<strong>WERK ACTIEF'+(state.brk?' — PAUZE':'')+'</strong><br>'+eventName(state.active.eventId)+' · '+workplaceName(state.workplace);el.append(p)
  const a=document.createElement('div');a.className='actions'
- a.append(state.brk?button('STOP BREAK','secondary',()=>queueStopBreak(state),blocked):button('START BREAK','secondary',()=>queueStartBreak(state),blocked))
- a.append(button('STOP WORK','danger',()=>queueStopWork(state),blocked))
+ a.append(state.brk?button('PAUZE STOPPEN','secondary',()=>queueStopBreak(state),blocked):button('PAUZE STARTEN','secondary',()=>queueStartBreak(state),blocked))
+ a.append(button('WERK STOPPEN','danger',()=>queueStopWork(state),blocked))
  el.append(a)
 }
 function renderShifts(state,blocked){
  const el=document.getElementById('shiftBody');el.innerHTML=''
- if(!snapshot?.shifts?.length){el.className='empty';el.textContent='Geen opgeslagen shifts.';return}
+ if(!snapshot?.shifts?.length){el.className='empty';el.textContent='Geen opgeslagen diensten.';return}
  for(const s of snapshot.shifts){
   const row=document.createElement('div');row.className='row'
   const left=document.createElement('div');left.innerHTML='<strong>'+eventName(s.event_id)+' · '+workplaceName(s.workplace_id)+'</strong><small>'+dateTime(s.scheduled_start)+' → '+dateTime(s.scheduled_end)+(s.role_name?' · '+s.role_name:'')+'</small>'
   const actions=document.createElement('div')
-  if(!state.active&&approved(s))actions.append(button('START WORK','',()=>queueStartWork(s),blocked))
-  else if(!state.active&&!approved(s)){const sm=document.createElement('small');sm.textContent='Check-in niet goedgekeurd';actions.append(sm)}
+  if(!state.active&&approved(s))actions.append(button('WERK STARTEN','',()=>queueStartWork(s),blocked))
+  else if(!state.active&&!approved(s)){const sm=document.createElement('small');sm.textContent='Inklokken niet goedgekeurd';actions.append(sm)}
   else if(state.active&&state.active.eventId===s.event_id&&state.workplace!==s.workplace_id)actions.append(button('WISSEL','secondary',()=>queueTransition(state,s),blocked))
   row.append(left,actions);el.append(row)
  }
@@ -162,7 +162,7 @@ function renderQueue(){
 }
 function renderUrgentOptions(){
  const event=document.getElementById('urgentEvent'),work=document.getElementById('urgentWorkplace')
- event.innerHTML='<option value="">Selecteer event</option>';work.innerHTML='<option value="">Geen specifieke werkplek</option>'
+ event.innerHTML='<option value="">Selecteer evenement</option>';work.innerHTML='<option value="">Geen specifieke werkplek</option>'
  for(const e of snapshot?.events||[]){const o=document.createElement('option');o.value=e.id;o.textContent=e.name;event.append(o)}
  for(const w of snapshot?.workplaces||[]){const o=document.createElement('option');o.value=w.id;o.dataset.event=w.event_id;o.textContent=eventName(w.event_id)+' — '+w.name;work.append(o)}
  event.onchange=()=>{for(const o of [...work.options])if(o.value)o.hidden=!!event.value&&o.dataset.event!==event.value;if(work.selectedOptions[0]?.hidden)work.value=''}
@@ -175,9 +175,9 @@ async function refresh(){
 document.getElementById('urgentForm').addEventListener('submit',async e=>{
  e.preventDefault();const result=document.getElementById('urgentResult');result.textContent='Lokaal bewaren…'
  try{
-  if(!snapshot||!userId)throw new Error('Geen offline gebruikerssnapshot beschikbaar.')
+  if(!snapshot||!userId)throw new Error('Geen lokale gebruikersmomentopname beschikbaar.')
   const event_id=document.getElementById('urgentEvent').value,workplace_id=document.getElementById('urgentWorkplace').value,message=document.getElementById('urgentMessage').value.trim(),file=document.getElementById('urgentPhoto').files[0]
-  if(!event_id||!message)throw new Error('Event en melding zijn verplicht.')
+  if(!event_id||!message)throw new Error('Evenement en melding zijn verplicht.')
   const location=await gps();const payload={event_id,message,...location,...(workplace_id?{workplace_id}:{})}
   if(file)await putIncidentUpload(payload,file);else await putOperation('incident',payload)
   e.target.reset();renderUrgentOptions();result.className='ok';result.textContent='URGENT melding is lokaal bewaard. Ze wordt pas serverbevestigd na synchronisatie.'

@@ -39,7 +39,7 @@ export default async function Page() {
 
     {isAdmin && <form action={addWorkplace} className="flex flex-wrap gap-2 rounded-2xl border p-4">
       <select name="event_id" required className="rounded-lg border bg-background p-3">
-        <option value="">Event…</option>
+        <option value="">Evenement…</option>
         {events?.map(x => <option key={x.id} value={x.id}>{x.name}</option>)}
       </select>
       <input name="name" required maxLength={200} placeholder="Nieuwe werkplek" className="rounded-lg border bg-background p-3"/>
@@ -58,7 +58,7 @@ export default async function Page() {
         {isAdmin && <form action={assignResponsible} className="mt-3 flex gap-2">
           <input type="hidden" name="workplace_id" value={x.id}/>
           <select name="user_id" required className="flex-1 rounded-lg border bg-background p-2">
-            <option value="">Responsible Lead…</option>
+            <option value="">Verantwoordelijke…</option>
             {leads.map(q => <option key={q.id} value={q.id}>{q.full_name || 'Naam ontbreekt'}</option>)}
           </select>
           <button className="rounded-lg border px-3">Toewijzen</button>

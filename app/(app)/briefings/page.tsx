@@ -77,15 +77,12 @@ export default async function Page() {
     s.from('personal_instructions').select('*').order('created_at', { ascending: false }),
     s.from('briefing_acknowledgements').select('*').eq('user_id', user.id),
     s.from('personal_instruction_acknowledgements').select('*').eq('user_id', user.id),
-    s.from('events').select('id,start_at,end_at'),
+    s.from('events').select('id').lte('start_at', 'now').gte('end_at', 'now'),
     s.from('event_members').select('event_id').eq('user_id', user.id),
     s.from('shifts').select('event_id,workplace_id').eq('user_id', user.id).neq('status', 'cancelled'),
   ])
 
-  const now = Date.now()
-  const activeEventIds = new Set((eventWindows || [])
-    .filter(event => now >= new Date(event.start_at).getTime() && now <= new Date(event.end_at).getTime())
-    .map(event => event.id))
+  const activeEventIds = new Set((eventWindows || []).map(event => event.id))
   const assignedEventIds = new Set([
     ...(ownMemberships || []).map(row => row.event_id),
     ...(ownShifts || []).map(row => row.event_id),

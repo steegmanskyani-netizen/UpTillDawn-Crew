@@ -91,7 +91,7 @@ export function IncidentForm({
       }}
       className="w-full rounded-lg border bg-background p-3"
     >
-      <option value="">Selecteer event</option>
+      <option value="">Selecteer evenement</option>
       {events.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
     </select>
     <select

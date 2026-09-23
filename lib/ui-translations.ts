@@ -425,6 +425,14 @@ export const UI_TRANSLATIONS: Record<string, Translation> = {
   "Selecteer iemand die heeft aangeduid dat die kan.": { fr: "Sélectionnez une personne qui a indiqué être disponible.", en: "Select someone who indicated they can work." },
   "Een selectie is niet langer beschikbaar voor dit evenement.": { fr: "Une personne sélectionnée n’est plus disponible pour cet événement.", en: "A selected person is no longer available for this event." },
   "Selecteer alleen toegevoegde medewerkers die hebben aangeduid dat ze kunnen.": { fr: "Sélectionnez uniquement les membres du personnel ajoutés qui ont indiqué être disponibles.", en: "Select only added staff members who indicated they can work." },
+  "Geen evenementen beschikbaar.": { fr: "Aucun événement disponible.", en: "No events available." },
+  "Je kunt werkplekken beheren voor evenementen waaraan je als verantwoordelijke bent toegewezen.": { fr: "Vous pouvez gérer les postes de travail des événements auxquels vous êtes affecté en tant que responsable.", en: "You can manage workplaces for events you are assigned to as responsible." },
+  "Omschrijving (optioneel)": { fr: "Description (facultatif)", en: "Description (optional)" },
+  "Volgorde": { fr: "Ordre", en: "Order" },
+  "WERKPLEK TOEVOEGEN": { fr: "AJOUTER LE POSTE DE TRAVAIL", en: "ADD WORKPLACE" },
+  "Werkplek bewerken": { fr: "Modifier le poste de travail", en: "Edit workplace" },
+  "WIJZIGINGEN OPSLAAN": { fr: "ENREGISTRER LES MODIFICATIONS", en: "SAVE CHANGES" },
+  "Je bent niet als verantwoordelijke aan dit evenement toegewezen.": { fr: "Vous n’êtes pas affecté à cet événement en tant que responsable.", en: "You are not assigned to this event as responsible." },
 }
 
 export function translateUiText(value: string, locale: UiLocale) {

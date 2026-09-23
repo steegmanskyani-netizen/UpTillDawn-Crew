@@ -66,7 +66,7 @@ export default function SignupPage() {
         <div className="text-center space-y-1">
           <h1 className="text-xl font-bold text-foreground">Account aanmaken</h1>
           <p className="text-sm text-muted-foreground">
-            Je account moet na registratie door een administrator worden goedgekeurd.
+            Je account moet na registratie door een beheerder worden goedgekeurd.
           </p>
         </div>
       </CardHeader>

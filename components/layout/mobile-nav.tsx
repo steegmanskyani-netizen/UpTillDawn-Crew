@@ -20,12 +20,14 @@ export function MobileBottomNav({
  showOperations = false,
  showEvents = false,
  showTasks = false,
+ showIncidents = false,
 }: {
  incidentMissed?: number
  taskMissed?: number
  showOperations?: boolean
  showEvents?: boolean
  showTasks?: boolean
+ showIncidents?: boolean
 }) {
  const pathname=usePathname()
  const {roles}=useAuth()
@@ -35,6 +37,7 @@ export function MobileBottomNav({
    if(i.href==="/operations") return showOperations
    if(i.href==="/events") return showEvents
    if(i.href==="/tasks") return showTasks
+   if(i.href==="/incidents") return showIncidents
    return true
   }).map(i=>{
    const href=i.href==='/'&&roles.includes('admin')?'/admin':i.href

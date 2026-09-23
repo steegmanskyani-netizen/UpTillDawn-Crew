@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/crew-server'
 import { addWorkplace, assignResponsible } from '@/lib/actions/uptilldawn'
+import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
@@ -11,6 +12,7 @@ export default async function Page() {
   const { data: profile } = await s.from('profiles').select('role').eq('id', user.id).single()
   const isAdmin = profile?.role === 'admin'
   const isResponsible = profile?.role === 'responsible_lead'
+  if (!isAdmin && !isResponsible) redirect('/')
 
   const [{ data: allWorkplaces }, { data: events }] = await Promise.all([
     s.from('workplaces').select('*,events(name)').order('sort_order'),

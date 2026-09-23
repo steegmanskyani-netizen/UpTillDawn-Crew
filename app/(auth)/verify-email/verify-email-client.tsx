@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -37,19 +38,14 @@ export default function VerifyEmailClient() {
   return (
     <Card className="w-full max-w-md rounded-2xl border-border shadow-lg">
       <CardHeader className="items-center space-y-4 pb-2">
-        <img
-          src="/uptilldawn-logo.jpeg"
-          alt="Uptilldawn"
-          className="h-10"
-        />
+        <Image src="/uptilldawn-logo.jpeg" alt="Uptilldawn" width={220} height={80} className="h-10 w-auto object-contain" />
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-gold/10">
           <Mail className="h-8 w-8 text-brand-gold" />
         </div>
         <div className="text-center space-y-1">
-          <h1 className="text-xl font-bold text-foreground">Verify your email</h1>
+          <h1 className="text-xl font-bold text-foreground">Verifieer je e-mail</h1>
           <p className="text-sm text-muted-foreground">
-            We&apos;ve sent a verification link to your <strong>@yourcompany.com</strong> inbox.
-            Click the link in the email to activate your account.
+            We hebben een verificatielink naar je e-mailadres gestuurd. Klik op de link om je account te activeren.
           </p>
         </div>
       </CardHeader>
@@ -66,19 +62,19 @@ export default function VerifyEmailClient() {
           <div className="flex items-start gap-3 rounded-xl border border-green-500/30 bg-green-500/5 p-3">
             <CheckCircle2 className="h-5 w-5 shrink-0 text-green-600 mt-0.5" />
             <p className="text-sm text-green-700 dark:text-green-400">
-              Verification email sent! Check your inbox.
+              Verificatiemail verzonden. Controleer je inbox.
             </p>
           </div>
         )}
 
         <form onSubmit={handleResend} className="space-y-3">
           <div className="space-y-1.5">
-            <Label htmlFor="email">Your @yourcompany.com email</Label>
+            <Label htmlFor="email">Je e-mailadres</Label>
             <Input
               id="email"
               name="email"
               type="email"
-              placeholder="you@yourcompany.com"
+              placeholder="naam@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="rounded-xl h-11"
@@ -92,13 +88,13 @@ export default function VerifyEmailClient() {
             disabled={isPending}
           >
             {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-            Resend verification email
+            Verificatiemail opnieuw versturen
           </Button>
         </form>
 
         <div className="text-center">
           <Link href="/login" className="text-sm text-muted-foreground hover:text-foreground">
-            Back to login
+            Terug naar inloggen
           </Link>
         </div>
       </CardContent>

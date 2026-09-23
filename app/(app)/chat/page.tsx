@@ -26,12 +26,18 @@ export default async function Page() {
     if (signed?.signedUrl) profilePhotoUrls[member.id] = signed.signedUrl
   }))
 
+  const orderedChannels = [...(channels || [])].sort((a, b) => {
+    if (a.kind === 'organization' && b.kind !== 'organization') return -1
+    if (b.kind === 'organization' && a.kind !== 'organization') return 1
+    return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  })
+
   return <main className="mx-auto max-w-4xl space-y-4 p-4 pb-28 md:p-8">
     <h1 className="text-3xl font-black">Chat</h1>
     {error
       ? <p>Chat kon niet worden geladen.</p>
       : <ChatClient
-          channels={channels || []}
+          channels={orderedChannels}
           userId={user.id}
           crewDirectory={directory || []}
           privatePeers={privatePeers || []}

@@ -113,6 +113,7 @@ export default function LoginPage() {
             Nog geen account? <Link href="/signup" className="font-bold text-white hover:underline">Account aanmaken</Link>
           </div>
         </section>
+        <div className="mt-6 w-full rounded-2xl border border-white/10 bg-zinc-950/70 p-4"><LanguageSwitcher dark /></div>
       </div>
     </main>
   )

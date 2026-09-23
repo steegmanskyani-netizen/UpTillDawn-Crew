@@ -1,8 +1,9 @@
 import { createTask, removeTaskAssignment } from '@/lib/actions/uptilldawn'
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/crew-server'
 import { TaskControls } from '@/components/crew/task-controls'
 import { ManagerOnly } from '@/components/auth/manager-only'
+import { AdminOnly } from '@/components/auth/admin-only'
+import { StaffAvailability, StaffUnavailableMessage } from '@/components/auth/staff-availability'
 import { ResponsibleTaskTest } from '@/components/crew/responsible-task-test'
 import {
   AssignmentScopeFields,
@@ -21,32 +22,28 @@ export default async function Page() {
   const { data: { user } } = await s.auth.getUser()
   if (!user) return null
 
-  const [{ data: profile }, { data: events }, { data, error }] = await Promise.all([
+  const nowIso = new Date().toISOString()
+  const [{ data: profile }, { data: events }, { data, error }, { data: activeEvents }] = await Promise.all([
     s.from('profiles').select('role').eq('id', user.id).single(),
     s.from('events').select('id,name').neq('status', 'archived').order('start_at'),
     s.from('task_assignments').select('id,user_id,status,tasks(id,title,description,event_id,workplace_id)').order('created_at'),
+    s.from('events').select('id').lte('start_at', nowIso).gte('end_at', nowIso),
   ])
 
   const isAdmin = profile?.role === 'admin'
   const isResponsible = profile?.role === 'responsible_lead'
   const manager = isAdmin || isResponsible
 
+  const activeEventIds = new Set((activeEvents || []).map(event => event.id))
   let visibleAssignments = data || []
   if (!manager) {
-    const now = new Date().toISOString()
-    const { data: activeEvents } = await s
-      .from('events')
-      .select('id')
-      .lte('start_at', now)
-      .gte('end_at', now)
-
-    const activeEventIds = new Set((activeEvents || []).map(event => event.id))
     visibleAssignments = visibleAssignments.filter(item => item.tasks && activeEventIds.has(item.tasks.event_id))
-
-    if (!visibleAssignments.length) {
-      return <main className="p-8">Taken zijn beschikbaar vanaf de start van een toegewezen evenement.</main>
-    }
   }
+  const hasStaffTask = (data || []).some(item =>
+    item.user_id === user.id
+    && item.tasks
+    && activeEventIds.has(item.tasks.event_id)
+  )
 
   const attachmentRows: Tables<'work_attachments'>[] = []
   const taskIds = visibleAssignments.map(item => item.tasks?.id).filter((id): id is string => Boolean(id))
@@ -108,10 +105,13 @@ export default async function Page() {
   }
 
   return <main className="space-y-4 p-4 md:p-8">
-    {isAdmin && <ResponsibleTaskTest workplaces={workplaces} people={people} />}
+    {isAdmin && <AdminOnly><ResponsibleTaskTest workplaces={workplaces} people={people} /></AdminOnly>}
     <div>
       <h1 className="text-3xl font-black">Taken</h1>
       {isResponsible && <p className="text-sm text-muted-foreground">Je beheert alleen taakpakketten binnen je eigen werkplek.</p>}
+      <StaffUnavailableMessage available={hasStaffTask}>
+        <p className="mt-3 rounded-xl border p-4 text-muted-foreground">Taken zijn beschikbaar vanaf de start van een toegewezen evenement.</p>
+      </StaffUnavailableMessage>
     </div>
 
     {manager && (isAdmin || workplaces.length > 0) && <ManagerOnly><form action={createTask} className="grid gap-3 rounded-xl border p-4 md:grid-cols-2">
@@ -162,7 +162,7 @@ export default async function Page() {
         </form></ManagerOnly>}
       </article>
       return t.user_id === user.id
-        ? <div key={t.id}>{article}</div>
+        ? <StaffAvailability key={t.id} available={Boolean(task && activeEventIds.has(task.event_id))}>{article}</StaffAvailability>
         : <ManagerOnly key={t.id}>{article}</ManagerOnly>
     })}
   </main>

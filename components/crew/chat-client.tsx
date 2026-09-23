@@ -222,7 +222,7 @@ export function ChatClient({
 
       {pickerOpen && <div className="absolute left-3 right-3 top-[4.5rem] z-40 max-h-[65vh] overflow-y-auto rounded-2xl border bg-card p-2 shadow-2xl md:left-4 md:right-4">
         <div className="flex items-center justify-between px-2 py-1">
-          <p className="text-sm font-black">Chats</p>
+          <p className="text-sm font-black">Gesprekken</p>
           <button type="button" onClick={() => setPickerOpen(false)} className="rounded-full p-2 hover:bg-muted" aria-label="Sluiten">
             <X className="h-4 w-4"/>
           </button>
@@ -246,7 +246,7 @@ export function ChatClient({
         </div>)}
 
         <div className="mt-3 border-t pt-3">
-          <p className="px-2 pb-2 text-[11px] font-bold uppercase tracking-[.16em] text-muted-foreground">Nieuwe privéchat</p>
+          <p className="px-2 pb-2 text-[11px] font-bold uppercase tracking-[.16em] text-muted-foreground">Nieuw privégesprek</p>
           <div className="flex gap-2">
             <select aria-label="Personeelslid voor privégesprek" value={target} onChange={e => setTarget(e.target.value)} className="min-w-0 flex-1 rounded-xl border bg-background p-2.5 text-sm">
               <option value="">Personeelslid kiezen…</option>

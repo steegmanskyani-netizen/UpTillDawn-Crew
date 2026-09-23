@@ -1,5 +1,6 @@
 'use client'
 import { useEffect,useState } from 'react'
+import Link from 'next/link'
 import { useAuth } from '@/lib/providers'
 import { queued,synchronize,type QueuedOperation } from '@/lib/crew-queue'
 export function QueueStatus(){
@@ -14,5 +15,5 @@ export function QueueStatus(){
  if(!ops.length)return null
  return <aside role="status" className="border-b border-amber-400/30 bg-amber-950 p-3 text-sm text-amber-100">{ops.length} actie(s) wachten op bevestiging. De server bepaalt het registratietijdstip.
  {ops.some(x=>x.error)&&<p>Synchronisatie vereist controle. Acties zijn bewaard; er is nog geen succes bevestigd.</p>}
- <button className="ml-3 underline" onClick={()=>user&&void synchronize(user.id)}>Opnieuw proberen</button></aside>
+ <button className="ml-3 underline" onClick={()=>user&&void synchronize(user.id)}>Opnieuw proberen</button><Link href="/sync" className="ml-3 underline">Details / conflict oplossen</Link></aside>
 }

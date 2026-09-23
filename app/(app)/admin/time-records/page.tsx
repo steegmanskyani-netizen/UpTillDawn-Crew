@@ -50,7 +50,7 @@ export default async function Page() {
   }
 
   const name = (id: string) => people?.find(person => person.id === id)?.full_name || 'Crewlid'
-  const eventName = (id: string) => events?.find(event => event.id === id)?.name || 'Event'
+  const eventName = (id: string) => events?.find(event => event.id === id)?.name || 'Evenement'
 
   return <main className="mx-auto max-w-6xl space-y-6 p-4 pb-28 md:p-8">
     <div>

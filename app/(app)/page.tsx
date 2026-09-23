@@ -43,7 +43,7 @@ export default async function Dashboard() {
     <section className="grid gap-4 md:grid-cols-3">
       <Card href="/events" icon={CalendarDays} title="Events" value={events.length}/>
       <Card href="/shifts" icon={Clock3} title="Mijn shifts" value={shifts.length}/>
-      <Card href="/incidents" icon={AlertTriangle} title="Open incidents" value={incidentsResult.count ?? 0}/>
+      <Card href="/incidents" icon={AlertTriangle} title="Open incidenten" value={incidentsResult.count ?? 0}/>
     </section>
     <section>
       <h2 className="mb-3 text-lg font-bold">Komende events</h2>

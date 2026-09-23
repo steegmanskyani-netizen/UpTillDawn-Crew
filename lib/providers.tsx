@@ -6,7 +6,8 @@ import type { Session, User } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/crew-client"
 import { clearOfflineIdentity } from "@/lib/crew-offline-snapshot"
 
-type UiRole = "employee" | "responsible_lead" | "admin"
+export type UiRole = "employee" | "responsible_lead" | "admin"
+type TestRole = Exclude<UiRole, "admin"> | null
 
 interface UserProfile {
   id: string
@@ -24,6 +25,8 @@ interface AuthContextType {
   isAdmin: boolean
   loading: boolean
   refreshProfile: () => Promise<void>
+  testRole: TestRole
+  setTestRole: (role: TestRole) => void
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -34,6 +37,8 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   loading: true,
   refreshProfile: async () => {},
+  testRole: null,
+  setTestRole: () => {},
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -44,6 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [roles, setRoles] = useState<UiRole[]>([])
   const [loading, setLoading] = useState(true)
+  const [testRole, setTestRoleState] = useState<TestRole>(null)
 
   const loadProfile = useCallback(async (userId: string) => {
     const { data, error } = await supabase
@@ -111,14 +117,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [pathname, loadProfile, supabase])
 
+  const realIsAdmin = profile?.role === "admin"
+  const effectiveRoles: UiRole[] = realIsAdmin && testRole ? [testRole] : roles
+  const setTestRole = (role: TestRole) => {
+    if (!realIsAdmin) return
+    setTestRoleState(role)
+    if (role) window.sessionStorage.setItem("uptilldawn-admin-test-role", role)
+    else window.sessionStorage.removeItem("uptilldawn-admin-test-role")
+  }
+
+  useEffect(() => {
+    if (!realIsAdmin) { setTestRoleState(null); return }
+    const saved = window.sessionStorage.getItem("uptilldawn-admin-test-role")
+    setTestRoleState(saved === "employee" || saved === "responsible_lead" ? saved : null)
+  }, [realIsAdmin])
+
   return <AuthContext.Provider value={{
     user,
     session,
     profile,
-    roles,
-    isAdmin: roles.includes("admin"),
+    roles: effectiveRoles,
+    isAdmin: realIsAdmin,
     loading,
     refreshProfile: async () => { if (user) await loadProfile(user.id) },
+    testRole,
+    setTestRole,
   }}>
     {children}
   </AuthContext.Provider>

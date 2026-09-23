@@ -2,6 +2,10 @@ import { createTask, removeTaskAssignment } from '@/lib/actions/uptilldawn'
 import { createClient } from '@/lib/supabase/crew-server'
 import { TaskControls } from '@/components/crew/task-controls'
 import { ResponsibleTaskTest } from '@/components/crew/responsible-task-test'
+import {
+  AssignmentScopeFields,
+  type AssignmentMembership,
+} from '@/components/crew/assignment-scope-fields'
 import { nlStatus } from '@/lib/ui-nl'
 import type { Tables } from '@/types/crew-database'
 
@@ -39,15 +43,22 @@ export default async function Page() {
   const manager = isAdmin || isResponsible
   let workplaces: WorkplaceOption[] = []
   let people: CrewOption[] = []
+  let memberships: AssignmentMembership[] = []
   const managedWorkplaces = new Set<string>()
 
   if (isAdmin) {
-    const [{ data: w }, { data: p }] = await Promise.all([
+    const [{ data: w }, { data: p }, { data: eventMembers }, { data: shiftRows }] = await Promise.all([
       s.from('workplaces').select('id,name,event_id,events(name)').eq('is_active', true).order('sort_order'),
       s.from('profiles').select('id,full_name').eq('approved', true).order('full_name'),
+      s.from('event_members').select('event_id,user_id'),
+      s.from('shifts').select('event_id,workplace_id,user_id').neq('status', 'cancelled'),
     ])
     workplaces = w || []
     people = p || []
+    memberships = [
+      ...(eventMembers || []).map(row => ({ event_id: row.event_id, workplace_id: null, user_id: row.user_id })),
+      ...(shiftRows || []).map(row => ({ event_id: row.event_id, workplace_id: row.workplace_id, user_id: row.user_id })),
+    ]
     for (const workplace of workplaces) managedWorkplaces.add(workplace.id)
   } else if (isResponsible) {
     const { data: responsibilities } = await s.from('responsible_assignments').select('event_id,workplace_id').eq('user_id', user.id)
@@ -57,12 +68,20 @@ export default async function Page() {
       workplaces = w || []
       for (const workplace of workplaces) managedWorkplaces.add(workplace.id)
 
-      const directories = await Promise.all((responsibilities || []).map(r =>
-        s.rpc('upt_responsible_event_members', { p_event: r.event_id, p_workplace: r.workplace_id })
-      ))
+      const directories = await Promise.all((responsibilities || []).map(async r => ({
+        responsibility: r,
+        result: await s.rpc('upt_responsible_event_members', { p_event: r.event_id, p_workplace: r.workplace_id }),
+      })))
       const unique = new Map<string, CrewOption>()
       for (const directory of directories) {
-        for (const member of directory.data || []) unique.set(member.id, { id: member.id, full_name: member.full_name })
+        for (const member of directory.result.data || []) {
+          unique.set(member.id, { id: member.id, full_name: member.full_name })
+          memberships.push({
+            event_id: directory.responsibility.event_id,
+            workplace_id: directory.responsibility.workplace_id,
+            user_id: member.id,
+          })
+        }
       }
       people = [...unique.values()].sort((a, b) => (a.full_name || '').localeCompare(b.full_name || '', 'nl'))
     }
@@ -76,19 +95,14 @@ export default async function Page() {
     </div>
 
     {manager && (isAdmin || workplaces.length > 0) && <form action={createTask} className="grid gap-3 rounded-xl border p-4 md:grid-cols-2">
-      {isAdmin && <select name="event_id" required className="border bg-background p-3">
-        <option value="">Evenement…</option>
-        {events?.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-      </select>}
-      <select name="workplace_id" required={!isAdmin} className="border bg-background p-3">
-        {isAdmin && <option value="">Geen werkplek — voor heel evenement</option>}
-        {!isAdmin && <option value="">Werkplek…</option>}
-        {workplaces.map(w => <option key={w.id} value={w.id}>{w.events?.name} — {w.name}</option>)}
-      </select>
-      <select name="user_id" required className="border bg-background p-3">
-        <option value="">Medewerker…</option>
-        {people.map(p => <option key={p.id} value={p.id}>{p.full_name || 'Naam ontbreekt'}</option>)}
-      </select>
+      <AssignmentScopeFields
+        events={events || []}
+        workplaces={workplaces.map(workplace => ({ id: workplace.id, name: workplace.name, event_id: workplace.event_id }))}
+        people={people}
+        memberships={memberships}
+        isAdmin={isAdmin}
+        workplaceRequired={!isAdmin}
+      />
       <input name="title" required maxLength={200} placeholder="Taaknaam" className="border bg-background p-3"/>
       <textarea name="description" maxLength={4000} placeholder="Omschrijving" className="border bg-background p-3 md:col-span-2"/>
       <label className="grid gap-1 text-sm md:col-span-2">

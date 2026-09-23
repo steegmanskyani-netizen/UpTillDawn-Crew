@@ -2,7 +2,7 @@
 
 This is a verified hardening milestone, **not a production-complete release**.
 
-**Current implementation estimate: ~90%.** This estimate counts only implemented and verified work; production deployment, browser/device E2E and the remaining offline/Web Push work are not counted as complete.
+**Current implementation estimate: ~92%.** This estimate counts only implemented and verified work; production deployment, browser/device E2E and the remaining offline/Web Push work are not counted as complete.
 
 ## Verified implementation
 
@@ -10,7 +10,7 @@ This is a verified hardening milestone, **not a production-complete release**.
 - Authentication and authorization use `profiles.approved` and `profiles.role`. Unapproved accounts are rejected with `ACCOUNT NOT APPROVED`. Raw database errors are not exposed from login.
 - Profile RLS recursion was repaired. Browser TRUNCATE privileges were revoked. Sensitive personnel fields are not directly readable by ordinary crew.
 - Full personnel profile workflow is available for name, address, phone, date of birth, Belgian national-register number, IBAN and permanent private profile photo. Self-service access uses scoped RPCs; admins have a protected personnel-details RPC. Sensitive values are not written into audit metadata.
-- Safe crew-directory data is limited to approved users' name, phone and profile photo. Private profile-photo reads use storage policies and signed URLs.
+- Safe crew-directory data is limited to approved users' name, phone and profile photo. A dedicated Crew page is available to approved Staff, Responsible and Admin users. Private profile-photo reads use short-lived signed URLs. A storage-RLS regression found and fixed a profile-photo policy bug caused by nested profile RLS.
 - Admin account approval and role changes are server-authorized and audited. Users cannot promote or approve themselves.
 - Event creation/edit/archive and configuration duplication are implemented. Duplication copies reusable configuration but not work sessions, check-ins, incidents or other historical operational records.
 - Workplaces and multiple Responsible assignments are implemented. Responsible users see and manage only assigned workplaces.
@@ -30,7 +30,7 @@ This is a verified hardening milestone, **not a production-complete release**.
 - IndexedDB keeps pending operational actions per user. Sync uses unique operation IDs, advisory locking, payload-conflict detection and idempotent replay. Failed ordered time actions do not silently disappear.
 - A dedicated Synchronisatie screen shows pending operations, retry state and conflicts and requires explicit confirmation before discarding an unconfirmed local operation.
 - Text/time/task/URGENT queue operations can be retained offline. URGENT incident photos and chat photos are stored as Blobs in IndexedDB and uploaded later with idempotent server RPCs. The sync screen shows queued files and never silently drops them. Profile-photo updates and fresh remote check-in selfies remain online-only; the selfie freshness rule intentionally prevents replaying stale offline captures.
-- Private storage buckets exist for profile photos, check-in selfies, incident photos and chat attachments with MIME/size constraints and scoped read policies.
+- Private storage buckets exist for profile photos, check-in selfies, incident photos and chat attachments with MIME/size constraints and scoped read policies. Direct authenticated DELETE policies were removed for check-in selfies, incident photos and chat attachments so accepted operational evidence cannot be erased by the uploader; profile-photo replacement remains separate.
 - ExcelJS export is Admin-only and audited. It exports workplace-segment rows without double counting and now paginates PostgREST datasets beyond the former 1,000-row boundary.
 - Export still reports overtime as `Niet vastgesteld` because no approved overtime rule has been defined.
 - Obsolete StaffPortal office/leave/kiosk routes/actions that depended on absent tables were removed. See `LEGACY_REMOVAL.md`.
@@ -48,18 +48,20 @@ The following migrations have been applied successfully to the target project:
 - `uptilldawn_incident_photo_submission`
 - `uptilldawn_notification_links`
 - `uptilldawn_queued_photo_uploads`
+- `uptilldawn_profile_photo_rls_fix`
+- `uptilldawn_operational_media_immutability`
 
 Generated TypeScript database types were refreshed from the live target schema after these changes.
 
 ## Verification executed
 
 - Node suite: 39 tests passed at the established baseline, including paid-break allocation, midnight and DST behavior.
-- Recent GitHub CI runs pass lint, TypeScript checking, Node tests and the Next.js production build for the current implementation commits.
-- Next.js production build, OpenNext Cloudflare build and Wrangler dry-run passed at the prior deployment-hardening milestone. This is not a production deployment.
+- Recent GitHub CI runs pass lint, TypeScript checking, Node tests, the Next.js production build, the OpenNext Cloudflare build and Wrangler deployment dry-run for the current implementation commits. This is not a production deployment.
 - Local HTTP smoke tests previously passed for public/auth redirects, anonymous export denial, offline fallback and service worker. These are not authenticated browser E2E tests.
 - `tests/sql/operational-security.sql` was rerun against the target database inside a transaction and rolled back successfully after the new migrations. It covers profile isolation, self-promotion denial, cross-workplace access denial, unapproved accounts, anonymous RPC privileges, shared break allowance, sync replay/conflicts, GPS assessment, briefing acknowledgement, event duplication, work/break lifecycle, stored GPS evidence and warning deduplication.
 - `tests/sql/new-feature-security.sql` was executed against the target database inside a transaction and rolled back successfully. It verifies self-service sensitive-profile privacy, private chat membership, moderation authorization/audit, Responsible workplace-scoped shift creation, overlap prevention, cross-workplace denial and the URGENT acknowledge/resolve lifecycle.
 - `tests/sql/queued-upload-security.sql` was executed against the target database inside a transaction and rolled back successfully. It verifies idempotent queued incident-photo attachment and queued chat-photo message creation using synthetic private-storage metadata.
+- `tests/sql/storage-security.sql` was executed against the target database inside a transaction and rolled back successfully. It verifies approved profile-photo access, unapproved denial, Responsible access to linked check-in/incident evidence, private-chat attachment membership isolation and the absence of direct authenticated DELETE policies for operational media.
 - Current Supabase security advisor has no new missing public-table RLS finding from these migrations. It still reports the intentionally private `upt_private.break_warning_receipts` table as RLS-without-policy, flags authenticated `SECURITY DEFINER` RPC entry points for review, and reports leaked-password protection disabled. Advisor output is not treated as a complete security audit.
 
 ## Still required before production

@@ -69,6 +69,7 @@ export type Database = {
           id: string
           user_id: string
           version: number
+          workplace_id: string | null
         }
         Insert: {
           acknowledged_at?: string
@@ -83,6 +84,7 @@ export type Database = {
           id?: string
           user_id?: string
           version?: number
+          workplace_id?: string | null
         }
         Relationships: [
           {
@@ -948,6 +950,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           version?: number
+          workplace_id?: string | null
         }
         Update: {
           body?: string
@@ -981,6 +984,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personal_instructions_workplace_id_fkey"
+            columns: ["workplace_id"]
+            isOneToOne: false
+            referencedRelation: "workplaces"
             referencedColumns: ["id"]
           },
         ]

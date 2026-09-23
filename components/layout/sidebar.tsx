@@ -11,6 +11,7 @@ const items = [
   { href: "/briefings", label: "Briefings", icon: ScrollText, roles: ["employee","responsible_lead","admin"] },
   { href: "/tasks", label: "Taken", icon: ScrollText, roles: ["employee","responsible_lead","admin"] },
   { href: "/chat", label: "Chat", icon: Users, roles: ["employee","responsible_lead","admin"] },
+  { href: "/crew", label: "Crew", icon: Users, roles: ["employee","responsible_lead","admin"] },
   { href: "/exports", label: "Excel", icon: ScrollText, roles: ["admin"] },
   { href: "/", label: "Dashboard", icon: LayoutDashboard, roles: ["employee","responsible_lead","admin"] },
   { href: "/events", label: "Events", icon: CalendarDays, roles: ["employee","responsible_lead","admin"] },

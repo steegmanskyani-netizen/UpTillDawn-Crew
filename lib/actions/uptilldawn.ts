@@ -154,10 +154,17 @@ export async function createBriefing(fd:FormData){
  const {s,user,profile}=await approvedClient()
  requireManager(profile.role)
  const files=workPhotoFiles(fd)
- const eventId=uuid.parse(fd.get('event_id'))
  const rawWorkplace=String(fd.get('workplace_id')||'').trim()
  const workplaceId=rawWorkplace?uuid.parse(rawWorkplace):null
- if(profile.role==='responsible_lead'&&!workplaceId)throw new Error('Kies een toegewezen werkplek.')
+ let eventId:string
+ if(workplaceId){
+  const {data:w,error:wError}=await s.from('workplaces').select('event_id').eq('id',workplaceId).single()
+  check(wError);if(!w)throw new Error('Werkplek niet gevonden.')
+  eventId=w.event_id
+ }else{
+  if(profile.role!=='admin')throw new Error('Kies een toegewezen werkplek.')
+  eventId=uuid.parse(fd.get('event_id'))
+ }
  const {data,error}=await s.from('briefings').insert({
   event_id:eventId,
   workplace_id:workplaceId,
@@ -174,10 +181,17 @@ export async function createPersonalInstruction(fd:FormData){
  const {s,user,profile}=await approvedClient()
  requireManager(profile.role)
  const files=workPhotoFiles(fd)
- const eventId=uuid.parse(fd.get('event_id'))
  const rawWorkplace=String(fd.get('workplace_id')||'').trim()
  const workplaceId=rawWorkplace?uuid.parse(rawWorkplace):null
- if(profile.role==='responsible_lead'&&!workplaceId)throw new Error('Kies een toegewezen werkplek.')
+ let eventId:string
+ if(workplaceId){
+  const {data:w,error:wError}=await s.from('workplaces').select('event_id').eq('id',workplaceId).single()
+  check(wError);if(!w)throw new Error('Werkplek niet gevonden.')
+  eventId=w.event_id
+ }else{
+  if(profile.role!=='admin')throw new Error('Kies een toegewezen werkplek.')
+  eventId=uuid.parse(fd.get('event_id'))
+ }
  const {data,error}=await s.from('personal_instructions').insert({
   event_id:eventId,
   workplace_id:workplaceId,

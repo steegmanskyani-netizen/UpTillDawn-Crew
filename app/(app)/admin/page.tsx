@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/actions/auth'
 import { createClient } from '@/lib/supabase/crew-server'
+import { nlStatus } from '@/lib/ui-nl'
 
 export const dynamic = 'force-dynamic'
 
@@ -72,7 +73,7 @@ export default async function Page(){
   </section>
 
   <section className="grid gap-5 lg:grid-cols-2">
-   <div className="space-y-3 rounded-2xl border p-4"><div className="flex items-center justify-between"><h2 className="text-xl font-bold">Open incidenten</h2><Link href="/incidents" className="text-sm underline">Alles bekijken</Link></div>{!incidentRows.length&&<p className="text-muted-foreground">Geen open incidenten.</p>}{incidentRows.slice(0,6).map(x=><article key={x.id} className="rounded-xl border p-3"><p className="font-semibold">{x.message}</p><p className="text-xs text-muted-foreground">{eventMap.get(x.event_id||'')?.name||'Evenement'} · {new Date(x.created_at).toLocaleString('nl-BE')} · {x.status}</p></article>)}</div>
+   <div className="space-y-3 rounded-2xl border p-4"><div className="flex items-center justify-between"><h2 className="text-xl font-bold">Open incidenten</h2><Link href="/incidents" className="text-sm underline">Alles bekijken</Link></div>{!incidentRows.length&&<p className="text-muted-foreground">Geen open incidenten.</p>}{incidentRows.slice(0,6).map(x=><article key={x.id} className="rounded-xl border p-3"><p className="font-semibold">{x.message}</p><p className="text-xs text-muted-foreground">{eventMap.get(x.event_id||'')?.name||'Evenement'} · {new Date(x.created_at).toLocaleString('nl-BE')} · {nlStatus(x.status)}</p></article>)}</div>
    <div className="space-y-3 rounded-2xl border p-4"><h2 className="text-xl font-bold">Snelle beheerlinks</h2><div className="grid gap-2 sm:grid-cols-2">{[['/events','Evenementen beheren'],['/workplaces','Werkplekken'],['/shifts','Diensten'],['/personnel','Personeel'],['/briefings','Instructies'],['/tasks','Taken'],['/chat','Gesprekken'],['/exports','Excel-export']].map(([href,label])=><Link key={href} href={href} className="rounded-xl border p-3">{label}</Link>)}</div></div>
   </section>
  </main>

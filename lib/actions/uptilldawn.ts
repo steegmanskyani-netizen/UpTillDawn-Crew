@@ -13,6 +13,14 @@ async function adminClient(){
  if(!p?.approved||p.role!=='admin') throw new Error('Geen toegang.')
  return {s,user}
 }
+async function approvedClient(){
+ const s=await createClient()
+ const {data:{user}}=await s.auth.getUser()
+ if(!user) throw new Error('Aanmelden vereist.')
+ const {data:profile}=await s.from('profiles').select('approved,role').eq('id',user.id).single()
+ if(!profile?.approved) throw new Error('ACCOUNT NOT APPROVED')
+ return {s,user,profile}
+}
 function check(error:{code?:string}|null){if(error){console.error('[Crew mutation]',{code:error.code});throw new Error('Opslaan mislukt. Controleer je invoer en probeer opnieuw.')}}
 function dates(fd:FormData,start:string,end:string){
  const a=z.string().datetime({offset:true}).parse(fd.get(start)),b=z.string().datetime({offset:true}).parse(fd.get(end))
@@ -39,10 +47,35 @@ export async function assignResponsible(fd:FormData){
  const {error}=await s.from('responsible_assignments').upsert({event_id:w.event_id,workplace_id,user_id,assigned_by:user.id},{onConflict:'workplace_id,user_id'});check(error);revalidatePath('/workplaces')
 }
 export async function createShift(fd:FormData){
- const {s}=await adminClient();const workplace_id=uuid.parse(fd.get('workplace_id')),user_id=uuid.parse(fd.get('user_id'));const [start,end]=dates(fd,'start','end')
- const {data:w,error:e}=await s.from('workplaces').select('event_id').eq('id',workplace_id).single();check(e);if(!w)return
- const {data:m}=await s.from('event_members').select('id').eq('event_id',w.event_id).eq('user_id',user_id).maybeSingle();if(!m)throw new Error('Voeg deze medewerker eerst toe aan het event.')
- const {error}=await s.from('shifts').insert({event_id:w.event_id,workplace_id,user_id,role_name:text.parse(fd.get('role_name')||'Crew'),scheduled_start:start,scheduled_end:end,start_time:start,end_time:end,overlap_allowed:fd.get('overlap_allowed')==='on'});check(error);revalidatePath('/shifts')
+ const {s}=await approvedClient()
+ const [start,end]=dates(fd,'start','end')
+ const {error}=await s.rpc('upt_create_shift',{
+  p_workplace:uuid.parse(fd.get('workplace_id')),
+  p_user:uuid.parse(fd.get('user_id')),
+  p_role_name:text.parse(fd.get('role_name')||'Crew'),
+  p_start:start,
+  p_end:end,
+  p_overlap_allowed:fd.get('overlap_allowed')==='on',
+ })
+ check(error);revalidatePath('/shifts');revalidatePath('/operations')
+}
+export async function updateShift(fd:FormData){
+ const {s}=await approvedClient()
+ const [start,end]=dates(fd,'start','end')
+ const {error}=await s.rpc('upt_update_shift',{
+  p_shift:uuid.parse(fd.get('shift_id')),
+  p_role_name:text.parse(fd.get('role_name')||'Crew'),
+  p_start:start,
+  p_end:end,
+  p_overlap_allowed:fd.get('overlap_allowed')==='on',
+ })
+ check(error);revalidatePath('/shifts');revalidatePath('/operations')
+}
+export async function cancelShift(fd:FormData){
+ const {s}=await approvedClient()
+ const reason=String(fd.get('reason')||'').trim().slice(0,500)
+ const {error}=await s.rpc('upt_cancel_shift',{p_shift:uuid.parse(fd.get('shift_id')),...(reason?{p_reason:reason}:{})})
+ check(error);revalidatePath('/shifts');revalidatePath('/operations')
 }
 export async function setAccountStatus(fd:FormData){
  const {s,user}=await adminClient();const id=uuid.parse(fd.get('user_id'));const approved=fd.get('status')==='approved'
@@ -68,7 +101,29 @@ export async function updatePersonalInstruction(fd:FormData){
  const {error}=await s.from('personal_instructions').update({title:text.parse(fd.get('title')),body:z.string().trim().min(1).max(20000).parse(fd.get('body'))}).eq('id',uuid.parse(fd.get('id')))
  check(error);revalidatePath('/briefings')
 }
-export async function createTask(fd:FormData){const {s}=await adminClient();const {error}=await s.rpc('upt_create_assigned_task',{p_event:uuid.parse(fd.get('event_id')),p_workplace:null as unknown as string,p_user:uuid.parse(fd.get('user_id')),p_title:text.parse(fd.get('title')),p_description:String(fd.get('description')||'').slice(0,4000)});check(error);revalidatePath('/tasks')}
+export async function createTask(fd:FormData){
+ const {s,profile}=await approvedClient()
+ const rawWorkplace=String(fd.get('workplace_id')||'').trim()
+ let eventId:string
+ let workplaceId:string|null=null
+ if(rawWorkplace){
+  workplaceId=uuid.parse(rawWorkplace)
+  const {data:w,error:wError}=await s.from('workplaces').select('event_id').eq('id',workplaceId).single()
+  check(wError);if(!w)throw new Error('Werkplek niet gevonden.')
+  eventId=w.event_id
+ }else{
+  if(profile.role!=='admin')throw new Error('Responsible kan alleen taken voor de eigen werkplek aanmaken.')
+  eventId=uuid.parse(fd.get('event_id'))
+ }
+ const {error}=await s.rpc('upt_create_assigned_task',{
+  p_event:eventId,
+  p_workplace:workplaceId as unknown as string,
+  p_user:uuid.parse(fd.get('user_id')),
+  p_title:text.parse(fd.get('title')),
+  p_description:String(fd.get('description')||'').slice(0,4000),
+ })
+ check(error);revalidatePath('/tasks')
+}
 export async function archiveEvent(fd:FormData){const {s}=await adminClient();const {error}=await s.from('events').update({status:'archived'}).eq('id',uuid.parse(fd.get('event_id')));check(error);revalidatePath('/events')}
 export async function duplicateEvent(fd:FormData){const {s}=await adminClient();const [start,end]=dates(fd,'start_at','end_at');const {error}=await s.rpc('upt_duplicate_event',{p_event:uuid.parse(fd.get('event_id')),p_name:text.parse(fd.get('name')),p_start:start,p_end:end});check(error);revalidatePath('/events')}
 export async function updateEvent(fd:FormData){const {s}=await adminClient();const latitude=fd.get('latitude')?z.coerce.number().min(-90).max(90).parse(fd.get('latitude')):null;const longitude=fd.get('longitude')?z.coerce.number().min(-180).max(180).parse(fd.get('longitude')):null;if((latitude===null)!==(longitude===null))throw new Error('Vul beide coördinaten in.');const {error}=await s.from('events').update({name:text.parse(fd.get('name')),venue:String(fd.get('venue')||'').slice(0,200),latitude,longitude,checkin_radius_m:z.coerce.number().int().min(10).max(10000).parse(fd.get('radius'))}).eq('id',uuid.parse(fd.get('event_id')));check(error);revalidatePath('/events')}

@@ -30,7 +30,14 @@
 
 ### Cleanup
 
+- Completed a Dutch-language UI/auth copy sweep and normalized navigation labels.
+- Tightened active lint rules from warnings to CI-blocking errors.
+- Fixed public/auth offline routing so login, signup, recovery and account-state pages always use the privacy-safe fallback.
+- Added a database constraint limiting profile roles to Staff, Responsible Lead or Admin.
+- Fixed the crew dashboard so "Komende events" excludes finished events.
+- Rechecked live generated Supabase types and local/remote migration history for exact alignment.
+
 - Retired StaffPortal application routes and actions are removed from the runtime.
-- Legacy runtime utilities, UI components, tests, manifests and deployment config are being removed while historical database migrations remain intact.
+- Legacy runtime utilities, UI components, tests, manifests and deployment config were removed while historical database migrations remain intact.
 
 See [UPTILLDAWN_IMPLEMENTATION_STATUS.md](UPTILLDAWN_IMPLEMENTATION_STATUS.md) for executed verification and remaining release gates.

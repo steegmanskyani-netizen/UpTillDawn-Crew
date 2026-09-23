@@ -1858,18 +1858,7 @@ export type Database = {
         ]
       }
     }
-    Views: {
-      user_profiles: {
-        Row: {
-          approved: boolean | null
-          full_name: string | null
-          id: string | null
-          role: string | null
-          user_email: string | null
-        }
-        Relationships: []
-      }
-    }
+    Views: Record<string, never>
     Functions: {
       upt_acknowledge_briefing: {
         Args: { p_briefing: string }

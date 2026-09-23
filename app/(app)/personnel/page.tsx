@@ -46,8 +46,6 @@ export default async function Page() {
             <select name="status" defaultValue={p.approved ? 'approved' : 'pending'} className="rounded-lg border bg-background p-2">
               <option value="pending">PENDING</option>
               <option value="approved">APPROVED</option>
-              <option value="rejected">REJECTED</option>
-              <option value="suspended">SUSPENDED</option>
             </select>
             <select name="role" defaultValue={p.role} className="rounded-lg border bg-background p-2">
               <option value="staff">Staff</option>

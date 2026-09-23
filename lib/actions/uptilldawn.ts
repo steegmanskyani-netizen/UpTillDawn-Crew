@@ -22,6 +22,70 @@ async function approvedClient(){
  return {s,user,profile}
 }
 function check(error:{code?:string}|null){if(error){console.error('[Crew mutation]',{code:error.code});throw new Error('Opslaan mislukt. Controleer je invoer en probeer opnieuw.')}}
+
+type WorkPhotoTarget = { type: 'briefing' | 'instruction' | 'task'; id: string }
+const photoTypes = new Map([
+ ['image/jpeg','jpg'],
+ ['image/png','png'],
+ ['image/webp','webp'],
+])
+
+function workPhotoFiles(fd: FormData) {
+ const files=fd.getAll('photos').filter((value): value is File => value instanceof File && value.size > 0)
+ if(files.length>5) throw new Error('Je kunt maximaal 5 foto’s toevoegen.')
+ for(const file of files){
+  if(file.size>10*1024*1024) throw new Error('Elke foto mag maximaal 10 MB zijn.')
+  if(!photoTypes.has(file.type)) throw new Error('Gebruik alleen JPG-, PNG- of WEBP-foto’s.')
+ }
+ return files
+}
+
+async function rollbackWorkPhotos(s:Awaited<ReturnType<typeof createClient>>,paths:string[]){
+ if(!paths.length)return
+ await s.from('work_attachments').delete().in('storage_path',paths)
+ await s.storage.from('work-media').remove(paths)
+}
+
+async function uploadWorkPhotos(
+ s:Awaited<ReturnType<typeof createClient>>,
+ userId:string,
+ target:WorkPhotoTarget,
+ files:File[],
+){
+ if(!files.length)return [] as string[]
+ const key=target.type==='briefing'?'briefing_id':target.type==='instruction'?'personal_instruction_id':'task_id'
+ const {count,error:countError}=await s.from('work_attachments').select('id',{count:'exact',head:true}).eq(key,target.id)
+ check(countError)
+ if((count??0)+files.length>5) throw new Error('Per item kun je maximaal 5 foto’s bewaren.')
+
+ const uploaded:string[]=[]
+ try{
+  for(const file of files){
+   const ext=photoTypes.get(file.type)!
+   const storagePath=`${userId}/${target.type}/${target.id}/${crypto.randomUUID()}.${ext}`
+   const {error:uploadError}=await s.storage.from('work-media').upload(storagePath,file,{contentType:file.type,upsert:false})
+   if(uploadError) throw new Error('Foto uploaden mislukt.')
+   uploaded.push(storagePath)
+
+   const parent=target.type==='briefing'
+    ? {briefing_id:target.id}
+    : target.type==='instruction'
+      ? {personal_instruction_id:target.id}
+      : {task_id:target.id}
+   const {error:attachmentError}=await s.from('work_attachments').insert({
+    ...parent,
+    storage_path:storagePath,
+    mime_type:file.type,
+    uploaded_by:userId,
+   })
+   if(attachmentError) throw new Error('Foto koppelen mislukt.')
+  }
+  return uploaded
+ }catch(error){
+  await rollbackWorkPhotos(s,uploaded)
+  throw error
+ }
+}
 function dates(fd:FormData,start:string,end:string){
  const a=z.string().datetime({offset:true}).parse(fd.get(start)),b=z.string().datetime({offset:true}).parse(fd.get(end))
  if(Date.parse(b)<=Date.parse(a)) throw new Error('Einde moet na begin liggen.')
@@ -85,24 +149,62 @@ export async function setAccountStatus(fd:FormData){
 }
 export async function acknowledgeBriefing(fd:FormData){const s=await createClient();const {error}=await s.rpc('upt_acknowledge_briefing',{p_briefing:uuid.parse(fd.get('id'))});check(error);revalidatePath('/briefings')}
 export async function acknowledgeInstruction(fd:FormData){const s=await createClient();const {error}=await s.rpc('upt_acknowledge_personal_instruction',{p_instruction:uuid.parse(fd.get('id'))});check(error);revalidatePath('/briefings')}
-export async function createBriefing(fd:FormData){const {s,user}=await adminClient();const {error}=await s.from('briefings').insert({event_id:uuid.parse(fd.get('event_id')),title:text.parse(fd.get('title')),body:z.string().trim().min(1).max(20000).parse(fd.get('body')),created_by:user.id});check(error);revalidatePath('/briefings')}
+export async function createBriefing(fd:FormData){
+ const {s,user}=await adminClient()
+ const files=workPhotoFiles(fd)
+ const {data,error}=await s.from('briefings').insert({
+  event_id:uuid.parse(fd.get('event_id')),
+  title:text.parse(fd.get('title')),
+  body:z.string().trim().min(1).max(20000).parse(fd.get('body')),
+  created_by:user.id,
+ }).select('id').single()
+ check(error);if(!data)throw new Error('Instructie kon niet worden aangemaakt.')
+ try{await uploadWorkPhotos(s,user.id,{type:'briefing',id:data.id},files)}
+ catch(error){await s.from('briefings').delete().eq('id',data.id);throw error}
+ revalidatePath('/briefings')
+}
 export async function createPersonalInstruction(fd:FormData){
  const {s,user}=await adminClient()
- const {error}=await s.from('personal_instructions').insert({event_id:uuid.parse(fd.get('event_id')),user_id:uuid.parse(fd.get('user_id')),title:text.parse(fd.get('title')),body:z.string().trim().min(1).max(20000).parse(fd.get('body')),created_by:user.id})
- check(error);revalidatePath('/briefings')
+ const files=workPhotoFiles(fd)
+ const {data,error}=await s.from('personal_instructions').insert({
+  event_id:uuid.parse(fd.get('event_id')),
+  user_id:uuid.parse(fd.get('user_id')),
+  title:text.parse(fd.get('title')),
+  body:z.string().trim().min(1).max(20000).parse(fd.get('body')),
+  created_by:user.id,
+ }).select('id').single()
+ check(error);if(!data)throw new Error('Persoonlijke instructie kon niet worden aangemaakt.')
+ try{await uploadWorkPhotos(s,user.id,{type:'instruction',id:data.id},files)}
+ catch(error){await s.from('personal_instructions').delete().eq('id',data.id);throw error}
+ revalidatePath('/briefings')
 }
 export async function updateBriefing(fd:FormData){
- const {s}=await adminClient()
- const {error}=await s.from('briefings').update({title:text.parse(fd.get('title')),body:z.string().trim().min(1).max(20000).parse(fd.get('body'))}).eq('id',uuid.parse(fd.get('id')))
- check(error);revalidatePath('/briefings')
+ const {s,user}=await adminClient()
+ const id=uuid.parse(fd.get('id'))
+ const files=workPhotoFiles(fd)
+ const paths=await uploadWorkPhotos(s,user.id,{type:'briefing',id},files)
+ const {error}=await s.from('briefings').update({
+  title:text.parse(fd.get('title')),
+  body:z.string().trim().min(1).max(20000).parse(fd.get('body')),
+ }).eq('id',id)
+ if(error){await rollbackWorkPhotos(s,paths);check(error)}
+ revalidatePath('/briefings')
 }
 export async function updatePersonalInstruction(fd:FormData){
- const {s}=await adminClient()
- const {error}=await s.from('personal_instructions').update({title:text.parse(fd.get('title')),body:z.string().trim().min(1).max(20000).parse(fd.get('body'))}).eq('id',uuid.parse(fd.get('id')))
- check(error);revalidatePath('/briefings')
+ const {s,user}=await adminClient()
+ const id=uuid.parse(fd.get('id'))
+ const files=workPhotoFiles(fd)
+ const paths=await uploadWorkPhotos(s,user.id,{type:'instruction',id},files)
+ const {error}=await s.from('personal_instructions').update({
+  title:text.parse(fd.get('title')),
+  body:z.string().trim().min(1).max(20000).parse(fd.get('body')),
+ }).eq('id',id)
+ if(error){await rollbackWorkPhotos(s,paths);check(error)}
+ revalidatePath('/briefings')
 }
 export async function createTask(fd:FormData){
- const {s,profile}=await approvedClient()
+ const {s,user,profile}=await approvedClient()
+ const files=workPhotoFiles(fd)
  const rawWorkplace=String(fd.get('workplace_id')||'').trim()
  let eventId:string
  let workplaceId:string|null=null
@@ -112,17 +214,20 @@ export async function createTask(fd:FormData){
   check(wError);if(!w)throw new Error('Werkplek niet gevonden.')
   eventId=w.event_id
  }else{
-  if(profile.role!=='admin')throw new Error('Responsible kan alleen taken voor de eigen werkplek aanmaken.')
+  if(profile.role!=='admin')throw new Error('Verantwoordelijke kan alleen taken voor de eigen werkplek aanmaken.')
   eventId=uuid.parse(fd.get('event_id'))
  }
- const {error}=await s.rpc('upt_create_assigned_task',{
+ const {data:taskId,error}=await s.rpc('upt_create_assigned_task',{
   p_event:eventId,
   p_workplace:workplaceId as unknown as string,
   p_user:uuid.parse(fd.get('user_id')),
   p_title:text.parse(fd.get('title')),
   p_description:String(fd.get('description')||'').slice(0,4000),
  })
- check(error);revalidatePath('/tasks')
+ check(error);if(!taskId)throw new Error('Taak kon niet worden aangemaakt.')
+ try{await uploadWorkPhotos(s,user.id,{type:'task',id:taskId},files)}
+ catch(error){await s.from('tasks').delete().eq('id',taskId);throw error}
+ revalidatePath('/tasks')
 }
 export async function removeTaskAssignment(fd:FormData){
  const {s}=await approvedClient()

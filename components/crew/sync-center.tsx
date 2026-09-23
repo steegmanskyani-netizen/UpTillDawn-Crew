@@ -27,6 +27,7 @@ const labels: Record<string,string> = {
 
 export function SyncCenter() {
   const { user } = useAuth()
+  const userId = user?.id
   const [ops, setOps] = useState<QueuedOperation[]>([])
   const [uploads, setUploads] = useState<QueuedUpload[]>([])
   const [online, setOnline] = useState(true)
@@ -34,7 +35,7 @@ export function SyncCenter() {
   const [message, setMessage] = useState('')
 
   async function refresh() {
-    if (!user) return
+    if (!userId) return
     const [nextOps, nextUploads] = await Promise.all([queued(userId), queuedUploads(userId)])
     setOps(nextOps)
     setUploads(nextUploads)
@@ -42,7 +43,7 @@ export function SyncCenter() {
 
   useEffect(() => {
     setOnline(navigator.onLine)
-    if (!user) return
+    if (!userId) return
     let alive = true
     const update = () => {
       void Promise.all([queued(userId), queuedUploads(userId)]).then(([nextOps, nextUploads]) => {
@@ -62,10 +63,9 @@ export function SyncCenter() {
       window.removeEventListener('online', network)
       window.removeEventListener('offline', network)
     }
-  }, [user])
+  }, [userId])
 
-  if (!user) return null
-  const userId = userId
+  if (!userId) return null
 
   const total = ops.length + uploads.length
 

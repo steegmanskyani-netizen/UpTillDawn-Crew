@@ -1,4 +1,5 @@
 import { PwaRegister } from '@/components/pwa-register'
+import { LocaleSync } from '@/components/locale-sync'
 import type { Metadata, Viewport } from 'next'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/lib/providers'
@@ -36,7 +37,7 @@ export default function RootLayout({
       <body className="font-sans antialiased" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            <PwaRegister />{children}
+            <LocaleSync /><PwaRegister />{children}
             <Toaster richColors position="top-right" />
           </AuthProvider>
         </ThemeProvider>

@@ -41,6 +41,7 @@ export default async function Page() {
 
   const manager = profile?.role === 'admin' || profile?.role === 'responsible_lead'
   const activeEventIds = new Set((events || []).map(event => event.id))
+  const visibleIncidents = (incidents || []).filter(incident => activeEventIds.has(incident.event_id))
   const activeShifts = (shifts || []).filter(shift => activeEventIds.has(shift.event_id))
   const activeShift = activeShifts.find(shift => shift.id === activeSession?.shift_id)
   const contexts = activeShifts.map(shift => ({
@@ -52,7 +53,7 @@ export default async function Page() {
 
   const signedPhotos = new Map<string,string>()
   if (manager) {
-    await Promise.all((incidents || []).filter(i => i.photo_path).map(async i => {
+    await Promise.all(visibleIncidents.filter(i => i.photo_path).map(async i => {
       const { data: signed } = await s.storage.from('incident-photos').createSignedUrl(i.photo_path!, 300)
       if (signed?.signedUrl) signedPhotos.set(i.id, signed.signedUrl)
     }))
@@ -79,9 +80,9 @@ export default async function Page() {
       <h2 className="text-xl font-bold">Open incidenten</h2>
       {error
         ? <p>Meldingen konden niet worden geladen.</p>
-        : !(incidents || []).length
+        : !visibleIncidents.length
           ? <p className="text-muted-foreground">Geen incidenten.</p>
-          : incidents?.map(i => <article key={i.id} className="rounded-xl border p-4">
+          : visibleIncidents.map(i => <article key={i.id} className="rounded-xl border p-4">
               <div className="flex items-start justify-between gap-3">
                 <p className="whitespace-pre-wrap">{i.message}</p>
                 <span className="rounded-full border px-2 py-1 text-xs font-bold">{nlStatus(i.status)}</span>

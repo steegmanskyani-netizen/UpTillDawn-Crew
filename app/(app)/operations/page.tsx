@@ -32,17 +32,20 @@ export default async function Page() {
 
   let liveSessions: typeof shifts.data extends never ? never[] : any[] = []
   let liveBreaks: any[] = []
+  let liveShifts: any[] = []
   let crewDirectory: Array<{ id: string; full_name: string; phone_number: string | null; profile_photo_url: string | null }> = []
 
   if (manager) {
-    const [sessionsResult, breaksResult, assignmentsResult] = await Promise.all([
+    const [sessionsResult, breaksResult, assignmentsResult, liveShiftsResult] = await Promise.all([
       s.from('work_sessions').select('*').is('ended_at', null).order('started_at'),
       s.from('break_sessions').select('*').is('ended_at', null).order('started_at'),
       s.from('responsible_assignments').select('event_id,workplace_id').eq('user_id', user.id),
+      s.from('shifts').select('*').neq('status', 'cancelled'),
     ])
 
     liveSessions = sessionsResult.data || []
     liveBreaks = breaksResult.data || []
+    liveShifts = liveShiftsResult.data || []
 
     if (profile.data?.role === 'admin') {
       const { data } = await s.from('profiles').select('id,full_name,phone_number,profile_photo_url').eq('approved', true)
@@ -70,6 +73,7 @@ export default async function Page() {
     summary={summary?.data?.[0] || null}
     liveSessions={liveSessions}
     liveBreaks={liveBreaks}
+    liveShifts={liveShifts}
     crewDirectory={crewDirectory}
   />
 }

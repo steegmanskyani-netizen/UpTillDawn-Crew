@@ -30,7 +30,7 @@ test('active runtime has no service-role secret or retired StaffPortal schema re
   }
 })
 
-test('public environment example exposes only required browser-safe variables', async () => {
+test('environment example exposes required public variables and keeps Geoapify server-side', async () => {
   const text = await readFile(join(root, '.env.example'), 'utf8')
   const keys = text.split(/\r?\n/)
     .map(line => line.trim())
@@ -40,8 +40,10 @@ test('public environment example exposes only required browser-safe variables', 
     'NEXT_PUBLIC_SUPABASE_URL',
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
     'NEXT_PUBLIC_APP_URL',
-    'NEXT_PUBLIC_GOOGLE_MAPS_API_KEY',
+    'GEOAPIFY_API_KEY',
   ])
+  assert.doesNotMatch(text, /NEXT_PUBLIC_GEOAPIFY_API_KEY/)
+  assert.doesNotMatch(text, /NEXT_PUBLIC_GOOGLE_MAPS_API_KEY/)
 })
 
 test('migration history has unique version prefixes', async () => {

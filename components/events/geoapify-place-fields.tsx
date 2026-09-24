@@ -140,9 +140,10 @@ export function GeoapifyPlaceFields({
   }
 
   return <div className="grid gap-3 md:grid-cols-2">
-    <label className="relative grid gap-1 text-sm">
-      Locatie
+    <div className="relative grid gap-1 text-sm">
+      <label htmlFor="event-venue-search">Locatie</label>
       <input
+        id="event-venue-search"
         value={venue}
         onChange={event=>{setVenue(event.target.value);clearLink();setFocused("venue")}}
         onFocus={()=>setFocused("venue")}
@@ -157,11 +158,12 @@ export function GeoapifyPlaceFields({
         className="rounded-lg border bg-background p-3"
       />
       {suggestionList("venue")}
-    </label>
+    </div>
 
-    <label className="relative grid gap-1 text-sm">
-      Adres
+    <div className="relative grid gap-1 text-sm">
+      <label htmlFor="event-address-search">Adres</label>
       <input
+        id="event-address-search"
         value={address}
         onChange={event=>{setAddress(event.target.value);clearLink();setFocused("address")}}
         onFocus={()=>setFocused("address")}
@@ -176,7 +178,7 @@ export function GeoapifyPlaceFields({
         className="rounded-lg border bg-background p-3"
       />
       {suggestionList("address")}
-    </label>
+    </div>
 
     <input type="hidden" name="venue" value={venue}/>
     <input type="hidden" name="address" value={address}/>

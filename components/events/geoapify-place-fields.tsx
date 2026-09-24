@@ -218,6 +218,11 @@ export function GeoapifyPlaceFields({
     <div className="md:col-span-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
       <span>Kies een suggestie om locatie, adres en GPS-coördinaten automatisch aan elkaar te koppelen.</span>
       {mapsUri&&<a href={mapsUri} target="_blank" rel="noreferrer" className="underline">Open adres in Google Maps</a>}
+      <span>
+        Powered by <a href="https://www.geoapify.com/" target="_blank" rel="noreferrer" className="underline">Geoapify</a>
+        {" · "}
+        © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer" className="underline">OpenStreetMap contributors</a>
+      </span>
       {error&&<span className="font-semibold text-red-500">{error}</span>}
     </div>
   </div>

@@ -69,7 +69,6 @@ export type Database = {
           id: string
           user_id: string
           version: number
-          workplace_id: string | null
         }
         Insert: {
           acknowledged_at?: string
@@ -84,7 +83,6 @@ export type Database = {
           id?: string
           user_id?: string
           version?: number
-          workplace_id?: string | null
         }
         Relationships: [
           {
@@ -1777,11 +1775,19 @@ export type Database = {
       }
       upt_audit_export: { Args: never; Returns: undefined }
       upt_can_access_workplace: {
-        Args: { p_event: string; p_workplace: string | null }
+        Args: { p_event: string; p_workplace: string }
+        Returns: boolean
+      }
+      upt_can_manage_task: {
+        Args: { p_task: string; p_uid?: string }
         Returns: boolean
       }
       upt_can_read_channel: { Args: { p_channel: string }; Returns: boolean }
       upt_can_read_profile_photo: { Args: { p_path: string }; Returns: boolean }
+      upt_can_read_task: {
+        Args: { p_task: string; p_uid?: string }
+        Returns: boolean
+      }
       upt_cancel_shift: {
         Args: { p_reason?: string; p_shift: string }
         Returns: undefined
@@ -1930,7 +1936,7 @@ export type Database = {
         }[]
       }
       upt_responsible_event_members: {
-        Args: { p_event: string; p_workplace: string | null }
+        Args: { p_event: string; p_workplace: string }
         Returns: {
           full_name: string
           id: string

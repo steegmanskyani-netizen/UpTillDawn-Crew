@@ -1930,7 +1930,7 @@ export type Database = {
         }[]
       }
       upt_responsible_event_members: {
-        Args: { p_event: string; p_workplace: string }
+        Args: { p_event: string; p_workplace: string | null }
         Returns: {
           full_name: string
           id: string

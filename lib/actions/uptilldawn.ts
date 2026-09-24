@@ -40,20 +40,40 @@ async function requireEventManager(
  check(error)
  if(!data)throw new Error('Je bent niet als verantwoordelijke aan dit evenement toegewezen.')
 }
+async function requireFeature(
+ s: Awaited<ReturnType<typeof createClient>>,
+ role: string,
+ feature: string,
+ eventId: string | null,
+ workplaceId: string | null = null,
+){
+ if(role==='admin')return
+ const {data,error}=await (s as any).rpc('upt_feature_allowed',{
+  p_feature:feature,
+  p_event:eventId,
+  p_workplace:workplaceId,
+ })
+ if(error||!data)throw new Error('Deze functie is voor jouw rol op dit moment niet beschikbaar.')
+}
 
 type WorkPhotoTarget = { type: 'briefing' | 'instruction' | 'task'; id: string }
 const photoTypes = new Map([
  ['image/jpeg','jpg'],
  ['image/png','png'],
  ['image/webp','webp'],
+ ['video/mp4','mp4'],
+ ['video/webm','webm'],
+ ['video/quicktime','mov'],
 ])
 
 function workPhotoFiles(fd: FormData) {
  const files=fd.getAll('photos').filter((value): value is File => value instanceof File && value.size > 0)
- if(files.length>5) throw new Error('Je kunt maximaal 5 foto’s toevoegen.')
+ if(files.length>5) throw new Error('Je kunt maximaal 5 foto’s of video’s toevoegen.')
  for(const file of files){
-  if(file.size>10*1024*1024) throw new Error('Elke foto mag maximaal 10 MB zijn.')
-  if(!photoTypes.has(file.type)) throw new Error('Gebruik alleen JPG-, PNG- of WEBP-foto’s.')
+  const isVideo=file.type.startsWith('video/')
+  const max=isVideo?50*1024*1024:10*1024*1024
+  if(file.size>max) throw new Error(isVideo?'Elke video mag maximaal 50 MB zijn.':'Elke foto mag maximaal 10 MB zijn.')
+  if(!photoTypes.has(file.type)) throw new Error('Gebruik alleen JPG-, PNG-, WEBP-, MP4-, WEBM- of MOV-bestanden.')
  }
  return files
 }
@@ -74,7 +94,7 @@ async function uploadWorkPhotos(
  const key=target.type==='briefing'?'briefing_id':target.type==='instruction'?'personal_instruction_id':'task_id'
  const {count,error:countError}=await s.from('work_attachments').select('id',{count:'exact',head:true}).eq(key,target.id)
  check(countError)
- if((count??0)+files.length>5) throw new Error('Per item kun je maximaal 5 foto’s bewaren.')
+ if((count??0)+files.length>5) throw new Error('Per item kun je maximaal 5 foto’s of video’s bewaren.')
 
  const uploaded:string[]=[]
  try{
@@ -82,7 +102,7 @@ async function uploadWorkPhotos(
    const ext=photoTypes.get(file.type)!
    const storagePath=`${userId}/${target.type}/${target.id}/${crypto.randomUUID()}.${ext}`
    const {error:uploadError}=await s.storage.from('work-media').upload(storagePath,file,{contentType:file.type,upsert:false})
-   if(uploadError) throw new Error('Foto uploaden mislukt.')
+   if(uploadError) throw new Error('Media uploaden mislukt.')
    uploaded.push(storagePath)
 
    const parent=target.type==='briefing'
@@ -96,7 +116,7 @@ async function uploadWorkPhotos(
     mime_type:file.type,
     uploaded_by:userId,
    })
-   if(attachmentError) throw new Error('Foto koppelen mislukt.')
+   if(attachmentError) throw new Error('Media koppelen mislukt.')
   }
   return uploaded
  }catch(error){
@@ -111,12 +131,24 @@ function dates(fd:FormData,start:string,end:string){
 }
 export async function createEvent(fd:FormData){
  const {s,user}=await adminClient(); const [start,end]=dates(fd,'start_at','end_at')
- const {error}=await s.from('events').insert({name:text.parse(fd.get('name')),venue:String(fd.get('venue')||'').slice(0,200),address:String(fd.get('address')||'').slice(0,500),start_at:start,end_at:end,start_date:start,end_date:end,checkin_radius_m:z.coerce.number().int().min(10).max(10000).parse(fd.get('radius')||100),created_by:user.id})
+ const latitude=fd.get('latitude')?z.coerce.number().min(-90).max(90).parse(fd.get('latitude')):null
+ const longitude=fd.get('longitude')?z.coerce.number().min(-180).max(180).parse(fd.get('longitude')):null
+ if((latitude===null)!==(longitude===null))throw new Error('Selecteer een geldig adres via Google Maps.')
+ const {error}=await s.from('events').insert({
+  name:text.parse(fd.get('name')),
+  venue:String(fd.get('venue')||'').slice(0,200),
+  address:String(fd.get('address')||'').slice(0,500),
+  latitude,longitude,
+  start_at:start,end_at:end,start_date:start,end_date:end,
+  checkin_radius_m:z.coerce.number().int().min(10).max(10000).parse(fd.get('radius')||100),
+  created_by:user.id,
+ })
  check(error);revalidatePath('/events')
 }
 export async function addWorkplace(fd:FormData){
  const {s,user,profile}=await approvedClient()
  const eventId=uuid.parse(fd.get('event_id'))
+ await requireFeature(s,profile.role,'workplaces',eventId,null)
  if(profile.role!=='admin'){
   if(profile.role!=='responsible_lead')throw new Error('Geen toegang.')
   const {data:membership,error:membershipError}=await s.from('event_members')
@@ -139,21 +171,10 @@ export async function addWorkplace(fd:FormData){
 }
 
 export async function updateWorkplace(fd:FormData){
- const {s,user,profile}=await approvedClient()
+ const {s}=await adminClient()
  const workplaceId=uuid.parse(fd.get('workplace_id'))
  const {data:workplace,error:workplaceError}=await s.from('workplaces').select('event_id').eq('id',workplaceId).single()
  check(workplaceError);if(!workplace)throw new Error('Werkplek niet gevonden.')
- if(profile.role!=='admin'){
-  if(profile.role!=='responsible_lead')throw new Error('Geen toegang.')
-  const {data:membership,error:membershipError}=await s.from('event_members')
-   .select('event_id')
-   .eq('event_id',workplace.event_id)
-   .eq('user_id',user.id)
-   .eq('event_role','responsible_lead')
-   .maybeSingle()
-  check(membershipError)
-  if(!membership)throw new Error('Je bent niet als verantwoordelijke aan dit evenement toegewezen.')
- }
  const {error}=await s.from('workplaces').update({
   name:text.parse(fd.get('name')),
   description:String(fd.get('description')||'').trim().slice(0,1000)||null,
@@ -298,6 +319,7 @@ export async function createBriefing(fd:FormData){
   eventId=uuid.parse(fd.get('event_id'))
  }
  await requireEventManager(s,user.id,profile.role,eventId)
+ await requireFeature(s,profile.role,'briefings',eventId,workplaceId)
  const {data,error}=await s.from('briefings').insert({
   event_id:eventId,
   workplace_id:workplaceId,
@@ -325,6 +347,7 @@ export async function createPersonalInstruction(fd:FormData){
   eventId=uuid.parse(fd.get('event_id'))
  }
  await requireEventManager(s,user.id,profile.role,eventId)
+ await requireFeature(s,profile.role,'briefings',eventId,workplaceId)
  const targetUser=uuid.parse(fd.get('user_id'))
  const {data:member,error:memberError}=await s.from('event_members')
   .select('user_id')
@@ -349,6 +372,9 @@ export async function updateBriefing(fd:FormData){
  const {s,user,profile}=await approvedClient()
  requireManager(profile.role)
  const id=uuid.parse(fd.get('id'))
+ const {data:current,error:currentError}=await s.from('briefings').select('event_id,workplace_id').eq('id',id).single()
+ check(currentError);if(!current)throw new Error('Instructie niet gevonden.')
+ await requireFeature(s,profile.role,'briefings',current.event_id,current.workplace_id)
  const files=workPhotoFiles(fd)
  const paths=await uploadWorkPhotos(s,user.id,{type:'briefing',id},files)
  const {error}=await s.from('briefings').update({
@@ -362,6 +388,9 @@ export async function updatePersonalInstruction(fd:FormData){
  const {s,user,profile}=await approvedClient()
  requireManager(profile.role)
  const id=uuid.parse(fd.get('id'))
+ const {data:current,error:currentError}=await s.from('personal_instructions').select('event_id,workplace_id').eq('id',id).single()
+ check(currentError);if(!current)throw new Error('Persoonlijke instructie niet gevonden.')
+ await requireFeature(s,profile.role,'briefings',current.event_id,current.workplace_id)
  const files=workPhotoFiles(fd)
  const paths=await uploadWorkPhotos(s,user.id,{type:'instruction',id},files)
  const {error}=await s.from('personal_instructions').update({
@@ -387,6 +416,7 @@ export async function createTask(fd:FormData){
   eventId=uuid.parse(fd.get('event_id'))
  }
  await requireEventManager(s,user.id,profile.role,eventId)
+ await requireFeature(s,profile.role,'tasks',eventId,workplaceId)
 
  const userIds=[...new Set(fd.getAll('user_id').map(value=>uuid.parse(value)))]
  if(!userIds.length)throw new Error('Selecteer minstens één medewerker.')
@@ -425,7 +455,13 @@ export async function createTask(fd:FormData){
 export async function removeTaskAssignment(fd:FormData){
  const {s,profile}=await approvedClient()
  requireManager(profile.role)
- const {error}=await s.rpc('upt_remove_task_assignment',{p_assignment:uuid.parse(fd.get('assignment_id'))})
+ const assignmentId=uuid.parse(fd.get('assignment_id'))
+ const {data:assignment,error:assignmentError}=await s.from('task_assignments').select('tasks(event_id,workplace_id)').eq('id',assignmentId).single()
+ check(assignmentError)
+ const task=assignment?.tasks
+ if(!task)throw new Error('Taaktoewijzing niet gevonden.')
+ await requireFeature(s,profile.role,'tasks',task.event_id,task.workplace_id)
+ const {error}=await s.rpc('upt_remove_task_assignment',{p_assignment:assignmentId})
  check(error);revalidatePath('/tasks')
 }
 export async function markNotificationRead(fd:FormData){
@@ -435,4 +471,25 @@ export async function markNotificationRead(fd:FormData){
 }
 export async function archiveEvent(fd:FormData){const {s}=await adminClient();const {error}=await s.from('events').update({status:'archived'}).eq('id',uuid.parse(fd.get('event_id')));check(error);revalidatePath('/events')}
 export async function duplicateEvent(fd:FormData){const {s}=await adminClient();const [start,end]=dates(fd,'start_at','end_at');const {error}=await s.rpc('upt_duplicate_event',{p_event:uuid.parse(fd.get('event_id')),p_name:text.parse(fd.get('name')),p_start:start,p_end:end});check(error);revalidatePath('/events')}
-export async function updateEvent(fd:FormData){const {s}=await adminClient();const latitude=fd.get('latitude')?z.coerce.number().min(-90).max(90).parse(fd.get('latitude')):null;const longitude=fd.get('longitude')?z.coerce.number().min(-180).max(180).parse(fd.get('longitude')):null;if((latitude===null)!==(longitude===null))throw new Error('Vul beide coördinaten in.');const {error}=await s.from('events').update({name:text.parse(fd.get('name')),venue:String(fd.get('venue')||'').slice(0,200),latitude,longitude,checkin_radius_m:z.coerce.number().int().min(10).max(10000).parse(fd.get('radius'))}).eq('id',uuid.parse(fd.get('event_id')));check(error);revalidatePath('/events')}
+export async function updateEvent(fd:FormData){
+ const {s}=await adminClient()
+ const [start,end]=dates(fd,'start_at','end_at')
+ const latitude=fd.get('latitude')?z.coerce.number().min(-90).max(90).parse(fd.get('latitude')):null
+ const longitude=fd.get('longitude')?z.coerce.number().min(-180).max(180).parse(fd.get('longitude')):null
+ if((latitude===null)!==(longitude===null))throw new Error('Selecteer een geldig adres via Google Maps.')
+ const {error}=await s.from('events').update({
+  name:text.parse(fd.get('name')),
+  venue:String(fd.get('venue')||'').slice(0,200),
+  address:String(fd.get('address')||'').slice(0,500),
+  latitude,longitude,
+  start_at:start,end_at:end,start_date:start,end_date:end,
+  checkin_radius_m:z.coerce.number().int().min(10).max(10000).parse(fd.get('radius')),
+ }).eq('id',uuid.parse(fd.get('event_id')))
+ check(error);revalidatePath('/events')
+}
+export async function deleteEvent(fd:FormData){
+ const {s}=await adminClient()
+ const eventId=uuid.parse(fd.get('event_id'))
+ const {error}=await s.from('events').delete().eq('id',eventId)
+ check(error);revalidatePath('/events')
+}

@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/crew-server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { geocodeGeoapify } from '@/lib/geoapify'
 
 const uuid=z.string().uuid()
 const text=z.string().trim().min(1).max(200)
@@ -129,16 +130,37 @@ function dates(fd:FormData,start:string,end:string){
  if(Date.parse(b)<=Date.parse(a)) throw new Error('Einde moet na begin liggen.')
  return [a,b]
 }
+async function eventLocation(fd:FormData){
+ let venue=String(fd.get('venue')||'').trim().slice(0,200)
+ let address=String(fd.get('address')||'').trim().slice(0,500)
+ const rawLatitude=String(fd.get('latitude')||'').trim()
+ const rawLongitude=String(fd.get('longitude')||'').trim()
+ let latitude=rawLatitude?z.coerce.number().min(-90).max(90).parse(rawLatitude):null
+ let longitude=rawLongitude?z.coerce.number().min(-180).max(180).parse(rawLongitude):null
+
+ if((latitude===null)!==(longitude===null)){
+  throw new Error('Selecteer een geldige locatie of adres uit de suggesties.')
+ }
+
+ if(latitude===null&&longitude===null&&(address||venue)){
+  const resolved=await geocodeGeoapify(address||venue)
+  if(!resolved)throw new Error('Geen geldige locatie gevonden. Kies een locatie of adres uit de suggesties.')
+  latitude=resolved.latitude
+  longitude=resolved.longitude
+  address=resolved.formatted
+  if(!venue)venue=resolved.name
+ }
+
+ return {venue,address,latitude,longitude}
+}
 export async function createEvent(fd:FormData){
  const {s,user}=await adminClient(); const [start,end]=dates(fd,'start_at','end_at')
- const latitude=fd.get('latitude')?z.coerce.number().min(-90).max(90).parse(fd.get('latitude')):null
- const longitude=fd.get('longitude')?z.coerce.number().min(-180).max(180).parse(fd.get('longitude')):null
- if((latitude===null)!==(longitude===null))throw new Error('Selecteer een geldig adres via Google Maps.')
+ const location=await eventLocation(fd)
  const {error}=await s.from('events').insert({
   name:text.parse(fd.get('name')),
-  venue:String(fd.get('venue')||'').slice(0,200),
-  address:String(fd.get('address')||'').slice(0,500),
-  latitude,longitude,
+  venue:location.venue,
+  address:location.address,
+  latitude:location.latitude,longitude:location.longitude,
   start_at:start,end_at:end,start_date:start,end_date:end,
   checkin_radius_m:z.coerce.number().int().min(10).max(10000).parse(fd.get('radius')||100),
   created_by:user.id,
@@ -474,14 +496,12 @@ export async function duplicateEvent(fd:FormData){const {s}=await adminClient();
 export async function updateEvent(fd:FormData){
  const {s}=await adminClient()
  const [start,end]=dates(fd,'start_at','end_at')
- const latitude=fd.get('latitude')?z.coerce.number().min(-90).max(90).parse(fd.get('latitude')):null
- const longitude=fd.get('longitude')?z.coerce.number().min(-180).max(180).parse(fd.get('longitude')):null
- if((latitude===null)!==(longitude===null))throw new Error('Selecteer een geldig adres via Google Maps.')
+ const location=await eventLocation(fd)
  const {error}=await s.from('events').update({
   name:text.parse(fd.get('name')),
-  venue:String(fd.get('venue')||'').slice(0,200),
-  address:String(fd.get('address')||'').slice(0,500),
-  latitude,longitude,
+  venue:location.venue,
+  address:location.address,
+  latitude:location.latitude,longitude:location.longitude,
   start_at:start,end_at:end,start_date:start,end_date:end,
   checkin_radius_m:z.coerce.number().int().min(10).max(10000).parse(fd.get('radius')),
  }).eq('id',uuid.parse(fd.get('event_id')))

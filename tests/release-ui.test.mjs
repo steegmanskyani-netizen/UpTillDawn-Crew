@@ -14,8 +14,8 @@ test('role-driven release navigation uses saved conditions and ordering', async 
   const roleUi = await read('lib/role-ui.ts')
 
   assert.match(layout, /from\("role_ui_rules"\)/)
-  assert.match(layout, /feature\("workplaces",context\.assignedWorkplaceRole\)/)
-  assert.match(layout, /feature\("tasks",context\.shiftActive\)/)
+  assert.match(layout, /feature\("workplaces",Boolean\(isAdmin&&!testMode\)\|\|context\.assignedWorkplaceRole\)/)
+  assert.match(layout, /feature\("tasks",Boolean\(isAdmin&&!testMode\)\|\|context\.shiftActive\)/)
   assert.match(layout, /feature\("incidents",context\.shiftActive\)/)
   assert.match(sidebar, /featureOrder/)
   assert.match(sidebar, /featureLabels/)

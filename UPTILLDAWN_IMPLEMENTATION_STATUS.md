@@ -102,6 +102,6 @@ Generated TypeScript database types were refreshed from the live target schema a
 4. **Web Push:** in-app notifications are implemented, but push subscription and external push delivery are not.
 5. **Policy decision:** define overtime and, if required, a work-period model different from the current one-event allowance model. The system deliberately does not invent payroll policy.
 6. **Broader security regression coverage:** the public-table/RPC privilege matrix and private-storage regression suites now exist and pass. Additional adversarial browser/device testing is still required before describing the system as security-audited.
-7. **Fresh-install proof:** all 75 local migration filenames now match the 75 applied migration-history entries in the target Supabase project exactly. The complete chain still needs to be replayed on an isolated database before claiming a clean-from-zero installation path.
+7. **Fresh-install proof:** all 86 local migration files now have matching applied migration-history entries in the target Supabase project. The complete chain still needs to be replayed on an isolated database before claiming a clean-from-zero installation path.
 
 The application code remains isolated on `codex/uptilldawn-production-hardening`. Production deployment must not be inferred solely from green CI.

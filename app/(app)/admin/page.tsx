@@ -84,7 +84,7 @@ export default async function Page(){
    name:person?.full_name||'Personeelslid',
    scheduledStart:shift.scheduled_start,
    actualStart:session?.started_at||null,
-   status:session?(sessionBreakList.some(row=>!row.ended_at)?'PAUZE':'WERKT'):'NIET GESTART',
+   status:(session?(sessionBreakList.some(row=>!row.ended_at)?'PAUZE':'WERKT'):'NIET GESTART') as 'WERKT'|'PAUZE'|'NIET GESTART',
    breaks:sessionBreakList.map(row=>({id:row.id,startedAt:row.started_at,endedAt:row.ended_at})),
   }
  }).sort((a,b)=>a.name.localeCompare(b.name,'nl'))

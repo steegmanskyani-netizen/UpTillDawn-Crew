@@ -58,7 +58,7 @@ export function AdminActivePersonnel({people}:{people:ActivePerson[]}){
  const groups=useMemo(()=>{
   const sorted=[...people].sort((a,b)=>
    a.workplaceName.localeCompare(b.workplaceName,'nl')
-   || b.isResponsible-a.isResponsible
+   || Number(b.isResponsible)-Number(a.isResponsible)
    || a.name.localeCompare(b.name,'nl')
   )
   const map=new Map<string,{name:string;people:ActivePerson[]}>()

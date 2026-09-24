@@ -94,7 +94,7 @@ export async function POST(request:Request){
     },{status:503})
   }
 
-  const model=process.env.OPENAI_MODEL?.trim()||"gpt-6-astra"
+  const model=process.env.OPENAI_MODEL?.trim()||"gpt-5.6"
   const input=parsed.data
 
   const openAiResponse=await fetch("https://api.openai.com/v1/responses",{

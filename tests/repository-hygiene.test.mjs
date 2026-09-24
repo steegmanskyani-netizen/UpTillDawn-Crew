@@ -30,7 +30,7 @@ test('active runtime has no service-role secret or retired StaffPortal schema re
   }
 })
 
-test('environment example exposes required public variables and keeps Geoapify server-side', async () => {
+test('environment example exposes required public variables and keeps server secrets server-side', async () => {
   const text = await readFile(join(root, '.env.example'), 'utf8')
   const keys = text.split(/\r?\n/)
     .map(line => line.trim())
@@ -41,8 +41,11 @@ test('environment example exposes required public variables and keeps Geoapify s
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
     'NEXT_PUBLIC_APP_URL',
     'GEOAPIFY_API_KEY',
+    'OPENAI_API_KEY',
+    'OPENAI_MODEL',
   ])
   assert.doesNotMatch(text, /NEXT_PUBLIC_GEOAPIFY_API_KEY/)
+  assert.doesNotMatch(text, /NEXT_PUBLIC_OPENAI_API_KEY/)
   assert.doesNotMatch(text, /NEXT_PUBLIC_GOOGLE_MAPS_API_KEY/)
 })
 

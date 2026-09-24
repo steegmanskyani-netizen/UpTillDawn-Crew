@@ -120,3 +120,10 @@ test('post-event app tools redirect back to events for non-admin roles', async (
     assert.match(text, /redirect\('\/events'\)/, path)
   }
 })
+
+
+test('work and pause requires an active assigned shift for staff', async () => {
+  const layout = await read('components/layout/app-layout.tsx')
+  assert.match(layout, /const activeShiftEvents = activeEventIds\.filter\(id => shiftEventIds\.has\(id\)\)/)
+  assert.match(layout, /setShowOperations\(activeShiftEvents\.length > 0\)/)
+})

@@ -106,7 +106,7 @@ export default async function Page() {
 
       const directories = await Promise.all(eventIds.map(async eventId => ({
         eventId,
-        result: await s.rpc('upt_responsible_event_members', { p_event: eventId, p_workplace: null }),
+        result: await s.rpc('upt_responsible_event_members', { p_event: eventId, p_workplace: null as unknown as string }),
       })))
       const unique = new Map<string, CrewOption>()
       for (const directory of directories) {

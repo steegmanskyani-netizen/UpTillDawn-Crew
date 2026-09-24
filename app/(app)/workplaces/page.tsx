@@ -62,7 +62,7 @@ export default async function Page(){
       </p>}
     </div>
 
-    {isResponsible&&<ManagerOnly>
+    {(isAdmin||isResponsible)&&<ManagerOnly>
       <form action={addWorkplace} className="grid gap-2 rounded-2xl border p-4 md:grid-cols-2">
         <select name="event_id" required className="rounded-lg border bg-background p-3">
           <option value="">Evenement…</option>

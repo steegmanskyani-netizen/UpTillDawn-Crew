@@ -171,20 +171,8 @@ export async function createEvent(fd:FormData){
  check(error);revalidatePath('/events')
 }
 export async function addWorkplace(fd:FormData){
- const {s,user,profile}=await approvedClient()
+ const {s}=await adminClient()
  const eventId=uuid.parse(fd.get('event_id'))
- await requireFeature(s,profile.role,'workplaces',eventId,null)
- if(profile.role!=='admin'){
-  if(profile.role!=='responsible_lead')throw new Error('Geen toegang.')
-  const {data:membership,error:membershipError}=await s.from('event_members')
-   .select('event_id')
-   .eq('event_id',eventId)
-   .eq('user_id',user.id)
-   .eq('event_role','responsible_lead')
-   .maybeSingle()
-  check(membershipError)
-  if(!membership)throw new Error('Je bent niet als verantwoordelijke aan dit evenement toegewezen.')
- }
  const {error}=await s.from('workplaces').insert({
   event_id:eventId,
   name:text.parse(fd.get('name')),

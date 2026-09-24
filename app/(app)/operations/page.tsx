@@ -96,6 +96,7 @@ export default async function Page(){
     checkins={checkins.data||[]}
     checkouts={checkouts.data||[]}
     manager={manager}
+    isAdmin={isAdmin}
     personalWork={personalWork}
     summary={summary?.data?.[0]||null}
     liveSessions={liveSessions}

@@ -191,3 +191,20 @@ test('chat is restricted to organization and assigned event channels with button
   assert.match(migration, /now\(\) >= e\.start_at/)
   assert.match(migration, /e\.end_at \+ interval '3 days'/)
 })
+
+
+test('responsible workplace access is read-only and own start approval requires admin', async () => {
+  const workplaces = await read('app/(app)/workplaces/page.tsx')
+  const actions = await read('lib/actions/uptilldawn.ts')
+  const operations = await read('app/(app)/operations/operations-client.tsx')
+  const migration = await read('supabase/migrations/20260924211724_uptilldawn_responsible_workplace_readonly_and_admin_time_approval.sql')
+
+  assert.match(workplaces, /isAdmin&&<AdminOnly>[\s\S]*action=\{addWorkplace\}/)
+  assert.doesNotMatch(workplaces, /\(isAdmin\|\|isResponsible\).*action=\{addWorkplace\}/)
+  assert.match(workplaces, /Alleen-lezen: bekijk per werkplek wie er ingepland is en wie verantwoordelijk is/)
+  assert.match(workplaces, /Personeel op deze werkplek/)
+  assert.match(actions, /export async function addWorkplace\(fd:FormData\)\{\s*const \{s\}=await adminClient\(\)/)
+  assert.match(operations, /p\.isAdmin\|\|c\.user_id!==p\.userId/)
+  assert.match(migration, /v_requester_role='responsible_lead'/)
+  assert.match(migration, /Een verantwoordelijke kan zijn eigen starturen niet goedkeuren/)
+})

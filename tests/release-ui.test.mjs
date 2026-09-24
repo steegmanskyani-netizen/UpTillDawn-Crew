@@ -35,8 +35,8 @@ test('future event availability and batch assignment are present', async () => {
   const events = await read('app/(app)/events/page.tsx')
   const actions = await read('lib/actions/uptilldawn.ts')
 
-  assert.match(events, />IK KAN<\/)
-  assert.match(events, />IK KAN NIET<\/)
+  assert.ok(events.includes('>IK KAN</button>'))
+  assert.ok(events.includes('>IK KAN NIET</button>'))
   assert.match(events, /Mensen die kunnen/)
   assert.match(events, /action=\{addAvailableEventMembers\}/)
   assert.match(actions, /export async function setEventAvailability/)

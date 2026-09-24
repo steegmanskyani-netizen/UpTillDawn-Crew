@@ -105,15 +105,19 @@ test('workplace visibility requires specific shift or responsible assignment', a
   assert.match(migration, /when 'assigned_workplace_role'/)
 })
 
-test('event page exposes Google-linked location editing and explicit empty state', async () => {
+test('event page exposes Geoapify-linked location editing and explicit empty state', async () => {
   const events = await read('app/(app)/events/page.tsx')
-  const places = await read('components/events/google-place-fields.tsx')
-  assert.match(events, /GooglePlaceFields/)
+  const places = await read('components/events/geoapify-place-fields.tsx')
+  const geoapify = await read('lib/geoapify.ts')
+  assert.match(events, /GeoapifyPlaceFields/)
   assert.match(events, /Alle informatie bewerken/)
   assert.match(events, /DeleteEventButton/)
   assert.match(events, /Geen evenementen beschikbaar\./)
-  assert.match(places, /googleMapsURI/)
-  assert.match(places, /formattedAddress/)
+  assert.match(places, /\/api\/geocode\/autocomplete/)
+  assert.match(places, /Open adres in Google Maps/)
+  assert.match(places, /GPS-coördinaten/)
+  assert.match(geoapify, /api\.geoapify\.com\/v1\/geocode/)
+  assert.match(geoapify, /GEOAPIFY_API_KEY/)
 })
 
 test('event-scoped tools stop after the event or shift window', async () => {

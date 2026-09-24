@@ -269,6 +269,7 @@ export type Database = {
           notes: string | null
           remote: boolean
           requested_at: string
+          requested_role: string | null
           selfie_path: string | null
           selfie_url: string | null
           status: string
@@ -292,6 +293,7 @@ export type Database = {
           notes?: string | null
           remote?: boolean
           requested_at?: string
+          requested_role?: string | null
           selfie_path?: string | null
           selfie_url?: string | null
           status?: string
@@ -315,6 +317,7 @@ export type Database = {
           notes?: string | null
           remote?: boolean
           requested_at?: string
+          requested_role?: string | null
           selfie_path?: string | null
           selfie_url?: string | null
           status?: string

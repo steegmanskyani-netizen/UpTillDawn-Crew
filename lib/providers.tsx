@@ -24,6 +24,7 @@ interface AuthContextType {
   roles: UiRole[]
   isAdmin: boolean
   realIsAdmin: boolean
+  isOwner: boolean
   roleMode: UiRole | null
   setRoleMode: (role: UiRole) => Promise<void>
   loading: boolean
@@ -41,6 +42,7 @@ const AuthContext = createContext<AuthContextType>({
   roles: [],
   isAdmin: false,
   realIsAdmin: false,
+  isOwner: false,
   roleMode: null,
   setRoleMode: async () => {},
   loading: true,
@@ -59,35 +61,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [roles, setRoles] = useState<UiRole[]>([])
   const [roleMode, setRoleModeState] = useState<UiRole | null>(null)
+  const [isOwner, setIsOwner] = useState(false)
   const [loading, setLoading] = useState(true)
   const [editMode, setEditModeState] = useState(false)
   const [editRole, setEditRoleState] = useState<EditRole>(null)
 
   const loadProfile = useCallback(async (userId: string) => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id,full_name,profile_photo_url,approved,role")
-      .eq("id", userId)
-      .single()
+    const [{ data, error }, { data: ownerFlag }] = await Promise.all([
+      supabase
+        .from("profiles")
+        .select("id,full_name,profile_photo_url,approved,role")
+        .eq("id", userId)
+        .single(),
+      supabase.rpc("upt_current_is_owner"),
+    ])
 
     const role = data?.role
-    if (error || !data?.approved || (role !== "staff" && role !== "responsible_lead" && role !== "admin")) {
+    const owner = ownerFlag === true
+    if (
+      error ||
+      !data ||
+      (!data.approved && !owner) ||
+      (role !== "staff" && role !== "responsible_lead" && role !== "admin")
+    ) {
       setProfile(null)
       setRoles([])
       setRoleModeState(null)
+      setIsOwner(false)
       return
     }
 
+    setIsOwner(owner)
     setProfile({
       id: data.id,
       full_name: data.full_name ?? "",
       profile_photo_url: data.profile_photo_url,
-      approved: data.approved,
+      approved: data.approved || owner,
       role,
     })
+
     const baseUiRole: UiRole = role === "staff" ? "employee" : role
+    const hasPermanentAdminAccess = role === "admin" || owner
     setRoles([baseUiRole])
-    if (role === "admin") {
+
+    if (hasPermanentAdminAccess) {
       const { data: effectiveRole, error: roleError } = await supabase.rpc("upt_current_effective_role")
       const nextMode: UiRole = !roleError && effectiveRole === "responsible_lead"
         ? "responsible_lead"
@@ -115,6 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(null)
         setRoles([])
         setRoleModeState(null)
+        setIsOwner(false)
         await clearOfflineIdentity().catch(() => {})
       }
       if (alive) setLoading(false)
@@ -128,13 +146,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setProfile(null)
         setRoles([])
         setRoleModeState(null)
+        setIsOwner(false)
         void clearOfflineIdentity().catch(() => {})
       }
     })
     return () => { alive = false; subscription.unsubscribe() }
   }, [pathname, loadProfile, supabase])
 
-  const realIsAdmin = profile?.role === "admin"
+  const realIsAdmin = profile?.role === "admin" || isOwner
   const effectiveRoles: UiRole[] = realIsAdmin && editMode && editRole
     ? [editRole]
     : realIsAdmin && roleMode
@@ -193,7 +212,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [realIsAdmin])
 
   return <AuthContext.Provider value={{
-    user, session, profile, roles: effectiveRoles, isAdmin: effectiveIsAdmin, realIsAdmin: Boolean(realIsAdmin),
+    user, session, profile, roles: effectiveRoles, isAdmin: effectiveIsAdmin, realIsAdmin: Boolean(realIsAdmin), isOwner,
     roleMode, setRoleMode, loading,
     refreshProfile: async () => { if (user) await loadProfile(user.id) },
     editMode, setEditMode, editRole, setEditRole,

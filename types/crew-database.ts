@@ -1902,6 +1902,8 @@ export type Database = {
           profile_photo_url: string
         }[]
       }
+      upt_current_effective_role: { Args: never; Returns: string }
+      upt_current_is_owner: { Args: never; Returns: boolean }
       upt_decide_check_in: {
         Args: { p_approve: boolean; p_check_in: string; p_notes?: string }
         Returns: string
@@ -1919,9 +1921,7 @@ export type Database = {
         }
         Returns: string
       }
-      upt_current_effective_role: { Args: never; Returns: string }
       upt_effective_role: { Args: { uid?: string }; Returns: string }
-      upt_set_admin_role_mode: { Args: { p_role: string }; Returns: string }
       upt_feature_allowed: {
         Args: { p_event?: string; p_feature: string; p_workplace?: string }
         Returns: boolean
@@ -2031,6 +2031,7 @@ export type Database = {
         }
         Returns: string
       }
+      upt_set_admin_role_mode: { Args: { p_role: string }; Returns: string }
       upt_start_break: { Args: { p_work_session: string }; Returns: string }
       upt_start_work: {
         Args: { p_event: string; p_shift?: string }

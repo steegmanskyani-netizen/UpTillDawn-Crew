@@ -10,10 +10,11 @@ async function adminClient(){
  const s=await createClient()
  const {data:{user}}=await s.auth.getUser()
  if(!user) throw new Error('Aanmelden vereist.')
- const {data:p}=await s.from('profiles').select('approved,role').eq('id',user.id).single()
- if(!p?.approved) throw new Error('Geen toegang.')
- const {data:effectiveRole}=await s.rpc('upt_current_effective_role')
- if(effectiveRole!=='admin') throw new Error('Geen toegang.')
+ const [{data:isApproved},{data:hasAdminPrivilege}]=await Promise.all([
+  s.rpc('upt_is_approved'),
+  s.rpc('upt_is_admin',{uid:user.id}),
+ ])
+ if(!isApproved||!hasAdminPrivilege) throw new Error('Geen toegang.')
  return {s,user}
 }
 async function approvedClient(){

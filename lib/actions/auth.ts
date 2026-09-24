@@ -139,7 +139,9 @@ export async function signIn(formData: FormData) {
         }
     }
 
-    if (!profile.approved) {
+    const { data: isOwner } = await supabase.rpc('upt_current_is_owner')
+
+    if (!profile.approved && !isOwner) {
         await supabase.auth.signOut()
         return {
             error: 'ACCOUNT NOG NIET GOEDGEKEURD',
@@ -148,15 +150,27 @@ export async function signIn(formData: FormData) {
     }
 
     const role = profile.role
+    const hasPermanentAdminAccess = role === 'admin' || isOwner === true
 
     const allowed =
         requestedPortal === 'admin'
-            ? role === 'admin'
+            ? hasPermanentAdminAccess
             : requestedPortal === 'responsible'
                 ? role === 'responsible_lead' || role === 'admin'
                 : role === 'staff' ||
                   role === 'responsible_lead' ||
                   role === 'admin'
+
+    if (requestedPortal === 'admin' && hasPermanentAdminAccess) {
+        const { error: roleModeError } = await supabase.rpc('upt_set_admin_role_mode', { p_role: 'admin' })
+        if (roleModeError) {
+            await supabase.auth.signOut()
+            return {
+                error: 'Beheerderstoegang kon niet worden geactiveerd.',
+                code: 'admin_mode_error',
+            }
+        }
+    }
 
     if (!allowed) {
         await supabase.auth.signOut()
@@ -278,26 +292,44 @@ export async function getCurrentUser() {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) return null
 
-    const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('id,full_name,phone_number,profile_photo_url,approved,role')
-        .eq('id', user.id)
-        .single()
-    if (error || !profile || !profile.approved) return null
+    const [{ data: profile, error }, { data: isOwner }] = await Promise.all([
+        supabase
+            .from('profiles')
+            .select('id,full_name,phone_number,profile_photo_url,approved,role')
+            .eq('id', user.id)
+            .single(),
+        supabase.rpc('upt_current_is_owner'),
+    ])
+    if (error || !profile || (!profile.approved && !isOwner)) return null
+
     const realRole = profile.role
-    const { data: storedRole } = realRole === 'admin'
+    const hasPermanentAdminAccess = realRole === 'admin' || isOwner === true
+    const { data: storedRole } = hasPermanentAdminAccess
         ? await supabase.rpc('upt_current_effective_role')
         : { data: realRole }
-    const roleMode = storedRole === 'responsible_lead' ? 'responsible_lead' : storedRole === 'staff' ? 'staff' : realRole
+    const roleMode = storedRole === 'responsible_lead'
+        ? 'responsible_lead'
+        : storedRole === 'staff'
+            ? 'staff'
+            : storedRole === 'admin'
+                ? 'admin'
+                : realRole
+
     const cookieStore = await cookies()
-    const editMode = realRole === 'admin' && cookieStore.get('uptilldawn-admin-edit-mode')?.value === '1'
+    const editMode = hasPermanentAdminAccess && cookieStore.get('uptilldawn-admin-edit-mode')?.value === '1'
     const requestedEditRole = cookieStore.get('uptilldawn-admin-edit-role')?.value
     const effectiveRole = editMode
-        ? requestedEditRole === 'responsible_lead' ? 'responsible_lead' : requestedEditRole === 'admin' ? 'admin' : 'staff'
+        ? requestedEditRole === 'responsible_lead'
+            ? 'responsible_lead'
+            : requestedEditRole === 'admin'
+                ? 'admin'
+                : 'staff'
         : roleMode
     const roles = [effectiveRole === 'staff' ? 'employee' : effectiveRole]
+
     return {
         ...profile,
+        approved: profile.approved || isOwner === true,
         role: effectiveRole,
         realRole,
         roleMode,
@@ -305,7 +337,8 @@ export async function getCurrentUser() {
         email: user.email ?? '',
         roles,
         isAdmin: effectiveRole === 'admin',
-        realIsAdmin: realRole === 'admin',
+        realIsAdmin: hasPermanentAdminAccess,
+        isOwner: isOwner === true,
         isEditMode: editMode,
     }
 }
@@ -316,13 +349,21 @@ export async function verifyAdminSettingsCode(code: string) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) return { ok: false, error: 'Geen toegang.' }
 
-    const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('approved,role')
-        .eq('id', user.id)
-        .single()
+    const [{ data: profile, error: profileError }, { data: isOwner }] = await Promise.all([
+        supabase
+            .from('profiles')
+            .select('approved,role')
+            .eq('id', user.id)
+            .single(),
+        supabase.rpc('upt_current_is_owner'),
+    ])
 
-    if (profileError || !profile?.approved || profile.role !== 'admin') {
+    if (
+        profileError ||
+        !profile ||
+        (!profile.approved && !isOwner) ||
+        (profile.role !== 'admin' && !isOwner)
+    ) {
         return { ok: false, error: 'Geen toegang.' }
     }
     if (code !== '2315') return { ok: false, error: 'Onjuiste code.' }

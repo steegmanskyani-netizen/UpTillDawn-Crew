@@ -310,29 +310,45 @@ export async function assignResponsible(fd:FormData){
  const {s,user}=await adminClient()
  const workplace_id=uuid.parse(fd.get('workplace_id'))
  const user_id=uuid.parse(fd.get('user_id'))
- const [{data:p},{data:w,error:wError}]=await Promise.all([
+ const [
+  {data:p,error:profileError},
+  {data:w,error:wError},
+  {data:assignedShifts,error:shiftError},
+ ]=await Promise.all([
   s.from('profiles').select('approved,role').eq('id',user_id).single(),
-  s.from('workplaces').select('event_id').eq('id',workplace_id).single(),
+  s.from('workplaces').select('event_id,is_active').eq('id',workplace_id).single(),
+  s.from('shifts').select('id').eq('workplace_id',workplace_id).eq('user_id',user_id).neq('status','cancelled').limit(1),
  ])
- check(wError);if(!w)throw new Error('Werkplek niet gevonden.')
- if(!p?.approved||!['responsible_lead','admin'].includes(p.role))throw new Error('Selecteer een goedgekeurde verantwoordelijke of beheerder.')
- if(p.role==='responsible_lead'){
-  const {data:membership,error:membershipError}=await s.from('event_members')
-   .select('user_id')
-   .eq('event_id',w.event_id)
-   .eq('user_id',user_id)
-   .eq('event_role','responsible_lead')
-   .maybeSingle()
-  check(membershipError)
-  if(!membership)throw new Error('Deze verantwoordelijke is nog niet aan het evenement toegewezen.')
+ check(profileError);check(wError);check(shiftError)
+ if(!w||!w.is_active)throw new Error('Werkplek niet gevonden of niet actief.')
+ if(!p?.approved)throw new Error('Selecteer een goedgekeurd personeelslid.')
+ if(!assignedShifts?.length)throw new Error('Deze persoon heeft geen dienst op deze werkplek.')
+
+ if(p.role==='staff'){
+  const {error:roleError}=await s.rpc('upt_admin_set_account',{
+   p_user:user_id,
+   p_approved:true,
+   p_role:'responsible_lead',
+  })
+  check(roleError)
  }
+
+ const eventRole=p.role==='admin'?'admin':'responsible_lead'
+ const {error:membershipError}=await s.from('event_members').upsert({
+  event_id:w.event_id,
+  user_id,
+  event_role:eventRole,
+ },{onConflict:'event_id,user_id'})
+ check(membershipError)
+
  const {error}=await s.from('responsible_assignments').upsert({
   event_id:w.event_id,
   workplace_id,
   user_id,
   assigned_by:user.id,
  },{onConflict:'workplace_id,user_id'})
- check(error);revalidatePath('/workplaces')
+ check(error)
+ revalidatePath('/workplaces');revalidatePath('/events');revalidatePath('/tasks');revalidatePath('/briefings');revalidatePath('/operations');revalidatePath('/personnel')
 }
 export async function createShift(fd:FormData){
  const {s}=await adminClient()

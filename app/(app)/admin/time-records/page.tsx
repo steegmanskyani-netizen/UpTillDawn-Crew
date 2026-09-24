@@ -10,8 +10,6 @@ export default async function Page() {
   const current = await getCurrentUser()
   if (!current) redirect('/login')
   if (!current.isAdmin) redirect('/')
-  const user = { id: current.id }
-
   const { data: sessions, error: sessionsError } = await s
     .from('work_sessions')
     .select('id,user_id,event_id,started_at,ended_at')

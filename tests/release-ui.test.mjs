@@ -298,7 +298,7 @@ test('work hours navigation labels are role-specific', async () => {
   const layout = await read('components/layout/app-layout.tsx')
   assert.match(sidebar, /label: "Mijn werkuren"/)
   assert.match(sidebar, /roles: \["employee","responsible_lead","admin"\]/)
-  assert.match(sidebar, /i\.key==="operations"&&isAdmin\?"Werkuren":i\.label/)
+  assert.match(sidebar, /i\.key==="operations"&&isAdmin\?"Werkuren":i\.key==="incidents"&&isAdmin\?"Help":i\.label/)
   assert.match(layout, /showOperations=feature\("operations",isAdmin\?true:context\.shiftActive\)/)
 })
 

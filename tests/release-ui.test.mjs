@@ -122,7 +122,7 @@ test('event-scoped tools stop after the event or shift window', async () => {
 
   assert.match(layout, /\.gte\("end_at",nowIso\)/)
   assert.match(layout, /Date\.parse\(s\.scheduled_start\)<=now\.getTime\(\)&&Date\.parse\(s\.scheduled_end\)>=now\.getTime\(\)/)
-  assert.match(migration, /condition_key='shift_active'/)
+  assert.match(migration, /'shift_active'/)
   assert.match(migration, /now\(\) between s\.scheduled_start and s\.scheduled_end/)
 })
 

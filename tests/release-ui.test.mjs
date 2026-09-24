@@ -9,10 +9,10 @@ test('staff-facing release navigation is lifecycle-gated', async () => {
   const sidebar = await read('components/layout/sidebar.tsx')
   const mobile = await read('components/layout/mobile-nav.tsx')
 
-  assert.match(layout, /setShowWorkplaces\(selectedForEvent\)/)
+  assert.match(layout, /setShowWorkplaces\(hasOpenResponsibleEvent\)/)
   assert.match(layout, /setShowIncidents\(false\)/)
-  assert.match(layout, /setShowTasks\(selectedForEvent\)/)
-  assert.match(layout, /setShowBriefings\(selectedForEvent\)/)
+  assert.match(layout, /setShowTasks\(hasOpenMemberEvent\)/)
+  assert.match(layout, /setShowBriefings\(hasOpenMemberEvent\)/)
   assert.match(sidebar, /i\.href === "\/workplaces"\) return showWorkplaces/)
   assert.match(sidebar, /i\.href === "\/incidents"\) return showIncidents/)
   assert.match(mobile, /i\.href==="\/incidents"\) return showIncidents/)
@@ -86,7 +86,7 @@ test('responsible workplace navigation requires event assignment', async () => {
   const layout = await read('components/layout/app-layout.tsx')
   const sidebar = await read('components/layout/sidebar.tsx')
   const page = await read('app/(app)/workplaces/page.tsx')
-  assert.match(layout, /setShowWorkplaces\(selectedForEvent\)/)
+  assert.match(layout, /setShowWorkplaces\(hasOpenResponsibleEvent\)/)
   assert.match(sidebar, /i\.href === "\/workplaces"\) return showWorkplaces/)
   assert.match(page, /event_role', 'responsible_lead'/)
 })
@@ -94,4 +94,15 @@ test('responsible workplace navigation requires event assignment', async () => {
 test('event page exposes explicit empty state', async () => {
   const events = await read('app/(app)/events/page.tsx')
   assert.match(events, /Geen evenementen beschikbaar\./)
+})
+
+
+test('event tools disappear after the assigned event ends', async () => {
+  const layout = await read('components/layout/app-layout.tsx')
+  assert.match(layout, /\.gte\("end_at", now\)/)
+  assert.match(layout, /hasOpenMemberEvent/)
+  assert.match(layout, /hasOpenResponsibleEvent/)
+  assert.match(layout, /setShowTasks\(hasOpenMemberEvent\)/)
+  assert.match(layout, /setShowBriefings\(hasOpenMemberEvent\)/)
+  assert.match(layout, /setShowWorkplaces\(hasOpenResponsibleEvent\)/)
 })

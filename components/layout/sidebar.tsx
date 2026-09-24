@@ -26,17 +26,18 @@ const items = [
 export function AppSidebar({
   chatMissed=0,incidentMissed=0,taskMissed=0,
   showOperations=false,showEvents=false,showTasks=false,showBriefings=false,showShifts=false,showWorkplaces=false,showIncidents=false,
-  featureOrder=[],featureLabels={},
+  featureOrder=[],featureLabels={},featureVisibility={},
 }:{
   chatMissed?:number;incidentMissed?:number;taskMissed?:number;
   showOperations?:boolean;showEvents?:boolean;showTasks?:boolean;showBriefings?:boolean;showShifts?:boolean;showWorkplaces?:boolean;showIncidents?:boolean;
-  featureOrder?:string[];featureLabels?:Record<string,string>;
+  featureOrder?:string[];featureLabels?:Record<string,string>;featureVisibility?:Record<string,boolean>;
 }) {
  const pathname=usePathname()
  const {roles,isAdmin,testMode}=useAuth()
  const order=new Map(featureOrder.map((key,index)=>[key,index]))
  const visible=items.filter(i=>{
    if(!roles.some(r=>i.roles.includes(r))) return false
+   if(Object.prototype.hasOwnProperty.call(featureVisibility,i.key)&&!featureVisibility[i.key]) return false
    if(i.key==="operations") return showOperations
    if(i.key==="events") return showEvents
    if(i.key==="tasks") return showTasks

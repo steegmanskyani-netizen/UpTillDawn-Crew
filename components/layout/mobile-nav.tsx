@@ -19,14 +19,15 @@ const operationalItems=[
 ]
 
 export function MobileBottomNav({
- taskMissed=0,operationalMode=false,showOperations=false,showEvents=true,showTasks=false,showBriefings=false,showShifts=false,featureOrder=[],featureLabels={},
+ taskMissed=0,operationalMode=false,showOperations=false,showEvents=true,showTasks=false,showBriefings=false,showShifts=false,featureOrder=[],featureLabels={},featureVisibility={},
 }:{
- taskMissed?:number;operationalMode?:boolean;showOperations?:boolean;showEvents?:boolean;showTasks?:boolean;showBriefings?:boolean;showShifts?:boolean;featureOrder?:string[];featureLabels?:Record<string,string>;
+ taskMissed?:number;operationalMode?:boolean;showOperations?:boolean;showEvents?:boolean;showTasks?:boolean;showBriefings?:boolean;showShifts?:boolean;featureOrder?:string[];featureLabels?:Record<string,string>;featureVisibility?:Record<string,boolean>;
 }) {
  const pathname=usePathname()
  const {roles,isAdmin,testMode}=useAuth()
  const order=new Map(featureOrder.map((key,index)=>[key,index]))
  let items=(operationalMode&&!isAdmin?operationalItems:beforeItems).filter(i=>{
+   if(Object.prototype.hasOwnProperty.call(featureVisibility,i.key)&&!featureVisibility[i.key]) return false
    if(i.key==="events") return showEvents
    if(i.key==="operations") return showOperations
    if(i.key==="tasks") return roles.includes("responsible_lead")&&showTasks

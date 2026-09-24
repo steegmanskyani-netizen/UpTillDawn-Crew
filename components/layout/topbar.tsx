@@ -8,7 +8,7 @@ export function Topbar(){
  const router=useRouter()
  const name=useDisplayName()
  const {roles,isAdmin,testMode,setTestMode,testRole,setTestRole}=useAuth()
- const roleLabel=testMode&&testRole==='employee'?'Personeel (test)':testMode&&testRole==='responsible_lead'?'Verantwoordelijke (test)':roles.includes('admin')?'Beheerder':roles.includes('responsible_lead')?'Verantwoordelijke':'Personeel'
+ const roleLabel=testMode&&testRole==='employee'?'Personeel (test)':testMode&&testRole==='responsible_lead'?'Verantwoordelijke (test)':testMode&&testRole==='admin'?'Beheerder (test)':roles.includes('admin')?'Beheerder':roles.includes('responsible_lead')?'Verantwoordelijke':'Personeel'
 
  function activate(){
    setTestMode(true)
@@ -20,18 +20,19 @@ export function Topbar(){
    router.push("/admin")
    router.refresh()
  }
- function changeRole(role:"employee"|"responsible_lead"){
+ function changeRole(role:"employee"|"responsible_lead"|"admin"){
    setTestRole(role)
-   router.push("/")
+   router.push(role==="admin"?"/admin":"/")
    router.refresh()
  }
 
  return <>
   {isAdmin&&testMode&&<div className="flex flex-wrap items-center justify-center gap-3 bg-amber-500 px-3 py-2 text-sm font-bold text-black">
     <span>TESTMODUS ACTIEF</span>
-    <select aria-label="Testrol" value={testRole||"employee"} onChange={e=>changeRole(e.target.value as "employee"|"responsible_lead")} className="rounded-lg border border-black/30 bg-white px-3 py-1 text-black">
+    <select aria-label="Testrol" value={testRole||"employee"} onChange={e=>changeRole(e.target.value as "employee"|"responsible_lead"|"admin")} className="rounded-lg border border-black/30 bg-white px-3 py-1 text-black">
       <option value="employee">Personeel</option>
       <option value="responsible_lead">Verantwoordelijke</option>
+      <option value="admin">Beheerder</option>
     </select>
     <button onClick={deactivate} className="rounded-lg bg-black px-3 py-1 text-white">TESTMODUS DEACTIVEREN</button>
   </div>}

@@ -23,7 +23,7 @@ export function TestModeEditor() {
   const [dragKey, setDragKey] = useState<string | null>(null)
   const db = useMemo(() => createClient(), [])
 
-  const role = testRole === "responsible_lead" ? "responsible_lead" : "staff"
+  const role = testRole === "responsible_lead" ? "responsible_lead" : testRole === "admin" ? "admin" : "staff"
 
   useEffect(() => {
     if (!isAdmin || !testMode) return
@@ -91,7 +91,7 @@ export function TestModeEditor() {
     <div className="flex items-center justify-between gap-3 border-b p-3">
       <div>
         <p className="text-xs font-black tracking-widest text-amber-400">TESTMODUS</p>
-        <p className="font-bold">{role === "staff" ? "Personeel" : "Verantwoordelijke"} · layout & rechten</p>
+        <p className="font-bold">{role === "staff" ? "Personeel" : role === "responsible_lead" ? "Verantwoordelijke" : "Beheerder"} · layout & rechten</p>
       </div>
       <button type="button" onClick={() => setCollapsed(value => !value)} className="rounded-lg border px-3 py-2 text-xs">
         {collapsed ? "Open editor" : "Verberg editor"}

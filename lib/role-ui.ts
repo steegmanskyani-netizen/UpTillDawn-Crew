@@ -2,7 +2,7 @@
 
 import type { Json } from "@/types/crew-database"
 
-export type RoleRuleRole = "staff" | "responsible_lead"
+export type RoleRuleRole = "staff" | "responsible_lead" | "admin"
 export type RoleCondition =
   | "always"
   | "assigned_event"

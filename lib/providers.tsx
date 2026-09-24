@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/crew-client"
 import { clearOfflineIdentity } from "@/lib/crew-offline-snapshot"
 
 export type UiRole = "employee" | "responsible_lead" | "admin"
-type TestRole = Exclude<UiRole, "admin"> | null
+type TestRole = UiRole | null
 
 interface UserProfile {
   id: string
@@ -146,7 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!realIsAdmin) return
     const active = window.sessionStorage.getItem("uptilldawn-admin-test-mode") === "1"
     const saved = window.sessionStorage.getItem("uptilldawn-admin-test-role")
-    const role = saved === "employee" || saved === "responsible_lead" ? saved : "employee"
+    const role = saved === "employee" || saved === "responsible_lead" || saved === "admin" ? saved : "employee"
     queueMicrotask(() => {
       setTestModeState(active)
       setTestRoleState(active ? role : null)

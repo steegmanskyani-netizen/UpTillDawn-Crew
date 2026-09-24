@@ -30,7 +30,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [context,setContext]=useState<RoleUiContext>(emptyContext)
   const [rules,setRules]=useState<RoleUiRule[]>([])
 
-  const roleKey=testMode&&testRole==="responsible_lead"?"responsible_lead":testMode?"staff":profile?.role==="responsible_lead"?"responsible_lead":profile?.role==="staff"?"staff":null
+  const roleKey=testMode
+    ? testRole==="responsible_lead"?"responsible_lead":testRole==="admin"?"admin":"staff"
+    : profile?.role==="responsible_lead"?"responsible_lead":profile?.role==="staff"?"staff":profile?.role==="admin"?"admin":null
 
   const loadRules=useCallback(async()=>{
     if(!roleKey){setRules([]);return}
@@ -43,7 +45,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const ruleMap=useMemo(()=>new Map(rules.map(rule=>[rule.feature_key,rule])),[rules])
   const previewAll=Boolean(isAdmin&&testMode)
   const feature=(key:string,fallback:boolean)=>{
-    if(isAdmin&&!testMode) return fallback
     const rule=ruleMap.get(key)
     return rule?ruleMatches(rule,context,previewAll):fallback
   }
@@ -51,7 +52,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const labels=Object.fromEntries(rules.map(rule=>[rule.feature_key,rule.label]))
 
   const currentFeature=
-    pathname==="/"?"overview":
+    pathname==="/"||pathname==="/admin"?"overview":
     pathname.startsWith("/events")?"events":
     pathname.startsWith("/operations")?"operations":
     pathname.startsWith("/workplaces")?"workplaces":
@@ -61,11 +62,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     pathname.startsWith("/chat")?"chat":
     pathname.startsWith("/crew")?"crew":
     pathname.startsWith("/incidents")?"incidents":
+    pathname.startsWith("/exports")?"exports":
+    pathname.startsWith("/personnel")?"personnel":
+    pathname.startsWith("/settings")?"settings":
     null
   const currentRule=currentFeature?ruleMap.get(currentFeature):undefined
   const rulesReady=!roleKey||rules.length>0
   const currentVisible=!currentFeature||!roleKey||!rulesReady||previewAll||ruleMatches(currentRule,context,false)
-  const currentUsable=!currentFeature||!roleKey||!rulesReady||(isAdmin&&!testMode)||ruleUsable(currentRule,context,false)
+  const currentUsable=!currentFeature||!roleKey||!rulesReady||ruleUsable(currentRule,context,false)
   const contentLocked=Boolean(testMode||(currentVisible&&!currentUsable))
 
   const refresh=useCallback(async()=>{
@@ -118,19 +122,26 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(()=>{queueMicrotask(()=>void refresh());const timer=window.setInterval(()=>void refresh(),10000);const focus=()=>void refresh();window.addEventListener("focus",focus);return()=>{window.clearInterval(timer);window.removeEventListener("focus",focus)}},[refresh])
 
+  const showOverview=feature("overview",true)
   const showEvents=feature("events",true)
-  const showShifts=feature("shifts",context.assignedEvent)
-  const showBriefings=feature("briefings",context.assignedEvent)
-  const showOperations=isAdmin&&!testMode?false:feature("operations",context.shiftActive)
-  const showWorkplaces=feature("workplaces",context.assignedWorkplaceRole)
-  const showTasks=isAdmin&&!testMode?true:feature("tasks",context.shiftActive)
-  const showIncidents=isAdmin&&!testMode?false:feature("incidents",context.shiftActive)
+  const showShifts=feature("shifts",Boolean(isAdmin&&!testMode)||context.assignedEvent)
+  const showBriefings=feature("briefings",Boolean(isAdmin&&!testMode)||context.assignedEvent)
+  const showOperations=isAdmin?false:feature("operations",context.shiftActive)
+  const showWorkplaces=feature("workplaces",Boolean(isAdmin&&!testMode)||context.assignedWorkplaceRole)
+  const showTasks=feature("tasks",Boolean(isAdmin&&!testMode)||context.shiftActive)
+  const showIncidents=isAdmin?false:feature("incidents",context.shiftActive)
+  const showChat=feature("chat",true)
+  const showCrew=feature("crew",true)
+  const showExports=feature("exports",Boolean(isAdmin&&!testMode))
+  const showPersonnel=feature("personnel",Boolean(isAdmin&&!testMode))
+  const showSettings=feature("settings",true)
+  const featureVisibility={overview:showOverview,events:showEvents,operations:showOperations,workplaces:showWorkplaces,shifts:showShifts,briefings:showBriefings,tasks:showTasks,chat:showChat,crew:showCrew,incidents:showIncidents,exports:showExports,personnel:showPersonnel,settings:showSettings}
   const operationalMode=context.eventActive||previewAll
   const showUrgent=!pathname.startsWith("/chat")&&!isAdmin&&showIncidents&&context.shiftActive
   const showFloatingChat=(isAdmin&&!testMode)||operationalMode
 
   return <div className="flex h-dvh overflow-hidden bg-background print:block print:h-auto print:overflow-visible">
-    <div className="print:hidden"><AppSidebar chatMissed={chatMissed} incidentMissed={incidentMissed} taskMissed={taskMissed} showOperations={showOperations} showEvents={showEvents} showTasks={showTasks} showBriefings={showBriefings} showShifts={showShifts} showWorkplaces={showWorkplaces} showIncidents={showIncidents} featureOrder={order} featureLabels={labels}/></div>
+    <div className="print:hidden"><AppSidebar chatMissed={chatMissed} incidentMissed={incidentMissed} taskMissed={taskMissed} showOperations={showOperations} showEvents={showEvents} showTasks={showTasks} showBriefings={showBriefings} showShifts={showShifts} showWorkplaces={showWorkplaces} showIncidents={showIncidents} featureOrder={order} featureLabels={labels} featureVisibility={featureVisibility}/></div>
     <div className="flex flex-1 flex-col overflow-hidden print:block print:overflow-visible">
       <div className="print:hidden"><Topbar/><QueueStatus/></div>
       <div id="app-scroll" className="flex-1 overflow-y-auto bg-background scroll-smooth print:overflow-visible">
@@ -144,7 +155,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </>}
         </main>
       </div>
-      <div className="print:hidden"><MobileBottomNav taskMissed={taskMissed} operationalMode={operationalMode} showOperations={showOperations} showEvents={showEvents} showTasks={showTasks} showBriefings={showBriefings} showShifts={showShifts} featureOrder={order} featureLabels={labels}/></div>
+      <div className="print:hidden"><MobileBottomNav taskMissed={taskMissed} operationalMode={operationalMode} showOperations={showOperations} showEvents={showEvents} showTasks={showTasks} showBriefings={showBriefings} showShifts={showShifts} featureOrder={order} featureLabels={labels} featureVisibility={featureVisibility}/></div>
     </div>
     {!pathname.startsWith("/chat")&&<>
       {showUrgent&&<Link href="/incidents" className="fixed bottom-20 left-4 z-50 rounded-full bg-red-600 px-5 py-4 font-black text-white print:hidden md:hidden">URGENT<CountBadge count={incidentMissed}/></Link>}

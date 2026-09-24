@@ -9,6 +9,9 @@ test('role-driven release navigation uses saved conditions and ordering', async 
   const sidebar = await read('components/layout/sidebar.tsx')
   const mobile = await read('components/layout/mobile-nav.tsx')
   const editor = await read('components/layout/test-mode-editor.tsx')
+  const topbar = await read('components/layout/topbar.tsx')
+  const providers = await read('lib/providers.tsx')
+  const roleUi = await read('lib/role-ui.ts')
 
   assert.match(layout, /from\("role_ui_rules"\)/)
   assert.match(layout, /feature\("workplaces",context\.assignedWorkplaceRole\)/)
@@ -22,6 +25,12 @@ test('role-driven release navigation uses saved conditions and ordering', async 
   assert.match(editor, /draggable/)
   assert.match(editor, /Zichtbaar/)
   assert.match(editor, /Bruikbaar/)
+  assert.match(topbar, /<option value="admin">Beheerder<\/option>/)
+  assert.match(providers, /type TestRole = UiRole \| null/)
+  assert.match(roleUi, /"staff" \| "responsible_lead" \| "admin"/)
+  assert.match(editor, /testRole === "admin" \? "admin"/)
+  assert.match(layout, /profile\?\.role==="admin"\?"admin"/)
+  assert.match(sidebar, /featureVisibility/)
 })
 
 test('staff cannot see manager creation controls in test mode', async () => {

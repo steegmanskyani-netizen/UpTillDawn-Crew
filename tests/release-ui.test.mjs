@@ -73,3 +73,25 @@ test('current brand asset is used on public auth screens', async () => {
     assert.doesNotMatch(text, /alt="Uptilldawn"/)
   }
 })
+
+
+test('dashboard follows event lifecycle visibility', async () => {
+  const dashboard = await read('app/(app)/page.tsx')
+  assert.match(dashboard, /AssignedEventOnly available=\{hasEventAssignment\}/)
+  assert.match(dashboard, /hasActiveIncidentContext && <ManagerOnly>/)
+  assert.match(dashboard, /Geen evenementen beschikbaar\./)
+})
+
+test('responsible workplace navigation requires event assignment', async () => {
+  const layout = await read('components/layout/app-layout.tsx')
+  const sidebar = await read('components/layout/sidebar.tsx')
+  const page = await read('app/(app)/workplaces/page.tsx')
+  assert.match(layout, /setShowWorkplaces\(selectedForEvent\)/)
+  assert.match(sidebar, /i\.href === "\/workplaces"\) return showWorkplaces/)
+  assert.match(page, /event_role', 'responsible_lead'/)
+})
+
+test('event page exposes explicit empty state', async () => {
+  const events = await read('app/(app)/events/page.tsx')
+  assert.match(events, /Geen evenementen beschikbaar\./)
+})

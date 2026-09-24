@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/crew-server'
 import { IncidentForm } from '@/components/crew/incident-form'
 import { IncidentControls } from '@/components/crew/incident-controls'
 import { nlStatus } from '@/lib/ui-nl'
+import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,6 +61,7 @@ export default async function Page() {
   }
 
   if (!(events || []).length) {
+    if (profile?.role !== 'admin') redirect('/events')
     return <main className="mx-auto max-w-4xl p-4 md:p-8">
       <p className="rounded-xl border p-4 text-muted-foreground">Incidenten zijn beschikbaar vanaf de start van een lopend evenement.</p>
     </main>

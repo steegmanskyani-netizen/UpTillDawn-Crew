@@ -219,10 +219,30 @@ export async function addAvailableEventMembers(fd:FormData){
  revalidatePath('/events');revalidatePath('/tasks');revalidatePath('/briefings');revalidatePath('/shifts');revalidatePath('/workplaces')
 }
 export async function assignResponsible(fd:FormData){
- const {s,user}=await adminClient();const workplace_id=uuid.parse(fd.get('workplace_id')),user_id=uuid.parse(fd.get('user_id'))
- const {data:p}=await s.from('profiles').select('approved,role').eq('id',user_id).single();if(!p?.approved||!['responsible_lead','admin'].includes(p.role))throw new Error('Selecteer een goedgekeurde verantwoordelijke of beheerder.')
- const {data:w,error:e}=await s.from('workplaces').select('event_id').eq('id',workplace_id).single();check(e);if(!w)return
- const {error}=await s.from('responsible_assignments').upsert({event_id:w.event_id,workplace_id,user_id,assigned_by:user.id},{onConflict:'workplace_id,user_id'});check(error);revalidatePath('/workplaces')
+ const {s,user}=await adminClient()
+ const workplace_id=uuid.parse(fd.get('workplace_id'))
+ const user_id=uuid.parse(fd.get('user_id'))
+ const [{data:p},{data:w,error:wError}]=await Promise.all([
+  s.from('profiles').select('approved,role').eq('id',user_id).single(),
+  s.from('workplaces').select('event_id').eq('id',workplace_id).single(),
+ ])
+ check(wError);if(!w)throw new Error('Werkplek niet gevonden.')
+ if(!p?.approved||p.role!=='responsible_lead')throw new Error('Selecteer een goedgekeurde verantwoordelijke.')
+ const {data:membership,error:membershipError}=await s.from('event_members')
+  .select('user_id')
+  .eq('event_id',w.event_id)
+  .eq('user_id',user_id)
+  .eq('event_role','responsible_lead')
+  .maybeSingle()
+ check(membershipError)
+ if(!membership)throw new Error('Deze verantwoordelijke is nog niet aan het evenement toegewezen.')
+ const {error}=await s.from('responsible_assignments').upsert({
+  event_id:w.event_id,
+  workplace_id,
+  user_id,
+  assigned_by:user.id,
+ },{onConflict:'workplace_id,user_id'})
+ check(error);revalidatePath('/workplaces')
 }
 export async function createShift(fd:FormData){
  const {s}=await adminClient()

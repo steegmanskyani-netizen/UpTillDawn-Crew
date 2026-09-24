@@ -31,6 +31,8 @@ export function GeoapifyPlaceFields({
   const fieldId=useId()
   const venueId=`${fieldId}-venue`
   const addressId=`${fieldId}-address`
+  const venueListId=`${fieldId}-venue-list`
+  const addressListId=`${fieldId}-address-list`
   const [venue,setVenue]=useState(defaultVenue||"")
   const [address,setAddress]=useState(defaultAddress||"")
   const [latitude,setLatitude]=useState(defaultLatitude?.toString()||"")
@@ -48,12 +50,7 @@ export function GeoapifyPlaceFields({
   },[latitude,longitude])
 
   useEffect(()=>{
-    if(!focused||query.trim().length<2){
-      setSuggestions([])
-      setActiveIndex(-1)
-      setLoading(false)
-      return
-    }
+    if(!focused||query.trim().length<2)return
 
     const controller=new AbortController()
     const timer=window.setTimeout(async()=>{
@@ -94,6 +91,34 @@ export function GeoapifyPlaceFields({
     setLongitude("")
   }
 
+  const focusField=(field:Field)=>{
+    setFocused(field)
+    setSuggestions([])
+    setActiveIndex(-1)
+    setError("")
+  }
+
+  const editField=(field:Field,value:string)=>{
+    if(field==="venue")setVenue(value)
+    else setAddress(value)
+    clearLink()
+    setFocused(field)
+    setActiveIndex(-1)
+    setError("")
+    if(value.trim().length<2){
+      setSuggestions([])
+      setLoading(false)
+    }
+  }
+
+  const blurField=(field:Field)=>{
+    window.setTimeout(()=>{
+      setFocused(current=>current===field?null:current)
+      setSuggestions([])
+      setActiveIndex(-1)
+    },120)
+  }
+
   const selectSuggestion=(suggestion:Suggestion)=>{
     setVenue(suggestion.name||suggestion.addressLine1||suggestion.formatted)
     setAddress(suggestion.formatted)
@@ -124,7 +149,7 @@ export function GeoapifyPlaceFields({
 
   const suggestionList=(field:Field)=>{
     if(focused!==field)return null
-    return <div className="absolute z-30 mt-1 max-h-72 w-full overflow-y-auto rounded-xl border bg-background shadow-xl" role="listbox">
+    return <div id={field==="venue"?venueListId:addressListId} className="absolute z-30 mt-1 max-h-72 w-full overflow-y-auto rounded-xl border bg-background shadow-xl" role="listbox">
       {loading&&<p className="p-3 text-sm text-muted-foreground">Locaties zoeken…</p>}
       {!loading&&suggestions.map((suggestion,index)=><button
         key={suggestion.id}
@@ -148,15 +173,16 @@ export function GeoapifyPlaceFields({
       <input
         id={venueId}
         value={venue}
-        onChange={event=>{setVenue(event.target.value);clearLink();setFocused("venue")}}
-        onFocus={()=>setFocused("venue")}
-        onBlur={()=>window.setTimeout(()=>setFocused(current=>current==="venue"?null:current),120)}
+        onChange={event=>editField("venue",event.target.value)}
+        onFocus={()=>focusField("venue")}
+        onBlur={()=>blurField("venue")}
         onKeyDown={handleKeyDown}
         maxLength={200}
         placeholder="Zoek locatie"
         autoComplete="off"
         role="combobox"
         aria-autocomplete="list"
+        aria-controls={venueListId}
         aria-expanded={focused==="venue"&&suggestions.length>0}
         className="rounded-lg border bg-background p-3"
       />
@@ -168,15 +194,16 @@ export function GeoapifyPlaceFields({
       <input
         id={addressId}
         value={address}
-        onChange={event=>{setAddress(event.target.value);clearLink();setFocused("address")}}
-        onFocus={()=>setFocused("address")}
-        onBlur={()=>window.setTimeout(()=>setFocused(current=>current==="address"?null:current),120)}
+        onChange={event=>editField("address",event.target.value)}
+        onFocus={()=>focusField("address")}
+        onBlur={()=>blurField("address")}
         onKeyDown={handleKeyDown}
         maxLength={500}
         placeholder="Zoek adres"
         autoComplete="off"
         role="combobox"
         aria-autocomplete="list"
+        aria-controls={addressListId}
         aria-expanded={focused==="address"&&suggestions.length>0}
         className="rounded-lg border bg-background p-3"
       />

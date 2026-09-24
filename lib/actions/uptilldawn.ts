@@ -270,15 +270,17 @@ export async function assignResponsible(fd:FormData){
   s.from('workplaces').select('event_id').eq('id',workplace_id).single(),
  ])
  check(wError);if(!w)throw new Error('Werkplek niet gevonden.')
- if(!p?.approved||p.role!=='responsible_lead')throw new Error('Selecteer een goedgekeurde verantwoordelijke.')
- const {data:membership,error:membershipError}=await s.from('event_members')
-  .select('user_id')
-  .eq('event_id',w.event_id)
-  .eq('user_id',user_id)
-  .eq('event_role','responsible_lead')
-  .maybeSingle()
- check(membershipError)
- if(!membership)throw new Error('Deze verantwoordelijke is nog niet aan het evenement toegewezen.')
+ if(!p?.approved||!['responsible_lead','admin'].includes(p.role))throw new Error('Selecteer een goedgekeurde verantwoordelijke of beheerder.')
+ if(p.role==='responsible_lead'){
+  const {data:membership,error:membershipError}=await s.from('event_members')
+   .select('user_id')
+   .eq('event_id',w.event_id)
+   .eq('user_id',user_id)
+   .eq('event_role','responsible_lead')
+   .maybeSingle()
+  check(membershipError)
+  if(!membership)throw new Error('Deze verantwoordelijke is nog niet aan het evenement toegewezen.')
+ }
  const {error}=await s.from('responsible_assignments').upsert({
   event_id:w.event_id,
   workplace_id,

@@ -1902,6 +1902,10 @@ export type Database = {
         Args: { p_event?: string; p_feature: string; p_workplace?: string }
         Returns: boolean
       }
+      upt_feature_visible: {
+        Args: { p_event?: string; p_feature: string; p_workplace?: string }
+        Returns: boolean
+      }
       upt_gps_assessment: {
         Args: {
           p_accuracy: number

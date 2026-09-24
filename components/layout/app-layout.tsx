@@ -11,7 +11,7 @@ import { TestModeEditor } from "@/components/layout/test-mode-editor"
 import { QueueStatus } from "@/components/crew/queue-status"
 import { createClient } from "@/lib/supabase/crew-client"
 import { useAuth } from "@/lib/providers"
-import { ruleMatches, type RoleUiContext, type RoleUiRule } from "@/lib/role-ui"
+import { ruleMatches, ruleUsable, type RoleUiContext, type RoleUiRule } from "@/lib/role-ui"
 
 function CountBadge({ count }: { count: number }) {
   if (count < 1) return null
@@ -49,6 +49,24 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   }
   const order=rules.map(rule=>rule.feature_key)
   const labels=Object.fromEntries(rules.map(rule=>[rule.feature_key,rule.label]))
+
+  const currentFeature=
+    pathname==="/"?"overview":
+    pathname.startsWith("/events")?"events":
+    pathname.startsWith("/operations")?"operations":
+    pathname.startsWith("/workplaces")?"workplaces":
+    pathname.startsWith("/shifts")?"shifts":
+    pathname.startsWith("/briefings")?"briefings":
+    pathname.startsWith("/tasks")?"tasks":
+    pathname.startsWith("/chat")?"chat":
+    pathname.startsWith("/crew")?"crew":
+    pathname.startsWith("/incidents")?"incidents":
+    null
+  const currentRule=currentFeature?ruleMap.get(currentFeature):undefined
+  const rulesReady=!roleKey||rules.length>0
+  const currentVisible=!currentFeature||!roleKey||!rulesReady||previewAll||ruleMatches(currentRule,context,false)
+  const currentUsable=!currentFeature||!roleKey||!rulesReady||(isAdmin&&!testMode)||ruleUsable(currentRule,context,false)
+  const contentLocked=Boolean(testMode||(currentVisible&&!currentUsable))
 
   const refresh=useCallback(async()=>{
     if(!user)return
@@ -115,7 +133,15 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex flex-1 flex-col overflow-hidden print:block print:overflow-visible">
       <div className="print:hidden"><Topbar/><QueueStatus/></div>
       <div id="app-scroll" className="flex-1 overflow-y-auto bg-background scroll-smooth print:overflow-visible">
-        <main className="min-h-[calc(100dvh-theme(spacing.16)-theme(spacing.12))] pb-20 md:pb-0 print:min-h-0 print:pb-0">{children}</main>
+        <main className="min-h-[calc(100dvh-theme(spacing.16)-theme(spacing.12))] pb-20 md:pb-0 print:min-h-0 print:pb-0">
+          {testMode&&<p className="m-3 rounded-xl border border-amber-500/50 bg-amber-500/10 p-3 text-sm font-semibold">Testmodus preview: operationele interacties zijn geblokkeerd. Pas volgorde, labels, zichtbaarheid, bruikbaarheid en voorwaarden aan in de editor.</p>}
+          {!currentVisible&&!previewAll
+            ? <div className="m-4 rounded-2xl border p-6 text-muted-foreground">Deze functie is verborgen voor jouw rol of huidige context.</div>
+            : <>
+                {!testMode&&!currentUsable&&<p className="m-3 rounded-xl border p-3 text-sm text-muted-foreground">Alleen-lezen: deze functie is zichtbaar, maar momenteel niet bruikbaar voor jouw rol.</p>}
+                <div inert={contentLocked}>{children}</div>
+              </>}
+        </main>
       </div>
       <div className="print:hidden"><MobileBottomNav taskMissed={taskMissed} operationalMode={operationalMode} showOperations={showOperations} showEvents={showEvents} showTasks={showTasks} showBriefings={showBriefings} showShifts={showShifts} featureOrder={order} featureLabels={labels}/></div>
     </div>

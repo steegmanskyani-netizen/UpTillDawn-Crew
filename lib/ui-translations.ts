@@ -433,6 +433,9 @@ export const UI_TRANSLATIONS: Record<string, Translation> = {
   "Werkplek bewerken": { fr: "Modifier le poste de travail", en: "Edit workplace" },
   "WIJZIGINGEN OPSLAAN": { fr: "ENREGISTRER LES MODIFICATIONS", en: "SAVE CHANGES" },
   "Je bent niet als verantwoordelijke aan dit evenement toegewezen.": { fr: "Vous n’êtes pas affecté à cet événement en tant que responsable.", en: "You are not assigned to this event as responsible." },
+  "Je kunt instructies voorbereiden voor evenementen waaraan je als verantwoordelijke bent toegewezen.": { fr: "Vous pouvez préparer des instructions pour les événements auxquels vous êtes affecté en tant que responsable.", en: "You can prepare instructions for events you are assigned to as responsible." },
+  "Werkgegevens konden niet worden geladen. Probeer opnieuw.": { fr: "Les données de travail n’ont pas pu être chargées. Réessayez.", en: "Work data could not be loaded. Try again." },
+  "Geheel evenement": { fr: "Événement entier", en: "Entire event" },
 }
 
 export function translateUiText(value: string, locale: UiLocale) {

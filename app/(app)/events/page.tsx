@@ -7,7 +7,8 @@ import { nlStatus } from '@/lib/ui-nl'
 import { createClient } from '@/lib/supabase/crew-server'
 import { getCurrentUser } from '@/lib/actions/auth'
 import {
-  addAvailableEventMembers,
+  addWorkplace,
+  assignAvailableCrewShift,
   createEvent,
   duplicateEvent,
   setEventAvailability,
@@ -32,9 +33,17 @@ export default async function Page(){
   const peopleResult=user.isAdmin
     ? await s.from('profiles').select('id,full_name').eq('approved',true).order('full_name')
     : {data:[],error:null}
+  const [workplacesResult,adminShiftsResult]=user.isAdmin
+    ? await Promise.all([
+        s.from('workplaces').select('id,event_id,name,is_active').order('sort_order'),
+        s.from('shifts').select('id,event_id,workplace_id,user_id,role_name,scheduled_start,scheduled_end,status').order('scheduled_start'),
+      ])
+    : [{data:[],error:null},{data:[],error:null}]
 
   const events=eventsResult.data||[]
   const people=peopleResult.data||[]
+  const workplaces=workplacesResult.data||[]
+  const adminShifts=adminShiftsResult.data||[]
   const memberships=membershipResult.data||[]
   const availability=availabilityResult.data||[]
   const startedEventIds=new Set((startedResult.data||[]).map(event=>event.id))
@@ -66,6 +75,7 @@ export default async function Page(){
       const started=startedEventIds.has(event.id)
       const myResponse=availability.find(row=>row.event_id===event.id&&row.user_id===user.id)?.response
       const canRows=user.isAdmin?availability.filter(row=>row.event_id===event.id&&row.response==='can'):[]
+      const eventWorkplaces=user.isAdmin?workplaces.filter(workplace=>workplace.event_id===event.id&&workplace.is_active):[]
       const chatUntil=new Date(new Date(event.end_at).getTime()+3*24*60*60*1000)
       const assigned=assignedEventIds.has(event.id)
       return <details key={event.id} className="rounded-2xl border bg-card">
@@ -96,22 +106,75 @@ export default async function Page(){
           </div>}
 
           {user.isAdmin&&<AdminOnly><div className="space-y-4">
-            <section className="rounded-xl border p-3">
-              <div className="mb-3 flex items-center justify-between gap-2"><h3 className="font-bold">Mensen die kunnen</h3><span className="text-sm text-muted-foreground">{canRows.length}</span></div>
+            <section className="space-y-3 rounded-xl border p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div>
+                  <h3 className="font-bold">Mensen die kunnen</h3>
+                  <p className="text-sm text-muted-foreground">Wijs hier meteen een werkplek, diensturen en functie toe.</p>
+                </div>
+                <span className="text-sm text-muted-foreground">{canRows.length}</span>
+              </div>
+
+              {!eventWorkplaces.length&&<div className="rounded-xl border border-amber-500/40 p-3">
+                <p className="text-sm font-semibold">Maak eerst minstens één werkplek voor dit evenement.</p>
+                <form action={addWorkplace} className="mt-3 grid gap-2 md:grid-cols-2">
+                  <input type="hidden" name="event_id" value={event.id}/>
+                  <input name="name" required maxLength={200} placeholder="Nieuwe werkplek" className={input}/>
+                  <input name="description" maxLength={1000} placeholder="Omschrijving (optioneel)" className={input}/>
+                  <input type="hidden" name="sort_order" value="0"/>
+                  <button className="rounded-xl bg-violet-600 px-4 py-3 font-bold text-white md:col-span-2">WERKPLEK TOEVOEGEN</button>
+                </form>
+              </div>}
+
               {canRows.length
-                ? <form action={addAvailableEventMembers} className="space-y-3">
-                    <input type="hidden" name="event_id" value={event.id}/>
-                    <div className="grid gap-2 sm:grid-cols-2">{canRows.map(row=>{
-                      const person=peopleById.get(row.user_id)
-                      const alreadyAdded=memberKeys.has(`${event.id}:${row.user_id}`)
-                      return <label key={row.user_id} className="flex items-center gap-2 rounded-lg border p-3">
-                        <input type="checkbox" name="user_id" value={row.user_id} disabled={alreadyAdded}/>
-                        <span className="min-w-0 flex-1 truncate">{person?.full_name||row.user_id}</span>
-                        {alreadyAdded&&<span className="text-xs text-emerald-600">Toegevoegd</span>}
-                      </label>
-                    })}</div>
-                    {canRows.some(row=>!memberKeys.has(`${event.id}:${row.user_id}`))&&<button className="rounded-xl bg-violet-600 px-4 py-2 font-bold text-white">GESELECTEERDEN TOEVOEGEN</button>}
-                  </form>
+                ? <div className="space-y-3">{canRows.map(row=>{
+                    const person=peopleById.get(row.user_id)
+                    const alreadyAdded=memberKeys.has(`${event.id}:${row.user_id}`)
+                    const existingShifts=adminShifts.filter(shift=>shift.event_id===event.id&&shift.user_id===row.user_id&&shift.status!=='cancelled')
+                    return <article key={row.user_id} className="rounded-xl border p-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="font-semibold">{person?.full_name||row.user_id}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {alreadyAdded?'Toegevoegd aan evenement':'Nog niet toegewezen'}
+                            {existingShifts.length?` · ${existingShifts.length} dienst(en)`:''}
+                          </p>
+                        </div>
+                        <span className="rounded-full border border-emerald-500/50 px-2 py-1 text-xs font-bold text-emerald-600">KAN</span>
+                      </div>
+
+                      {existingShifts.length>0&&<div className="mt-2 space-y-1 rounded-lg bg-muted/40 p-2 text-xs">
+                        {existingShifts.map(shift=>{
+                          const workplace=eventWorkplaces.find(item=>item.id===shift.workplace_id)
+                          return <p key={shift.id}>
+                            {workplace?.name||'Werkplek'} · {shift.role_name} · {new Date(shift.scheduled_start).toLocaleString('nl-BE')} → {new Date(shift.scheduled_end).toLocaleString('nl-BE')}
+                          </p>
+                        })}
+                      </div>}
+
+                      {eventWorkplaces.length>0&&<form action={assignAvailableCrewShift} className="mt-3 grid gap-2 md:grid-cols-2">
+                        <input type="hidden" name="event_id" value={event.id}/>
+                        <input type="hidden" name="user_id" value={row.user_id}/>
+                        <label className="grid gap-1 text-sm">Werkplek
+                          <select name="workplace_id" required className={input}>
+                            <option value="">Werkplek kiezen…</option>
+                            {eventWorkplaces.map(workplace=><option key={workplace.id} value={workplace.id}>{workplace.name}</option>)}
+                          </select>
+                        </label>
+                        <label className="grid gap-1 text-sm">Rol / functie
+                          <input name="role_name" required maxLength={200} placeholder="bv. Ticket Scan, Bar, Artistbegeleiding" className={input}/>
+                        </label>
+                        <DateInput name="start" initial={event.start_at}/>
+                        <DateInput name="end" initial={event.end_at}/>
+                        <label className="flex items-center gap-2 text-sm md:col-span-2">
+                          <input type="checkbox" name="overlap_allowed"/> Overlappende dienst expliciet toestaan
+                        </label>
+                        <button className="rounded-xl bg-violet-600 px-4 py-3 font-bold text-white md:col-span-2">
+                          {alreadyAdded?'DIENST TOEVOEGEN':'TOEWIJZEN + DIENST AANMAKEN'}
+                        </button>
+                      </form>}
+                    </article>
+                  })}</div>
                 : <p className="text-sm text-muted-foreground">Nog niemand heeft aangeduid dat die kan.</p>}
             </section>
 

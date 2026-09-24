@@ -55,13 +55,20 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
     const supabase = createClient()
 
-    const { data: activeEvents } = await supabase
-      .from("events")
-      .select("id")
-      .lte("start_at", now)
-      .gte("end_at", now)
+    const [{ data: activeEvents }, { data: openEvents }] = await Promise.all([
+      supabase
+        .from("events")
+        .select("id")
+        .lte("start_at", now)
+        .gte("end_at", now),
+      supabase
+        .from("events")
+        .select("id")
+        .gte("end_at", now),
+    ])
 
     const activeEventIds = (activeEvents || []).map(event => event.id)
+    const openEventIds = new Set((openEvents || []).map(event => event.id))
     const active = activeEventIds.length > 0
 
     const realAdmin = roles.includes("admin") && testRole === null
@@ -82,6 +89,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     )
     const activeMemberEvents = activeEventIds.filter(id => memberEventIds.has(id) || shiftEventIds.has(id))
     const activeResponsibleEvents = activeEventIds.filter(id => responsibleEventIds.has(id))
+    const hasOpenMemberEvent = [...memberEventIds].some(id => openEventIds.has(id))
+    const hasOpenResponsibleEvent = [...responsibleEventIds].some(id => openEventIds.has(id))
 
     setShowEvents(true)
 
@@ -94,20 +103,18 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       setShowIncidents(active)
       setHasActiveEvent(active)
     } else if (effectiveResponsible) {
-      const selectedForEvent = responsibleEventIds.size > 0
-      setShowOperations(activeMemberEvents.length > 0)
-      setShowTasks(selectedForEvent)
-      setShowBriefings(selectedForEvent)
-      setShowShifts(memberEventIds.size > 0)
-      setShowWorkplaces(selectedForEvent)
+      setShowOperations(activeMemberEvents.length > 0 || activeResponsibleEvents.length > 0)
+      setShowTasks(hasOpenResponsibleEvent)
+      setShowBriefings(hasOpenResponsibleEvent)
+      setShowShifts(hasOpenMemberEvent)
+      setShowWorkplaces(hasOpenResponsibleEvent)
       setShowIncidents(activeResponsibleEvents.length > 0)
       setHasActiveEvent(activeMemberEvents.length > 0 || activeResponsibleEvents.length > 0)
     } else if (effectiveStaff) {
-      const selectedForEvent = memberEventIds.size > 0
       setShowOperations(activeMemberEvents.length > 0)
-      setShowTasks(selectedForEvent)
-      setShowBriefings(selectedForEvent)
-      setShowShifts(selectedForEvent)
+      setShowTasks(hasOpenMemberEvent)
+      setShowBriefings(hasOpenMemberEvent)
+      setShowShifts(hasOpenMemberEvent)
       setShowWorkplaces(false)
       setShowIncidents(false)
       setHasActiveEvent(activeMemberEvents.length > 0)

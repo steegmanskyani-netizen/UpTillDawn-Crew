@@ -112,6 +112,10 @@ export function TestModeEditor() {
           <span className="text-[10px] text-muted-foreground">{rule.feature_key}</span>
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
+          <label className="grid gap-1 text-xs sm:col-span-2">
+            Label
+            <input value={rule.label} maxLength={80} onChange={e => patch(rule.feature_key,{label:e.target.value})} className="rounded-lg border bg-background p-2 text-sm"/>
+          </label>
           <label className="flex items-center gap-2 text-sm">
             <input type="checkbox" checked={rule.visible} onChange={e => patch(rule.feature_key,{visible:e.target.checked})}/>
             Zichtbaar

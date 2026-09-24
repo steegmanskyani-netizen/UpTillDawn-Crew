@@ -19,9 +19,9 @@ const operationalItems=[
 ]
 
 export function MobileBottomNav({
- taskMissed=0,operationalMode=false,showOperations=false,showEvents=true,showTasks=false,showBriefings=false,showShifts=false,featureOrder=[],
+ taskMissed=0,operationalMode=false,showOperations=false,showEvents=true,showTasks=false,showBriefings=false,showShifts=false,featureOrder=[],featureLabels={},
 }:{
- taskMissed?:number;operationalMode?:boolean;showOperations?:boolean;showEvents?:boolean;showTasks?:boolean;showBriefings?:boolean;showShifts?:boolean;featureOrder?:string[];
+ taskMissed?:number;operationalMode?:boolean;showOperations?:boolean;showEvents?:boolean;showTasks?:boolean;showBriefings?:boolean;showShifts?:boolean;featureOrder?:string[];featureLabels?:Record<string,string>;
 }) {
  const pathname=usePathname()
  const {roles,isAdmin,testMode}=useAuth()
@@ -44,7 +44,7 @@ export function MobileBottomNav({
    const count=i.key==="tasks"?taskMissed:0
    return <Link data-layout-key={i.key} key={i.key} href={href} className={cn("flex min-w-14 flex-col items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold",active?"text-violet-400":"text-muted-foreground")}>
     <span className="relative"><I className="h-5 w-5"/>{count>0&&<span className="absolute -right-3 -top-3 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-black leading-none text-white shadow ring-2 ring-card">{count>99?"99+":count}</span>}</span>
-    {i.label}
+    {featureLabels[i.key] || i.label}
    </Link>
   })}
  </nav>

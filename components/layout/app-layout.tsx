@@ -48,6 +48,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     return rule?ruleMatches(rule,context,previewAll):fallback
   }
   const order=rules.map(rule=>rule.feature_key)
+  const labels=Object.fromEntries(rules.map(rule=>[rule.feature_key,rule.label]))
 
   const refresh=useCallback(async()=>{
     if(!user)return
@@ -110,13 +111,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const showUrgent=!pathname.startsWith("/chat")&&!isAdmin&&showIncidents&&context.shiftActive
 
   return <div className="flex h-dvh overflow-hidden bg-background print:block print:h-auto print:overflow-visible">
-    <div className="print:hidden"><AppSidebar chatMissed={chatMissed} incidentMissed={incidentMissed} taskMissed={taskMissed} showOperations={showOperations} showEvents={showEvents} showTasks={showTasks} showBriefings={showBriefings} showShifts={showShifts} showWorkplaces={showWorkplaces} showIncidents={showIncidents} featureOrder={order}/></div>
+    <div className="print:hidden"><AppSidebar chatMissed={chatMissed} incidentMissed={incidentMissed} taskMissed={taskMissed} showOperations={showOperations} showEvents={showEvents} showTasks={showTasks} showBriefings={showBriefings} showShifts={showShifts} showWorkplaces={showWorkplaces} showIncidents={showIncidents} featureOrder={order} featureLabels={labels}/></div>
     <div className="flex flex-1 flex-col overflow-hidden print:block print:overflow-visible">
       <div className="print:hidden"><Topbar/><QueueStatus/></div>
       <div id="app-scroll" className="flex-1 overflow-y-auto bg-background scroll-smooth print:overflow-visible">
         <main className="min-h-[calc(100dvh-theme(spacing.16)-theme(spacing.12))] pb-20 md:pb-0 print:min-h-0 print:pb-0">{children}</main>
       </div>
-      <div className="print:hidden"><MobileBottomNav taskMissed={taskMissed} operationalMode={operationalMode} showOperations={showOperations} showEvents={showEvents} showTasks={showTasks} showBriefings={showBriefings} showShifts={showShifts} featureOrder={order}/></div>
+      <div className="print:hidden"><MobileBottomNav taskMissed={taskMissed} operationalMode={operationalMode} showOperations={showOperations} showEvents={showEvents} showTasks={showTasks} showBriefings={showBriefings} showShifts={showShifts} featureOrder={order} featureLabels={labels}/></div>
     </div>
     {!pathname.startsWith("/chat")&&<>
       {showUrgent&&<Link href="/incidents" className="fixed bottom-20 left-4 z-50 rounded-full bg-red-600 px-5 py-4 font-black text-white print:hidden md:hidden">URGENT<CountBadge count={incidentMissed}/></Link>}

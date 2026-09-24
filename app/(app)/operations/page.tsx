@@ -49,7 +49,7 @@ export default async function Page(){
   }
 
   const personalWork=!isAdmin&&Boolean(shifts.data?.length)
-  if(!manager&&!personalWork&&!current.isTestMode){
+  if(!manager&&!personalWork&&!current.isEditMode){
     return <main className="p-8">Werk &amp; pauze is zichtbaar vanaf de start van het evenement, maar acties worden bruikbaar vanaf de start van je toegewezen shift.</main>
   }
 

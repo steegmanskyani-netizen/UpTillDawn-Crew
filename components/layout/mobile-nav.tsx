@@ -25,7 +25,7 @@ export function MobileBottomNav({
  taskMissed?:number;operationalMode?:boolean;showOperations?:boolean;showEvents?:boolean;showTasks?:boolean;showBriefings?:boolean;showShifts?:boolean;featureOrder?:string[];featureLabels?:Record<string,string>;featureVisibility?:Record<string,boolean>;
 }) {
  const pathname=usePathname()
- const {roles,isAdmin,testMode}=useAuth()
+ const {roles,isAdmin,editMode}=useAuth()
  const roleKey:RoleRuleRole=roles.includes("admin")?"admin":roles.includes("responsible_lead")?"responsible_lead":"staff"
  const order=new Map(featureOrder.map((key,index)=>[key,index]))
  let items=(operationalMode&&!isAdmin?operationalItems:beforeItems).filter(i=>{
@@ -37,11 +37,11 @@ export function MobileBottomNav({
    if(i.key==="shifts") return showShifts
    return true
  })
- if(isAdmin&&!testMode) items=beforeItems.filter(i=>i.key!=="chat")
+ if(isAdmin&&!editMode) items=beforeItems.filter(i=>i.key!=="chat")
  items=[...items].sort((a,b)=>(order.get(a.key)??999)-(order.get(b.key)??999))
  return <nav className="fixed inset-x-0 bottom-0 z-50 flex justify-around border-t border-border bg-card/95 backdrop-blur p-1.5 md:hidden">
   {items.map(i=>{
-   const href=i.href==='/'&&isAdmin&&!testMode?'/admin':i.href
+   const href=i.href==='/'&&isAdmin&&!editMode?'/admin':i.href
    const active=href==='/'?pathname==='/':pathname.startsWith(href)
    const I=i.icon
    const count=i.key==="tasks"?taskMissed:0

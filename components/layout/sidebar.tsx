@@ -34,7 +34,7 @@ export function AppSidebar({
   featureOrder?:string[];featureLabels?:Record<string,string>;featureVisibility?:Record<string,boolean>;
 }) {
  const pathname=usePathname()
- const {roles,isAdmin,testMode}=useAuth()
+ const {roles,isAdmin,editMode}=useAuth()
  const roleKey:RoleRuleRole=roles.includes("admin")?"admin":roles.includes("responsible_lead")?"responsible_lead":"staff"
  const order=new Map(featureOrder.map((key,index)=>[key,index]))
  const visible=items.filter(i=>{
@@ -51,12 +51,12 @@ export function AppSidebar({
  }).sort((a,b)=>(order.get(a.key)??999)-(order.get(b.key)??999))
 
  return <aside className="hidden md:flex w-[250px] h-screen sticky top-0 flex-col border-r border-border bg-card">
-  <Link href={isAdmin&&!testMode?"/admin":"/"} className="h-16 flex items-center gap-3 px-5 border-b border-border">
+  <Link href={isAdmin&&!editMode?"/admin":"/"} className="h-16 flex items-center gap-3 px-5 border-b border-border">
    <Image src="/up-till-dawn-mark.webp" alt="UP TILL DAWN" width={36} height={36} className="h-9 w-9 rounded-xl object-cover" priority />
    <div><div className="font-black tracking-wide">UP TILL DAWN</div><div className="text-[10px] text-muted-foreground tracking-[.18em]">PERSONEELSBEHEER</div></div>
   </Link>
   <nav className="p-3 space-y-1">{visible.map(i=>{
-   const href=i.href==='/'&&isAdmin&&!testMode?'/admin':i.href
+   const href=i.href==='/'&&isAdmin&&!editMode?'/admin':i.href
    const active=href==='/'?pathname==='/':pathname.startsWith(href)
    const Icon=i.icon
    const count=i.key==="chat"?chatMissed:i.key==="incidents"?incidentMissed:i.key==="tasks"?taskMissed:0

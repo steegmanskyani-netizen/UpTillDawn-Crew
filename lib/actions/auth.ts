@@ -290,10 +290,10 @@ export async function getCurrentUser() {
         : { data: realRole }
     const roleMode = storedRole === 'responsible_lead' ? 'responsible_lead' : storedRole === 'staff' ? 'staff' : realRole
     const cookieStore = await cookies()
-    const testMode = realRole === 'admin' && cookieStore.get('uptilldawn-admin-test-mode')?.value === '1'
-    const requestedTestRole = cookieStore.get('uptilldawn-admin-test-role')?.value
-    const effectiveRole = testMode
-        ? requestedTestRole === 'responsible_lead' ? 'responsible_lead' : requestedTestRole === 'admin' ? 'admin' : 'staff'
+    const editMode = realRole === 'admin' && cookieStore.get('uptilldawn-admin-edit-mode')?.value === '1'
+    const requestedEditRole = cookieStore.get('uptilldawn-admin-edit-role')?.value
+    const effectiveRole = editMode
+        ? requestedEditRole === 'responsible_lead' ? 'responsible_lead' : requestedEditRole === 'admin' ? 'admin' : 'staff'
         : roleMode
     const roles = [effectiveRole === 'staff' ? 'employee' : effectiveRole]
     return {
@@ -306,6 +306,25 @@ export async function getCurrentUser() {
         roles,
         isAdmin: effectiveRole === 'admin',
         realIsAdmin: realRole === 'admin',
-        isTestMode: testMode,
+        isEditMode: editMode,
     }
+}
+
+
+export async function verifyAdminSettingsCode(code: string) {
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) return { ok: false, error: 'Geen toegang.' }
+
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('approved,role')
+        .eq('id', user.id)
+        .single()
+
+    if (profileError || !profile?.approved || profile.role !== 'admin') {
+        return { ok: false, error: 'Geen toegang.' }
+    }
+    if (code !== '2315') return { ok: false, error: 'Onjuiste code.' }
+    return { ok: true }
 }

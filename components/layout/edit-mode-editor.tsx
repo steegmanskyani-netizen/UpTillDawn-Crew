@@ -14,8 +14,8 @@ const conditions: Array<{value:RoleCondition;label:string}> = [
   { value: "never", label: "Nooit" },
 ]
 
-export function TestModeEditor() {
-  const { user, realIsAdmin, testMode, testRole } = useAuth()
+export function EditModeEditor() {
+  const { user, realIsAdmin, editMode, editRole } = useAuth()
   const [rules, setRules] = useState<RoleUiRule[]>([])
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState("")
@@ -23,10 +23,10 @@ export function TestModeEditor() {
   const [dragKey, setDragKey] = useState<string | null>(null)
   const db = useMemo(() => createClient(), [])
 
-  const role = testRole === "responsible_lead" ? "responsible_lead" : testRole === "admin" ? "admin" : "staff"
+  const role = editRole === "responsible_lead" ? "responsible_lead" : editRole === "admin" ? "admin" : "staff"
 
   useEffect(() => {
-    if (!realIsAdmin || !testMode) return
+    if (!realIsAdmin || !editMode) return
     let alive = true
     ;(async () => {
       const { data } = await db
@@ -37,9 +37,9 @@ export function TestModeEditor() {
       if (alive) setRules((data?.length ? data : getDefaultRoleUiRules(role)) as RoleUiRule[])
     })()
     return () => { alive = false }
-  }, [db, realIsAdmin, role, testMode])
+  }, [db, realIsAdmin, role, editMode])
 
-  if (!realIsAdmin || !testMode) return null
+  if (!realIsAdmin || !editMode) return null
 
   function patch(key:string, changes:Partial<RoleUiRule>) {
     setRules(current => current.map(rule => rule.feature_key === key ? { ...rule, ...changes } : rule))
@@ -86,7 +86,7 @@ export function TestModeEditor() {
       setMessage("Opslaan mislukt. Controleer je rechten en verbinding.")
     } else {
       setRules(current => current.map((rule,index) => ({...rule,sort_order:(index+1)*10})))
-      setMessage("Testlayout en rolrechten opgeslagen.")
+      setMessage("Edit-layout en rolrechten opgeslagen.")
       window.dispatchEvent(new CustomEvent("uptilldawn-role-rules-updated"))
     }
     setBusy(false)
@@ -95,7 +95,7 @@ export function TestModeEditor() {
   return <aside className="fixed right-3 top-20 z-[80] w-[min(430px,calc(100vw-1.5rem))] rounded-2xl border border-amber-400/50 bg-card shadow-2xl print:hidden">
     <div className="flex items-center justify-between gap-3 border-b p-3">
       <div>
-        <p className="text-xs font-black tracking-widest text-amber-400">TESTMODUS</p>
+        <p className="text-xs font-black tracking-widest text-amber-400">EDIT MODE</p>
         <p className="font-bold">{role === "staff" ? "Personeel" : role === "responsible_lead" ? "Verantwoordelijke" : "Beheerder"} · layout & rechten</p>
       </div>
       <button type="button" onClick={() => setCollapsed(value => !value)} className="rounded-lg border px-3 py-2 text-xs">
@@ -142,7 +142,7 @@ export function TestModeEditor() {
           STANDAARD LADEN
         </button>
         <button type="button" disabled={busy} onClick={save} className="rounded-xl bg-violet-600 p-3 font-black text-white disabled:opacity-50">
-          {busy ? "OPSLAAN…" : "TESTLAYOUT & ROLRECHTEN OPSLAAN"}
+          {busy ? "OPSLAAN…" : "EDITLAYOUT & ROLRECHTEN OPSLAAN"}
         </button>
       </div>
       {message && <p role="status" className="rounded-lg border p-2 text-sm">{message}</p>}

@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/crew-client"
 import { clearOfflineIdentity } from "@/lib/crew-offline-snapshot"
 
 export type UiRole = "employee" | "responsible_lead" | "admin"
-type TestRole = UiRole | null
+type EditRole = UiRole | null
 
 interface UserProfile {
   id: string
@@ -28,10 +28,10 @@ interface AuthContextType {
   setRoleMode: (role: UiRole) => Promise<void>
   loading: boolean
   refreshProfile: () => Promise<void>
-  testMode: boolean
-  setTestMode: (active: boolean) => void
-  testRole: TestRole
-  setTestRole: (role: TestRole) => void
+  editMode: boolean
+  setEditMode: (active: boolean) => void
+  editRole: EditRole
+  setEditRole: (role: EditRole) => void
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -45,10 +45,10 @@ const AuthContext = createContext<AuthContextType>({
   setRoleMode: async () => {},
   loading: true,
   refreshProfile: async () => {},
-  testMode: false,
-  setTestMode: () => {},
-  testRole: null,
-  setTestRole: () => {},
+  editMode: false,
+  setEditMode: () => {},
+  editRole: null,
+  setEditRole: () => {},
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -60,8 +60,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [roles, setRoles] = useState<UiRole[]>([])
   const [roleMode, setRoleModeState] = useState<UiRole | null>(null)
   const [loading, setLoading] = useState(true)
-  const [testMode, setTestModeState] = useState(false)
-  const [testRole, setTestRoleState] = useState<TestRole>(null)
+  const [editMode, setEditModeState] = useState(false)
+  const [editRole, setEditRoleState] = useState<EditRole>(null)
 
   const loadProfile = useCallback(async (userId: string) => {
     const { data, error } = await supabase
@@ -135,56 +135,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [pathname, loadProfile, supabase])
 
   const realIsAdmin = profile?.role === "admin"
-  const effectiveRoles: UiRole[] = realIsAdmin && testMode && testRole
-    ? [testRole]
+  const effectiveRoles: UiRole[] = realIsAdmin && editMode && editRole
+    ? [editRole]
     : realIsAdmin && roleMode
       ? [roleMode]
       : roles
   const effectiveIsAdmin = effectiveRoles.includes("admin")
 
   const setRoleMode = async (role: UiRole) => {
-    if (!realIsAdmin || testMode) return
+    if (!realIsAdmin || editMode) return
     const dbRole = role === "employee" ? "staff" : role
     const { data, error } = await supabase.rpc("upt_set_admin_role_mode", { p_role: dbRole })
     if (error || data !== dbRole) throw new Error("Rolmodus kon niet worden gewijzigd.")
     setRoleModeState(role)
   }
 
-  const setTestRole = (role: TestRole) => {
-    if (!realIsAdmin || !testMode) return
+  const setEditRole = (role: EditRole) => {
+    if (!realIsAdmin || !editMode) return
     const next = role || "employee"
-    setTestRoleState(next)
-    window.sessionStorage.setItem("uptilldawn-admin-test-role", next)
-    document.cookie = `uptilldawn-admin-test-role=${next}; path=/; SameSite=Lax`
+    setEditRoleState(next)
+    window.sessionStorage.setItem("uptilldawn-admin-edit-role", next)
+    document.cookie = `uptilldawn-admin-edit-role=${next}; path=/; SameSite=Lax`
   }
 
-  const setTestMode = (active: boolean) => {
+  const setEditMode = (active: boolean) => {
     if (!realIsAdmin) return
-    setTestModeState(active)
+    setEditModeState(active)
     if (active) {
-      const role = testRole || "employee"
-      setTestRoleState(role)
-      window.sessionStorage.setItem("uptilldawn-admin-test-mode", "1")
-      window.sessionStorage.setItem("uptilldawn-admin-test-role", role)
-      document.cookie = "uptilldawn-admin-test-mode=1; path=/; SameSite=Lax"
-      document.cookie = `uptilldawn-admin-test-role=${role}; path=/; SameSite=Lax`
+      const role = editRole || roleMode || "employee"
+      setEditRoleState(role)
+      window.sessionStorage.setItem("uptilldawn-admin-edit-mode", "1")
+      window.sessionStorage.setItem("uptilldawn-admin-edit-role", role)
+      document.cookie = "uptilldawn-admin-edit-mode=1; path=/; SameSite=Lax"
+      document.cookie = `uptilldawn-admin-edit-role=${role}; path=/; SameSite=Lax`
     } else {
-      setTestRoleState(null)
-      window.sessionStorage.removeItem("uptilldawn-admin-test-mode")
-      window.sessionStorage.removeItem("uptilldawn-admin-test-role")
-      document.cookie = "uptilldawn-admin-test-mode=; path=/; Max-Age=0; SameSite=Lax"
-      document.cookie = "uptilldawn-admin-test-role=; path=/; Max-Age=0; SameSite=Lax"
+      setEditRoleState(null)
+      window.sessionStorage.removeItem("uptilldawn-admin-edit-mode")
+      window.sessionStorage.removeItem("uptilldawn-admin-edit-role")
+      document.cookie = "uptilldawn-admin-edit-mode=; path=/; Max-Age=0; SameSite=Lax"
+      document.cookie = "uptilldawn-admin-edit-role=; path=/; Max-Age=0; SameSite=Lax"
     }
   }
 
   useEffect(() => {
     if (!realIsAdmin) return
-    const active = window.sessionStorage.getItem("uptilldawn-admin-test-mode") === "1"
-    const saved = window.sessionStorage.getItem("uptilldawn-admin-test-role")
+    window.sessionStorage.removeItem("uptilldawn-admin-test-mode")
+    window.sessionStorage.removeItem("uptilldawn-admin-test-role")
+    document.cookie = "uptilldawn-admin-test-mode=; path=/; Max-Age=0; SameSite=Lax"
+    document.cookie = "uptilldawn-admin-test-role=; path=/; Max-Age=0; SameSite=Lax"
+    const active = window.sessionStorage.getItem("uptilldawn-admin-edit-mode") === "1"
+    const saved = window.sessionStorage.getItem("uptilldawn-admin-edit-role")
     const role = saved === "employee" || saved === "responsible_lead" || saved === "admin" ? saved : "employee"
     queueMicrotask(() => {
-      setTestModeState(active)
-      setTestRoleState(active ? role : null)
+      setEditModeState(active)
+      setEditRoleState(active ? role : null)
     })
   }, [realIsAdmin])
 
@@ -192,7 +196,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user, session, profile, roles: effectiveRoles, isAdmin: effectiveIsAdmin, realIsAdmin: Boolean(realIsAdmin),
     roleMode, setRoleMode, loading,
     refreshProfile: async () => { if (user) await loadProfile(user.id) },
-    testMode, setTestMode, testRole, setTestRole,
+    editMode, setEditMode, editRole, setEditRole,
   }}>
     {children}
   </AuthContext.Provider>

@@ -9,7 +9,7 @@ import { nlStatus } from '@/lib/ui-nl'
 import type { Tables,Database } from '@/types/crew-database'
 type Summary=Database['public']['Functions']['upt_work_session_time_summary']['Returns'][number]
 type CrewMember={id:string;full_name:string|null;phone_number:string|null;profile_photo_url:string|null}
-type Props={userId:string;shifts:Tables<'shifts'>[];events:Tables<'events'>[];workplaces:Tables<'workplaces'>[];activeSession:Tables<'work_sessions'>|null;activeBreak:Tables<'break_sessions'>|null;checkins:Tables<'check_ins'>[];checkouts:Tables<'check_outs'>[];manager:boolean;isAdmin:boolean;personalWork:boolean;summary:Summary|null;liveSessions:Tables<'work_sessions'>[];liveBreaks:Tables<'break_sessions'>[];liveShifts:Tables<'shifts'>[];crewDirectory:CrewMember[]}
+type Props={userId:string;shifts:Tables<'shifts'>[];events:Tables<'events'>[];workplaces:Tables<'workplaces'>[];activeSession:Tables<'work_sessions'>|null;activeBreak:Tables<'break_sessions'>|null;checkins:Tables<'check_ins'>[];checkouts:Tables<'check_outs'>[];manager:boolean;isAdmin:boolean;personalWork:boolean;summary:Summary|null;summaryAsOf:number;liveSessions:Tables<'work_sessions'>[];liveBreaks:Tables<'break_sessions'>[];liveShifts:Tables<'shifts'>[];crewDirectory:CrewMember[]}
 export default function OperationsClient(p:Props){
  const router=useRouter();const [busy,setBusy]=useState(false),[msg,setMsg]=useState(''),[remote,setRemote]=useState(false),[file,setFile]=useState<File|null>(null)
  const s=useMemo(()=>createClient(),[])
@@ -44,7 +44,7 @@ export default function OperationsClient(p:Props){
  return <main className="mx-auto max-w-4xl space-y-6 p-4 pb-28 md:p-8"><h1 className="text-3xl font-black">{p.personalWork?'Werk & pauze':'Operationele status & goedkeuringen'}</h1>{msg&&<p role="status" className="rounded-xl border p-4">{msg}</p>}
  {p.personalWork&&<section className="rounded-2xl border p-4"><label className="flex gap-3"><input type="checkbox" checked={remote} onChange={e=>setRemote(e.target.checked)}/>Inklokken op afstand met nieuwe werkplekselfie</label>{remote&&<input className="mt-3" type="file" accept="image/jpeg,image/png,image/webp" capture="user" onChange={e=>setFile(e.target.files?.[0]||null)}/>}</section>}
  {p.personalWork&&p.activeSession&&<section className="space-y-4 rounded-2xl border border-violet-500 bg-card p-5"><h2 className="text-xl font-bold">WERK ACTIEF</h2><p>Gestart: {new Date(p.activeSession.started_at).toLocaleString('nl-BE')}</p>
- {p.summary&&<LiveWorkSummary summary={p.summary} activeBreak={p.activeBreak}/>} 
+ {p.summary&&<LiveWorkSummary summary={p.summary} activeBreak={p.activeBreak} summaryAsOf={p.summaryAsOf}/>} 
  {p.activeBreak&&p.summary&&p.summary.break_balance_seconds<=300&&<p role="alert" className="text-amber-300">Pauzetegoed bijna of volledig opgebruikt.</p>}
  <button disabled={busy} className="w-full rounded-xl border p-4 font-bold" onClick={()=>run(()=>p.activeBreak?work('stop_break',{break_id:p.activeBreak.id}):work('start_break',{session_id:p.activeSession!.id}))}>{p.activeBreak?'PAUZE STOPPEN':'PAUZE STARTEN'}</button>
  <button disabled={busy} className="w-full rounded-xl bg-red-700 p-4 font-bold text-white" onClick={()=>run(()=>work('stop_work',{session_id:p.activeSession!.id}))}>WERK STOPPEN</button>
@@ -71,22 +71,15 @@ function formatDigital(totalSeconds:number){
  return [hours,minutes,secs].map(value=>String(value).padStart(2,'0')).join(':')
 }
 
-function LiveWorkSummary({summary,activeBreak}:{summary:Summary;activeBreak:Tables<'break_sessions'>|null}){
- const [snapshotAt,setSnapshotAt]=useState(()=>Date.now())
+function LiveWorkSummary({summary,activeBreak,summaryAsOf}:{summary:Summary;activeBreak:Tables<'break_sessions'>|null;summaryAsOf:number}){
  const [now,setNow]=useState(()=>Date.now())
-
- useEffect(()=>{
-  const timestamp=Date.now()
-  setSnapshotAt(timestamp)
-  setNow(timestamp)
- },[summary.gross_seconds,summary.break_seconds,summary.break_balance_seconds,activeBreak?.id])
 
  useEffect(()=>{
   const timer=window.setInterval(()=>setNow(Date.now()),1000)
   return()=>window.clearInterval(timer)
  },[])
 
- const elapsed=Math.max(0,Math.floor((now-snapshotAt)/1000))
+ const elapsed=Math.max(0,Math.floor((now-summaryAsOf)/1000))
  const gross=summary.gross_seconds+elapsed
  const pause=summary.break_seconds+(activeBreak?elapsed:0)
  const work=Math.max(0,gross-pause)

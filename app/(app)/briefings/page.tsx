@@ -20,17 +20,17 @@ import {
 import type { Tables } from '@/types/crew-database'
 import { redirect } from 'next/navigation'
 
-function PhotoInput() {
+function MediaInput() {
   return <label className="grid gap-1 text-sm">
-    Foto&apos;s
+    Foto&apos;s of video&apos;s
     <input
       name="photos"
       type="file"
-      accept="image/jpeg,image/png,image/webp"
+      accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
       multiple
       className="rounded-lg border bg-background p-2"
     />
-    <span className="text-xs text-muted-foreground">Maximaal 5 foto&apos;s per instructie, maximaal 10 MB per foto.</span>
+    <span className="text-xs text-muted-foreground">Maximaal 5 bestanden per instructie. Foto maximaal 10 MB, video maximaal 50 MB.</span>
   </label>
 }
 
@@ -46,11 +46,12 @@ function PhotoGallery({
     {rows.map(row => {
       const url = urls.get(row.storage_path)
       if (!url) return null
-      return <a key={row.id} href={url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-xl border bg-black/10">
-        {/* Private signed storage URL. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={url} alt="Foto bij instructie" className="h-36 w-full object-cover"/>
-      </a>
+      return row.mime_type?.startsWith('video/')
+        ? <video key={row.id} src={url} controls playsInline className="h-48 w-full rounded-xl border bg-black object-contain"/>
+        : <a key={row.id} href={url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-xl border bg-black/10">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={url} alt="Media bij instructie" className="h-36 w-full object-cover"/>
+          </a>
     })}
   </div>
 }
@@ -216,7 +217,7 @@ export default async function Page() {
         />
         <input name="title" required placeholder="Titel" className="border bg-background p-3"/>
         <textarea name="body" required placeholder="Algemene instructie" className="min-h-28 border bg-background p-3"/>
-        <PhotoInput />
+        <MediaInput />
         <button className="rounded-xl bg-violet-600 p-3">Instructie aanmaken</button>
       </form>
 
@@ -233,7 +234,7 @@ export default async function Page() {
         />
         <input name="title" required placeholder="Titel" className="border bg-background p-3"/>
         <textarea name="body" required placeholder="Persoonlijke instructie" className="min-h-28 border bg-background p-3"/>
-        <PhotoInput />
+        <MediaInput />
         <button className="rounded-xl bg-violet-600 p-3">Instructie toewijzen</button>
       </form>
     </div></ManagerOnly>}
@@ -251,7 +252,7 @@ export default async function Page() {
             <input type="hidden" name="id" value={briefing.id}/>
             <input name="title" defaultValue={briefing.title} required className="border bg-background p-2"/>
             <textarea name="body" defaultValue={briefing.body} required className="border bg-background p-2"/>
-            <PhotoInput />
+            <MediaInput />
             <button className="rounded-lg border p-2">Wijzig instructie + nieuwe bevestiging</button>
           </form></ManagerOnly>
         : acks?.some(ack => ack.briefing_id === briefing.id && ack.version === briefing.version)
@@ -272,7 +273,7 @@ export default async function Page() {
             <input type="hidden" name="id" value={instruction.id}/>
             <input name="title" defaultValue={instruction.title} required className="border bg-background p-2"/>
             <textarea name="body" defaultValue={instruction.body} required className="border bg-background p-2"/>
-            <PhotoInput />
+            <MediaInput />
             <button className="rounded-lg border p-2">Wijzig instructie + nieuwe bevestiging</button>
           </form></ManagerOnly>
         : packs?.some(ack => ack.instruction_id === instruction.id && ack.version === instruction.version)

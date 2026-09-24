@@ -29,6 +29,7 @@ export default async function Page() {
     { data: ownMemberships },
     { data: availabilityRows },
     { data: openEvents },
+    { data: ownActiveShifts },
   ] = await Promise.all([
     s.from('profiles').select('role').eq('id', user.id).single(),
     s.from('events').select('id,name').neq('status', 'archived').order('start_at'),
@@ -37,16 +38,30 @@ export default async function Page() {
     s.from('event_members').select('event_id').eq('user_id', user.id),
     s.from('event_availability').select('event_id,user_id').eq('response', 'can'),
     s.from('events').select('id').gte('end_at', 'now'),
+    s.from('shifts')
+      .select('event_id,workplace_id')
+      .eq('user_id', user.id)
+      .neq('status', 'cancelled')
+      .lte('scheduled_start', 'now')
+      .gte('scheduled_end', 'now'),
   ])
 
   const isAdmin = profile?.role === 'admin'
   const isResponsible = profile?.role === 'responsible_lead'
   const manager = isAdmin || isResponsible
+  const hasActiveShift = Boolean(ownActiveShifts?.length)
+  const activeShiftEventIds = new Set((ownActiveShifts || []).map(shift => shift.event_id))
 
   const activeEventIds = new Set((activeEvents || []).map(event => event.id))
   const openEventIds = new Set((openEvents || []).map(event => event.id))
   const hasOpenAssignedEvent = (ownMemberships || []).some(member => openEventIds.has(member.event_id))
   if (!manager && !hasOpenAssignedEvent) redirect('/events')
+  if (!isAdmin && !hasActiveShift) {
+    return <main className="space-y-4 p-4 md:p-8">
+      <h1 className="text-3xl font-black">Taken</h1>
+      <p className="rounded-xl border p-4 text-muted-foreground">Taken zijn beschikbaar vanaf de start van je toegewezen shift.</p>
+    </main>
+  }
 
   let visibleAssignments = data || []
   if (!manager) {
@@ -92,7 +107,7 @@ export default async function Page() {
       .eq('user_id', user.id)
       .eq('event_role', 'responsible_lead')
 
-    const eventIds = [...new Set((responsibleMemberships || []).map(row => row.event_id))]
+    const eventIds = [...new Set((responsibleMemberships || []).map(row => row.event_id).filter(id => activeShiftEventIds.has(id)))]
     if (eventIds.length) {
       const [{ data: eventRows }, { data: workplaceRows }] = await Promise.all([
         s.from('events')
@@ -138,8 +153,8 @@ export default async function Page() {
     <div>
       <h1 className="text-3xl font-black">Taken</h1>
       {isResponsible && <p className="text-sm text-muted-foreground">Je kunt taken voorbereiden voor evenementen waaraan je als verantwoordelijke bent toegewezen.</p>}
-      <StaffUnavailableMessage available={hasActiveAssignedEvent}>
-        <p className="mt-3 rounded-xl border p-4 text-muted-foreground">Taken zijn beschikbaar vanaf de start van een toegewezen evenement.</p>
+      <StaffUnavailableMessage available={isAdmin || hasActiveShift}>
+        <p className="mt-3 rounded-xl border p-4 text-muted-foreground">Taken zijn beschikbaar vanaf de start van je toegewezen shift.</p>
       </StaffUnavailableMessage>
     </div>
 
@@ -158,9 +173,9 @@ export default async function Page() {
       <input name="title" required maxLength={200} placeholder="Taaknaam" className="border bg-background p-3"/>
       <textarea name="description" maxLength={4000} placeholder="Omschrijving" className="border bg-background p-3 md:col-span-2"/>
       <label className="grid gap-1 text-sm md:col-span-2">
-        Foto&apos;s
-        <input name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple className="rounded-lg border bg-background p-2"/>
-        <span className="text-xs text-muted-foreground">Maximaal 5 foto&apos;s per taak, maximaal 10 MB per foto.</span>
+        Foto&apos;s of video&apos;s
+        <input name="photos" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime" multiple className="rounded-lg border bg-background p-2"/>
+        <span className="text-xs text-muted-foreground">Maximaal 5 bestanden per taak. Foto maximaal 10 MB, video maximaal 50 MB.</span>
       </label>
       <button className="rounded-xl bg-violet-600 p-3 font-bold md:col-span-2">TAAK AANMAKEN & TOEWIJZEN</button>
     </form></ManagerOnly>}
@@ -181,11 +196,12 @@ export default async function Page() {
               {attachmentRows.filter(item => item.task_id === task.id).map(item => {
                 const url = photoUrls.get(item.storage_path)
                 if (!url) return null
-                return <a key={item.id} href={url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-xl border bg-black/10">
-                  {/* Private signed storage URL. */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={url} alt="Foto bij taak" className="h-36 w-full object-cover"/>
-                </a>
+                return item.mime_type?.startsWith('video/')
+                  ? <video key={item.id} src={url} controls playsInline className="h-48 w-full rounded-xl border bg-black object-contain"/>
+                  : <a key={item.id} href={url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-xl border bg-black/10">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={url} alt="Media bij taak" className="h-36 w-full object-cover"/>
+                    </a>
               })}
             </div>}
             <p className="mt-2 text-sm text-muted-foreground">Voor: {t.user_id === user.id ? 'Jij' : people.find(p => p.id === t.user_id)?.full_name || 'Personeelslid'} · {nlStatus(t.status)}</p>

@@ -87,6 +87,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         .filter(row => row.event_role === "responsible_lead")
         .map(row => row.event_id),
     )
+    const activeShiftEvents = activeEventIds.filter(id => shiftEventIds.has(id))
     const activeMemberEvents = activeEventIds.filter(id => memberEventIds.has(id) || shiftEventIds.has(id))
     const activeResponsibleEvents = activeEventIds.filter(id => responsibleEventIds.has(id))
     const hasOpenMemberEvent = [...memberEventIds].some(id => openEventIds.has(id))
@@ -103,7 +104,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       setShowIncidents(active)
       setHasActiveEvent(active)
     } else if (effectiveResponsible) {
-      setShowOperations(activeMemberEvents.length > 0 || activeResponsibleEvents.length > 0)
+      setShowOperations(activeShiftEvents.length > 0 || activeResponsibleEvents.length > 0)
       setShowTasks(hasOpenResponsibleEvent)
       setShowBriefings(hasOpenResponsibleEvent)
       setShowShifts(hasOpenMemberEvent)
@@ -111,7 +112,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       setShowIncidents(activeResponsibleEvents.length > 0)
       setHasActiveEvent(activeMemberEvents.length > 0 || activeResponsibleEvents.length > 0)
     } else if (effectiveStaff) {
-      setShowOperations(activeMemberEvents.length > 0)
+      setShowOperations(activeShiftEvents.length > 0)
       setShowTasks(hasOpenMemberEvent)
       setShowBriefings(hasOpenMemberEvent)
       setShowShifts(hasOpenMemberEvent)

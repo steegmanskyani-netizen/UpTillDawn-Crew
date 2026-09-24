@@ -35,6 +35,11 @@ export default async function Page(){
     leads=(leadMemberships||[])
       .filter(row=>row.profiles?.approved&&['responsible_lead','admin'].includes(row.profiles?.role||''))
       .map(row=>({id:row.user_id,full_name:row.profiles?.full_name||null,event_id:row.event_id}))
+    for(const event of events){
+      if(!leads.some(person=>person.id===user.id&&person.event_id===event.id)){
+        leads.push({id:user.id,full_name:'Jij (Beheerder)',event_id:event.id})
+      }
+    }
   }else{
     const [{data:ownShifts},{data:ownResponsible}]=await Promise.all([
       s.from('shifts').select('event_id,workplace_id').eq('user_id',user.id).neq('status','cancelled'),
@@ -63,7 +68,7 @@ export default async function Page(){
       </p>}
     </div>
 
-    {isResponsible&&<ManagerOnly>
+    {(isAdmin||isResponsible)&&<ManagerOnly>
       <form action={addWorkplace} className="grid gap-2 rounded-2xl border p-4 md:grid-cols-2">
         <select name="event_id" required className="rounded-lg border bg-background p-3">
           <option value="">Evenement…</option>

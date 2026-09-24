@@ -22,9 +22,9 @@ export default async function Dashboard() {
   const now = new Date().toISOString()
   const [profileResult, eventsResult, shiftsResult, incidentsResult, membershipsResult, activeEventsResult, openEventsResult] = await Promise.all([
     s.from('profiles').select('full_name,approved,role').eq('id', user.id).single(),
-    s.from('events').select('id,name,venue,start_at,end_at,status').gte('end_at', now).order('start_at', { ascending: true }).limit(3),
-    s.from('shifts').select('id,scheduled_start,scheduled_end,role_name,workplace_id,event_id').eq('user_id', user.id).order('scheduled_start', { ascending: true }).limit(3),
-    s.from('incidents').select('id', { count: 'exact', head: true }).neq('status', 'resolved'),
+    s.from('events').select('id,name,venue,start_at,end_at,status').gte('end_at', now).order('start_at', { ascending: true }),
+    s.from('shifts').select('id,scheduled_start,scheduled_end,role_name,workplace_id,event_id').eq('user_id', user.id).order('scheduled_start', { ascending: true }),
+    s.from('incidents').select('id,event_id').neq('status', 'resolved'),
     s.from('event_members').select('event_id,event_role').eq('user_id', user.id),
     s.from('events').select('id').lte('start_at', now).gte('end_at', now),
     s.from('events').select('id').gte('end_at', now),
@@ -44,6 +44,9 @@ export default async function Dashboard() {
   const hasActiveIncidentContext = profile?.role === 'admin'
     ? activeEventIds.size > 0
     : memberships.some(member => member.event_role === 'responsible_lead' && activeEventIds.has(member.event_id))
+  const activeIncidentCount = (incidentsResult.data || []).filter(incident =>
+    Boolean(incident.event_id && activeEventIds.has(incident.event_id))
+  ).length
   const hasLoadError = Boolean(
     profileResult.error || eventsResult.error || shiftsResult.error || incidentsResult.error
     || membershipsResult.error || activeEventsResult.error || openEventsResult.error
@@ -59,12 +62,12 @@ export default async function Dashboard() {
     <section className="grid gap-4 md:grid-cols-3">
       <Card href="/events" icon={CalendarDays} title="Evenementen" value={events.length}/>
       <AssignedEventOnly available={hasEventAssignment}><Card href="/shifts" icon={Clock3} title="Mijn diensten" value={shifts.length}/></AssignedEventOnly>
-      {hasActiveIncidentContext && <ManagerOnly><Card href="/incidents" icon={AlertTriangle} title="Open incidenten" value={incidentsResult.count ?? 0}/></ManagerOnly>}
+      {hasActiveIncidentContext && <ManagerOnly><Card href="/incidents" icon={AlertTriangle} title="Open incidenten" value={activeIncidentCount}/></ManagerOnly>}
     </section>
     <section>
       <h2 className="mb-3 text-lg font-bold">Komende evenementen</h2>
       <div className="grid gap-3">
-        {events.length ? events.map(event => <Link href="/events" key={event.id} className="flex items-center justify-between rounded-2xl border border-border bg-card p-4"><div><div className="font-bold">{event.name}</div><div className="flex gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4"/>{event.venue || 'Locatie nog niet ingesteld'}</div></div><ArrowRight className="h-5 w-5"/></Link>) : <div className="rounded-2xl border border-dashed p-8 text-center text-muted-foreground">Geen evenementen beschikbaar.</div>}
+        {events.length ? events.slice(0, 3).map(event => <Link href="/events" key={event.id} className="flex items-center justify-between rounded-2xl border border-border bg-card p-4"><div><div className="font-bold">{event.name}</div><div className="flex gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4"/>{event.venue || 'Locatie nog niet ingesteld'}</div></div><ArrowRight className="h-5 w-5"/></Link>) : <div className="rounded-2xl border border-dashed p-8 text-center text-muted-foreground">Geen evenementen beschikbaar.</div>}
       </div>
     </section>
   </main>

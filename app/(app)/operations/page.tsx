@@ -24,7 +24,11 @@ export default async function Page() {
   const manager = profile?.role === 'admin' || profile?.role === 'responsible_lead'
   const activeEventIds = (activeEvents || []).map(event => event.id)
 
-  if (eventError || !activeEventIds.length) {
+  if (eventError) {
+    return <main className="p-8">Werkgegevens konden niet worden geladen. Probeer opnieuw.</main>
+  }
+  if (!activeEventIds.length) {
+    if (profile?.role !== 'admin') redirect('/events')
     return <main className="p-8">
       Werk &amp; pauze is beschikbaar vanaf de start van een toegewezen evenement.
     </main>

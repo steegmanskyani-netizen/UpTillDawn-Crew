@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useId, useMemo, useState } from "react"
 
 type Props = {
   defaultVenue?: string | null
@@ -28,6 +28,9 @@ export function GeoapifyPlaceFields({
   defaultLatitude,
   defaultLongitude,
 }:Props){
+  const fieldId=useId()
+  const venueId=`${fieldId}-venue`
+  const addressId=`${fieldId}-address`
   const [venue,setVenue]=useState(defaultVenue||"")
   const [address,setAddress]=useState(defaultAddress||"")
   const [latitude,setLatitude]=useState(defaultLatitude?.toString()||"")
@@ -141,9 +144,9 @@ export function GeoapifyPlaceFields({
 
   return <div className="grid gap-3 md:grid-cols-2">
     <div className="relative grid gap-1 text-sm">
-      <label htmlFor="event-venue-search">Locatie</label>
+      <label htmlFor={venueId}>Locatie</label>
       <input
-        id="event-venue-search"
+        id={venueId}
         value={venue}
         onChange={event=>{setVenue(event.target.value);clearLink();setFocused("venue")}}
         onFocus={()=>setFocused("venue")}
@@ -161,9 +164,9 @@ export function GeoapifyPlaceFields({
     </div>
 
     <div className="relative grid gap-1 text-sm">
-      <label htmlFor="event-address-search">Adres</label>
+      <label htmlFor={addressId}>Adres</label>
       <input
-        id="event-address-search"
+        id={addressId}
         value={address}
         onChange={event=>{setAddress(event.target.value);clearLink();setFocused("address")}}
         onFocus={()=>setFocused("address")}

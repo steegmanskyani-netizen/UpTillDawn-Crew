@@ -11,7 +11,7 @@ import { TestModeEditor } from "@/components/layout/test-mode-editor"
 import { QueueStatus } from "@/components/crew/queue-status"
 import { createClient } from "@/lib/supabase/crew-client"
 import { useAuth } from "@/lib/providers"
-import { ruleMatches, ruleUsable, type RoleUiContext, type RoleUiRule } from "@/lib/role-ui"
+import { getDefaultRoleUiRules, ruleMatches, ruleUsable, type RoleUiContext, type RoleUiRule } from "@/lib/role-ui"
 
 function CountBadge({ count }: { count: number }) {
   if (count < 1) return null
@@ -32,23 +32,25 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const activeUiRole=roles[0]
   const roleKey=activeUiRole==="responsible_lead"?"responsible_lead":activeUiRole==="admin"?"admin":activeUiRole==="employee"?"staff":null
+  const defaultRules=useMemo(()=>roleKey?getDefaultRoleUiRules(roleKey):[],[roleKey])
 
   const loadRules=useCallback(async()=>{
     if(!roleKey){setRules([]);return}
     const {data}=await supabase.from("role_ui_rules").select("role,feature_key,label,group_key,visible,enabled,condition_key,sort_order,settings").eq("role",roleKey).order("sort_order")
-    setRules((data||[]) as RoleUiRule[])
-  },[roleKey,supabase])
+    setRules((data?.length?data:defaultRules) as RoleUiRule[])
+  },[defaultRules,roleKey,supabase])
 
   useEffect(()=>{const first=window.setTimeout(()=>void loadRules(),0);const fn=()=>void loadRules();window.addEventListener("uptilldawn-role-rules-updated",fn);return()=>{window.clearTimeout(first);window.removeEventListener("uptilldawn-role-rules-updated",fn)}},[loadRules])
 
-  const ruleMap=useMemo(()=>new Map(rules.map(rule=>[rule.feature_key,rule])),[rules])
+  const effectiveRules=rules.length?rules:defaultRules
+  const ruleMap=useMemo(()=>new Map(effectiveRules.map(rule=>[rule.feature_key,rule])),[effectiveRules])
   const previewAll=Boolean(realIsAdmin&&testMode)
   const feature=(key:string,fallback:boolean)=>{
     const rule=ruleMap.get(key)
     return rule?ruleMatches(rule,context,previewAll):fallback
   }
-  const order=rules.map(rule=>rule.feature_key)
-  const labels=Object.fromEntries(rules.map(rule=>[rule.feature_key,rule.label]))
+  const order=effectiveRules.map(rule=>rule.feature_key)
+  const labels=Object.fromEntries(effectiveRules.map(rule=>[rule.feature_key,rule.label]))
 
   const currentFeature=
     pathname==="/"||pathname==="/admin"?"overview":
@@ -66,7 +68,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     pathname.startsWith("/settings")?"settings":
     null
   const currentRule=currentFeature?ruleMap.get(currentFeature):undefined
-  const rulesReady=!roleKey||rules.length>0
+  const rulesReady=!roleKey||effectiveRules.length>0
   const adminOperationsRoute=Boolean(isAdmin&&!testMode&&pathname.startsWith("/operations"))
   const currentVisible=adminOperationsRoute||!currentFeature||!roleKey||!rulesReady||previewAll||ruleMatches(currentRule,context,false)
   const currentUsable=adminOperationsRoute||!currentFeature||!roleKey||!rulesReady||ruleUsable(currentRule,context,false)

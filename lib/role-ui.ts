@@ -58,3 +58,78 @@ export function ruleUsable(
   if (previewAll) return true
   return rule.enabled && ruleMatches(rule, context, false)
 }
+
+
+const navRule = (
+  role: RoleRuleRole,
+  feature_key: string,
+  label: string,
+  sort_order: number,
+  condition_key: RoleCondition = "always",
+  visible = true,
+  enabled = true,
+): RoleUiRule => ({
+  role,
+  feature_key,
+  label,
+  group_key: "navigation",
+  visible,
+  enabled,
+  condition_key,
+  sort_order,
+  settings: {},
+})
+
+export const ROLE_UI_DEFAULTS: Record<RoleRuleRole, RoleUiRule[]> = {
+  admin: [
+    navRule("admin","overview","Overzicht",10),
+    navRule("admin","events","Evenementen",20),
+    navRule("admin","operations","Werkuren",25),
+    navRule("admin","shifts","Diensten",30),
+    navRule("admin","workplaces","Werkplekken",40),
+    navRule("admin","tasks","Taken",50),
+    navRule("admin","briefings","Instructies",60),
+    navRule("admin","personnel","Personeel & goedkeuringen",70),
+    navRule("admin","chat","Gesprekken",80),
+    navRule("admin","crew","Personeel",90),
+    navRule("admin","incidents","Help",95),
+    navRule("admin","exports","Excel",100),
+    navRule("admin","settings","Instellingen",110),
+  ],
+  responsible_lead: [
+    navRule("responsible_lead","overview","Overzicht",10),
+    navRule("responsible_lead","operations","Mijn werkuren",20,"event_active"),
+    navRule("responsible_lead","events","Evenementen",30),
+    navRule("responsible_lead","shifts","Diensten",40,"assigned_event"),
+    navRule("responsible_lead","tasks","Taken",50,"shift_active"),
+    navRule("responsible_lead","briefings","Instructies",60,"assigned_event"),
+    navRule("responsible_lead","workplaces","Werkplekken",70,"assigned_workplace_role"),
+    navRule("responsible_lead","chat","Gesprekken",80),
+    navRule("responsible_lead","crew","Personeel",90),
+    navRule("responsible_lead","incidents","Incidenten",100,"shift_active"),
+  ],
+  staff: [
+    navRule("staff","overview","Overzicht",10),
+    navRule("staff","operations","Mijn werkuren",20,"shift_active"),
+    navRule("staff","events","Evenementen",30),
+    navRule("staff","shifts","Mijn shift's",40,"assigned_event"),
+    navRule("staff","briefings","Briefing",50,"assigned_event"),
+    navRule("staff","workplaces","Werkplekken",60,"assigned_workplace_role",false,false),
+    navRule("staff","tasks","Taken",70,"shift_active"),
+    navRule("staff","chat","Chats",80),
+    navRule("staff","crew","Personeel",90),
+    navRule("staff","incidents","Help",100,"shift_active"),
+  ],
+}
+
+export function getDefaultRoleUiRules(role: RoleRuleRole) {
+  return ROLE_UI_DEFAULTS[role].map(rule => ({ ...rule }))
+}
+
+export function getDefaultRoleUiLabel(
+  role: RoleRuleRole,
+  featureKey: string,
+  fallback: string,
+) {
+  return ROLE_UI_DEFAULTS[role].find(rule => rule.feature_key === featureKey)?.label || fallback
+}

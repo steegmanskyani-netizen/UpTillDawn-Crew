@@ -298,7 +298,7 @@ test('work hours navigation labels are role-specific', async () => {
   const layout = await read('components/layout/app-layout.tsx')
   assert.match(sidebar, /label: "Mijn werkuren"/)
   assert.match(sidebar, /roles: \["employee","responsible_lead","admin"\]/)
-  assert.match(sidebar, /i\.key==="operations"&&isAdmin\?"Werkuren":i\.key==="incidents"&&isAdmin\?"Help":i\.label/)
+  assert.match(sidebar, /getDefaultRoleUiLabel\(roleKey,i\.key,i\.label\)/)
   assert.match(layout, /showOperations=feature\("operations",isAdmin\?true:context\.shiftActive\)/)
 })
 
@@ -315,4 +315,23 @@ test('admin help navigation and help calls are accessible and consistently named
   assert.match(admin, /<h2 className="text-xl font-bold">Open help oproepen<\/h2>/)
   assert.match(incidents, /manager\?'Help':'Urgent melden'/)
   assert.match(incidents, /manager\?'Open help oproepen':'Mijn help oproepen'/)
+})
+
+
+test('current production role UI is the canonical default baseline', async () => {
+  const roleUi = await read('lib/role-ui.ts')
+  const editor = await read('components/layout/test-mode-editor.tsx')
+  const layout = await read('components/layout/app-layout.tsx')
+  const mobile = await read('components/layout/mobile-nav.tsx')
+
+  assert.match(roleUi, /ROLE_UI_DEFAULTS/)
+  assert.match(roleUi, /navRule\("admin","operations","Werkuren",25\)/)
+  assert.match(roleUi, /navRule\("responsible_lead","operations","Mijn werkuren",20,"event_active"\)/)
+  assert.match(roleUi, /navRule\("staff","operations","Mijn werkuren",20,"shift_active"\)/)
+  assert.match(roleUi, /navRule\("staff","shifts","Mijn shift's",40,"assigned_event"\)/)
+  assert.match(roleUi, /navRule\("staff","workplaces","Werkplekken",60,"assigned_workplace_role",false,false\)/)
+  assert.match(editor, /STANDAARD LADEN/)
+  assert.match(editor, /getDefaultRoleUiRules\(role\)/)
+  assert.match(layout, /effectiveRules=rules\.length\?rules:defaultRules/)
+  assert.match(mobile, /getDefaultRoleUiLabel\(roleKey,i\.key,i\.label\)/)
 })

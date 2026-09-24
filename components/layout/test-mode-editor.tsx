@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { createClient } from "@/lib/supabase/crew-client"
 import { useAuth } from "@/lib/providers"
-import type { RoleCondition, RoleUiRule } from "@/lib/role-ui"
+import { getDefaultRoleUiRules, type RoleCondition, type RoleUiRule } from "@/lib/role-ui"
 
 const conditions: Array<{value:RoleCondition;label:string}> = [
   { value: "always", label: "Altijd" },
@@ -34,7 +34,7 @@ export function TestModeEditor() {
         .select("role,feature_key,label,group_key,visible,enabled,condition_key,sort_order,settings")
         .eq("role", role)
         .order("sort_order")
-      if (alive) setRules((data || []) as RoleUiRule[])
+      if (alive) setRules((data?.length ? data : getDefaultRoleUiRules(role)) as RoleUiRule[])
     })()
     return () => { alive = false }
   }, [db, realIsAdmin, role, testMode])
@@ -57,6 +57,11 @@ export function TestModeEditor() {
       return next.map((rule,index) => ({ ...rule, sort_order: (index + 1) * 10 }))
     })
     setDragKey(null)
+  }
+
+  function loadDefaults() {
+    setRules(getDefaultRoleUiRules(role))
+    setMessage("Opgeslagen standaard geladen. Klik op opslaan om deze opnieuw toe te passen.")
   }
 
   async function save() {
@@ -132,9 +137,14 @@ export function TestModeEditor() {
           </label>
         </div>
       </div>)}
-      <button type="button" disabled={busy} onClick={save} className="w-full rounded-xl bg-violet-600 p-3 font-black text-white disabled:opacity-50">
-        {busy ? "OPSLAAN…" : "TESTLAYOUT & ROLRECHTEN OPSLAAN"}
-      </button>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <button type="button" disabled={busy} onClick={loadDefaults} className="rounded-xl border p-3 font-bold disabled:opacity-50">
+          STANDAARD LADEN
+        </button>
+        <button type="button" disabled={busy} onClick={save} className="rounded-xl bg-violet-600 p-3 font-black text-white disabled:opacity-50">
+          {busy ? "OPSLAAN…" : "TESTLAYOUT & ROLRECHTEN OPSLAAN"}
+        </button>
+      </div>
       {message && <p role="status" className="rounded-lg border p-2 text-sm">{message}</p>}
     </div>}
   </aside>

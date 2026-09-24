@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation"
 import { useAuth } from "@/lib/providers"
 import { cn } from "@/lib/utils"
 import { LayoutDashboard, CalendarDays, Clock3, Users, ListChecks, ScrollText, MessageCircle } from "lucide-react"
+import { getDefaultRoleUiLabel, type RoleRuleRole } from "@/lib/role-ui"
 
 const beforeItems=[
  {key:"overview",href:"/",label:"Overzicht",icon:LayoutDashboard},
@@ -25,6 +26,7 @@ export function MobileBottomNav({
 }) {
  const pathname=usePathname()
  const {roles,isAdmin,testMode}=useAuth()
+ const roleKey:RoleRuleRole=roles.includes("admin")?"admin":roles.includes("responsible_lead")?"responsible_lead":"staff"
  const order=new Map(featureOrder.map((key,index)=>[key,index]))
  let items=(operationalMode&&!isAdmin?operationalItems:beforeItems).filter(i=>{
    if(Object.prototype.hasOwnProperty.call(featureVisibility,i.key)&&!featureVisibility[i.key]) return false
@@ -45,7 +47,7 @@ export function MobileBottomNav({
    const count=i.key==="tasks"?taskMissed:0
    return <Link data-layout-key={i.key} key={i.key} href={href} className={cn("flex min-w-14 flex-col items-center gap-1 rounded-lg px-2 py-1.5 text-[10px] font-semibold",active?"text-violet-400":"text-muted-foreground")}>
     <span className="relative"><I className="h-5 w-5"/>{count>0&&<span className="absolute -right-3 -top-3 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-black leading-none text-white shadow ring-2 ring-card">{count>99?"99+":count}</span>}</span>
-    {featureLabels[i.key] || i.label}
+    {featureLabels[i.key] || getDefaultRoleUiLabel(roleKey,i.key,i.label)}
    </Link>
   })}
  </nav>

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { useAuth } from "@/lib/providers"
 import { cn } from "@/lib/utils"
 import { LayoutDashboard, CalendarDays, MapPin, Clock3, AlertTriangle, Users, Shield, Settings, ScrollText } from "lucide-react"
+import { getDefaultRoleUiLabel, type RoleRuleRole } from "@/lib/role-ui"
 
 const items = [
   { key:"overview", href: "/", label: "Overzicht", icon: LayoutDashboard, roles: ["employee","responsible_lead","admin"] },
@@ -34,6 +35,7 @@ export function AppSidebar({
 }) {
  const pathname=usePathname()
  const {roles,isAdmin,testMode}=useAuth()
+ const roleKey:RoleRuleRole=roles.includes("admin")?"admin":roles.includes("responsible_lead")?"responsible_lead":"staff"
  const order=new Map(featureOrder.map((key,index)=>[key,index]))
  const visible=items.filter(i=>{
    if(!roles.some(r=>i.roles.includes(r))) return false
@@ -58,7 +60,7 @@ export function AppSidebar({
    const active=href==='/'?pathname==='/':pathname.startsWith(href)
    const Icon=i.icon
    const count=i.key==="chat"?chatMissed:i.key==="incidents"?incidentMissed:i.key==="tasks"?taskMissed:0
-   const fallbackLabel=i.key==="operations"&&isAdmin?"Werkuren":i.key==="incidents"&&isAdmin?"Help":i.label
+   const fallbackLabel=getDefaultRoleUiLabel(roleKey,i.key,i.label)
    return <Link data-layout-key={i.key} key={i.key} href={href} className={cn("flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold",active?"bg-violet-600 text-white":"text-muted-foreground hover:bg-muted hover:text-foreground")}>
     <span className="relative"><Icon className="h-5 w-5"/>{count>0&&<span className="absolute -right-3 -top-3 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-black leading-none text-white">{count>99?"99+":count}</span>}</span>{featureLabels[i.key] || fallbackLabel}
    </Link>

@@ -42,7 +42,8 @@ test('role-driven release navigation uses saved conditions and ordering', async 
   assert.match(providers, /type TestRole = UiRole \| null/)
   assert.match(roleUi, /"staff" \| "responsible_lead" \| "admin"/)
   assert.match(editor, /testRole === "admin" \? "admin"/)
-  assert.match(layout, /profile\?\.role==="admin"\?"admin"/)
+  assert.match(layout, /const activeUiRole=roles\[0\]/)
+  assert.match(layout, /activeUiRole==="admin"\?"admin"/)
   assert.match(sidebar, /featureVisibility/)
 })
 

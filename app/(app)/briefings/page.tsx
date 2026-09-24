@@ -146,7 +146,7 @@ export default async function Page() {
       const directories = await Promise.all(eventIds.map(async eventId => {
         const { data } = await s.rpc('upt_responsible_event_members', {
           p_event: eventId,
-          p_workplace: null,
+          p_workplace: null as unknown as string,
         })
         return { eventId, people: data || [] }
       }))

@@ -124,9 +124,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const showOperations=isAdmin&&!testMode?false:feature("operations",context.shiftActive)
   const showWorkplaces=feature("workplaces",context.assignedWorkplaceRole)
   const showTasks=isAdmin&&!testMode?true:feature("tasks",context.shiftActive)
-  const showIncidents=isAdmin&&!testMode?context.eventActive:feature("incidents",context.shiftActive)
+  const showIncidents=isAdmin&&!testMode?false:feature("incidents",context.shiftActive)
   const operationalMode=context.eventActive||previewAll
   const showUrgent=!pathname.startsWith("/chat")&&!isAdmin&&showIncidents&&context.shiftActive
+  const showFloatingChat=(isAdmin&&!testMode)||operationalMode
 
   return <div className="flex h-dvh overflow-hidden bg-background print:block print:h-auto print:overflow-visible">
     <div className="print:hidden"><AppSidebar chatMissed={chatMissed} incidentMissed={incidentMissed} taskMissed={taskMissed} showOperations={showOperations} showEvents={showEvents} showTasks={showTasks} showBriefings={showBriefings} showShifts={showShifts} showWorkplaces={showWorkplaces} showIncidents={showIncidents} featureOrder={order} featureLabels={labels}/></div>
@@ -147,7 +148,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     </div>
     {!pathname.startsWith("/chat")&&<>
       {showUrgent&&<Link href="/incidents" className="fixed bottom-20 left-4 z-50 rounded-full bg-red-600 px-5 py-4 font-black text-white print:hidden md:hidden">URGENT<CountBadge count={incidentMissed}/></Link>}
-      <FloatingChatButton count={chatMissed}/>
+      {showFloatingChat&&<FloatingChatButton count={chatMissed}/>} 
     </>}
     <TestModeEditor/>
   </div>

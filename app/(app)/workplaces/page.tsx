@@ -26,17 +26,19 @@ export default async function Page() {
     is_active: boolean
     events: { name: string } | null
   }> = []
-  let leads: Array<{ id: string; full_name: string | null }> = []
+  let leads: Array<{ id: string; full_name: string | null; event_id: string }> = []
 
   if (isAdmin) {
-    const [{ data: eventRows }, { data: workplaceRows }, { data: leadRows }] = await Promise.all([
+    const [{ data: eventRows }, { data: workplaceRows }, { data: leadMemberships }] = await Promise.all([
       s.from('events').select('id,name').neq('status', 'archived').order('start_at'),
       s.from('workplaces').select('id,event_id,name,description,sort_order,is_active,events(name)').order('sort_order'),
-      s.from('profiles').select('id,full_name,role').eq('approved', true).in('role', ['responsible_lead','admin']).order('full_name'),
+      s.from('event_members').select('event_id,user_id,profiles(full_name,approved,role)').eq('event_role', 'responsible_lead'),
     ])
     events = eventRows || []
     workplaces = workplaceRows || []
-    leads = (leadRows || []).map(person => ({ id: person.id, full_name: person.full_name }))
+    leads = (leadMemberships || [])
+      .filter(row => row.profiles?.approved && row.profiles?.role === 'responsible_lead')
+      .map(row => ({ id: row.user_id, full_name: row.profiles?.full_name || null, event_id: row.event_id }))
   } else {
     const { data: memberships } = await s
       .from('event_members')
@@ -117,7 +119,7 @@ export default async function Page() {
           <input type="hidden" name="workplace_id" value={workplace.id}/>
           <select name="user_id" required className="flex-1 rounded-lg border bg-background p-2">
             <option value="">Verantwoordelijke…</option>
-            {leads.map(person => <option key={person.id} value={person.id}>{person.full_name || 'Naam ontbreekt'}</option>)}
+            {leads.filter(person => person.event_id === workplace.event_id).map(person => <option key={person.id} value={person.id}>{person.full_name || 'Naam ontbreekt'}</option>)}
           </select>
           <button className="rounded-lg border px-3">Toewijzen</button>
         </form></AdminOnly>}

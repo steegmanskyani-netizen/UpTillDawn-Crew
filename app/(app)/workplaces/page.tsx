@@ -22,24 +22,49 @@ export default async function Page(){
   let workplaces:Array<{
     id:string;event_id:string;name:string;description:string|null;sort_order:number;is_active:boolean;events:{name:string}|null
   }>=[]
-  let leads:Array<{id:string;full_name:string|null;event_id:string}>=[]
+  let assignedCrew:Array<{
+    id:string
+    full_name:string|null
+    account_role:string
+    event_id:string
+    workplace_id:string
+    role_name:string
+  }>=[]
+  let responsibleKeys=new Set<string>()
 
   if(isAdmin){
-    const [{data:eventRows},{data:workplaceRows},{data:leadMemberships}]=await Promise.all([
+    const [
+      {data:eventRows},
+      {data:workplaceRows},
+      {data:shiftRows},
+      {data:profileRows},
+      {data:responsibleRows},
+    ]=await Promise.all([
       s.from('events').select('id,name').neq('status','archived').order('start_at'),
       s.from('workplaces').select('id,event_id,name,description,sort_order,is_active,events(name)').order('sort_order'),
-      s.from('event_members').select('event_id,user_id,profiles(full_name,approved,role)').in('event_role',['responsible_lead','admin']),
+      s.from('shifts').select('event_id,workplace_id,user_id,role_name,status').neq('status','cancelled').order('scheduled_start'),
+      s.from('profiles').select('id,full_name,role').eq('approved',true).order('full_name'),
+      s.from('responsible_assignments').select('workplace_id,user_id'),
     ])
     events=eventRows||[]
     workplaces=workplaceRows||[]
-    leads=(leadMemberships||[])
-      .filter(row=>row.profiles?.approved&&['responsible_lead','admin'].includes(row.profiles?.role||''))
-      .map(row=>({id:row.user_id,full_name:row.profiles?.full_name||null,event_id:row.event_id}))
-    for(const event of events){
-      if(!leads.some(person=>person.id===user.id&&person.event_id===event.id)){
-        leads.push({id:user.id,full_name:'Jij (Beheerder)',event_id:event.id})
-      }
-    }
+    const profileById=new Map((profileRows||[]).map(person=>[person.id,person]))
+    const seen=new Set<string>()
+    assignedCrew=(shiftRows||[]).flatMap(shift=>{
+      const person=profileById.get(shift.user_id)
+      const key=`${shift.workplace_id}:${shift.user_id}`
+      if(!person||seen.has(key))return []
+      seen.add(key)
+      return [{
+        id:shift.user_id,
+        full_name:person.full_name,
+        account_role:person.role,
+        event_id:shift.event_id,
+        workplace_id:shift.workplace_id,
+        role_name:shift.role_name,
+      }]
+    })
+    responsibleKeys=new Set((responsibleRows||[]).map(row=>`${row.workplace_id}:${row.user_id}`))
   }else{
     const [{data:ownShifts},{data:ownResponsible}]=await Promise.all([
       s.from('shifts').select('event_id,workplace_id').eq('user_id',user.id).neq('status','cancelled'),
@@ -106,14 +131,40 @@ export default async function Page(){
           </details>
         </AdminOnly>}
 
-        {isAdmin&&<AdminOnly><form action={assignResponsible} className="mt-3 flex gap-2">
-          <input type="hidden" name="workplace_id" value={workplace.id}/>
-          <select name="user_id" required className="flex-1 rounded-lg border bg-background p-2">
-            <option value="">Verantwoordelijke…</option>
-            {leads.filter(person=>person.event_id===workplace.event_id).map(person=><option key={person.id} value={person.id}>{person.full_name||'Naam ontbreekt'}</option>)}
-          </select>
-          <button className="rounded-lg border px-3">Toewijzen</button>
-        </form></AdminOnly>}
+        {isAdmin&&<AdminOnly>{(()=>{
+          const crew=assignedCrew.filter(person=>person.workplace_id===workplace.id)
+          return <div className="mt-3 space-y-3">
+            <section className="rounded-xl border p-3">
+              <p className="font-semibold">Toegewezen personeel</p>
+              {crew.length
+                ? <div className="mt-2 space-y-2">{crew.map(person=>{
+                    const responsible=responsibleKeys.has(`${workplace.id}:${person.id}`)
+                    return <div key={person.id} className="flex items-center justify-between gap-3 rounded-lg border p-2">
+                      <div className="min-w-0">
+                        <p className="truncate font-medium">{person.full_name||'Naam ontbreekt'}{person.id===user.id?' (jij)':''}</p>
+                        <p className="text-xs text-muted-foreground">{person.role_name}</p>
+                      </div>
+                      {responsible&&<span className="rounded-full border border-violet-500/50 px-2 py-1 text-xs font-bold">VERANTWOORDELIJKE</span>}
+                    </div>
+                  })}</div>
+                : <p className="mt-2 text-sm text-muted-foreground">Nog niemand heeft een dienst op deze werkplek. Wijs eerst via Evenementen een werkplek en dienst toe.</p>}
+            </section>
+
+            {crew.length>0&&<form action={assignResponsible} className="flex flex-col gap-2 sm:flex-row">
+              <input type="hidden" name="workplace_id" value={workplace.id}/>
+              <select name="user_id" required className="min-w-0 flex-1 rounded-lg border bg-background p-2">
+                <option value="">Kies toegewezen persoon…</option>
+                {crew.map(person=>{
+                  const responsible=responsibleKeys.has(`${workplace.id}:${person.id}`)
+                  return <option key={person.id} value={person.id} disabled={responsible}>
+                    {person.full_name||'Naam ontbreekt'}{person.id===user.id?' (jij)':''}{responsible?' — al verantwoordelijk':''}
+                  </option>
+                })}
+              </select>
+              <button className="rounded-lg border px-3 py-2 font-semibold">VERANTWOORDELIJKHEID TOEWIJZEN</button>
+            </form>}
+          </div>
+        })()}</AdminOnly>}
       </article>)}
     </div>
 

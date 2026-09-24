@@ -9,6 +9,7 @@ import {
 } from '@/components/crew/assignment-scope-fields'
 import { nlStatus } from '@/lib/ui-nl'
 import type { Tables } from '@/types/crew-database'
+import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,6 +28,7 @@ export default async function Page() {
     { data: activeEvents },
     { data: ownMemberships },
     { data: availabilityRows },
+    { data: openEvents },
   ] = await Promise.all([
     s.from('profiles').select('role').eq('id', user.id).single(),
     s.from('events').select('id,name').neq('status', 'archived').order('start_at'),
@@ -34,6 +36,7 @@ export default async function Page() {
     s.from('events').select('id').lte('start_at', 'now').gte('end_at', 'now'),
     s.from('event_members').select('event_id').eq('user_id', user.id),
     s.from('event_availability').select('event_id,user_id').eq('response', 'can'),
+    s.from('events').select('id').gte('end_at', 'now'),
   ])
 
   const isAdmin = profile?.role === 'admin'
@@ -41,6 +44,10 @@ export default async function Page() {
   const manager = isAdmin || isResponsible
 
   const activeEventIds = new Set((activeEvents || []).map(event => event.id))
+  const openEventIds = new Set((openEvents || []).map(event => event.id))
+  const hasOpenAssignedEvent = (ownMemberships || []).some(member => openEventIds.has(member.event_id))
+  if (!manager && !hasOpenAssignedEvent) redirect('/events')
+
   let visibleAssignments = data || []
   if (!manager) {
     visibleAssignments = visibleAssignments.filter(item => item.tasks && activeEventIds.has(item.tasks.event_id))
@@ -124,6 +131,8 @@ export default async function Page() {
       selectableEvents = []
     }
   }
+
+  if (isResponsible && !isAdmin && !selectableEvents.length) redirect('/events')
 
   return <main className="space-y-4 p-4 md:p-8">
     <div>

@@ -17,7 +17,6 @@ jobs:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
       NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
-      GEOAPIFY_API_KEY: ${{ secrets.GEOAPIFY_API_KEY }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
     steps:
@@ -32,6 +31,8 @@ jobs:
 
       - name: Validate required production secrets
         shell: bash
+        env:
+          GEOAPIFY_API_KEY: ${{ secrets.GEOAPIFY_API_KEY }}
         run: |
           set -euo pipefail
           for name in NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_ANON_KEY NEXT_PUBLIC_APP_URL GEOAPIFY_API_KEY CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID; do
@@ -73,6 +74,8 @@ jobs:
         run: npx wrangler deploy --dry-run
 
       - name: Configure Geoapify runtime secret
+        env:
+          GEOAPIFY_API_KEY: ${{ secrets.GEOAPIFY_API_KEY }}
         run: printf '%s' "$GEOAPIFY_API_KEY" | npx wrangler secret put GEOAPIFY_API_KEY
 
       - name: Deploy production Worker

@@ -19,6 +19,7 @@ Use `.env.example` as the authoritative template:
 | `NEXT_PUBLIC_SUPABASE_URL` | URL of the existing Uptilldawn Supabase project |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Active publishable key; variable name retained for compatibility |
 | `NEXT_PUBLIC_APP_URL` | Exact production HTTPS origin for auth email redirects |
+| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Browser-restricted Google Maps JavaScript API + Places API (New) key for event location/address suggestions |
 
 The active crew application does not require a service-role key. Never use a service-role/secret key in a `NEXT_PUBLIC_` variable. Build with the correct production values: public Next.js variables are embedded into the bundle. Configure the same values for the Worker runtime where applicable.
 
@@ -55,10 +56,11 @@ Configure these GitHub production-environment secrets before triggering it:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `NEXT_PUBLIC_APP_URL` — exact HTTPS production origin
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` — browser-restricted key with Maps JavaScript API + Places API (New)
 - `CLOUDFLARE_API_TOKEN` — scoped to the Worker deployment
 - `CLOUDFLARE_ACCOUNT_ID`
 
-The workflow runs lint, typecheck, tests, the OpenNext Cloudflare build and a Wrangler dry-run before the actual deployment. Do not place the Supabase service-role key in GitHub frontend/deployment variables; the active crew app does not require it.
+The workflow runs lint, typecheck, tests, the OpenNext Cloudflare build and a Wrangler dry-run before the actual deployment. Deployment is blocked when the Google Maps key is missing, because event location/address autocomplete is a required production feature. Do not place the Supabase service-role key in GitHub frontend/deployment variables; the active crew app does not require it.
 
 ## Database
 

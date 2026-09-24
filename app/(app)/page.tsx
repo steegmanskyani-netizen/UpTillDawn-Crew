@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { CalendarDays, Clock3, MapPin, AlertTriangle, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/crew-server'
 import { ManagerOnly } from '@/components/auth/manager-only'
+import { AssignedEventOnly } from '@/components/auth/assigned-event-only'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,11 +19,14 @@ export default async function Dashboard() {
   const { data: { user } } = await s.auth.getUser()
   if (!user) return null
 
-  const [profileResult, eventsResult, shiftsResult, incidentsResult] = await Promise.all([
-    s.from('profiles').select('full_name,approved').eq('id', user.id).single(),
-    s.from('events').select('id,name,venue,start_at,end_at,status').gte('end_at', new Date().toISOString()).order('start_at', { ascending: true }).limit(3),
+  const now = new Date().toISOString()
+  const [profileResult, eventsResult, shiftsResult, incidentsResult, membershipsResult, activeEventsResult] = await Promise.all([
+    s.from('profiles').select('full_name,approved,role').eq('id', user.id).single(),
+    s.from('events').select('id,name,venue,start_at,end_at,status').gte('end_at', now).order('start_at', { ascending: true }).limit(3),
     s.from('shifts').select('id,scheduled_start,scheduled_end,role_name,workplace_id,event_id').eq('user_id', user.id).order('scheduled_start', { ascending: true }).limit(3),
     s.from('incidents').select('id', { count: 'exact', head: true }).neq('status', 'resolved'),
+    s.from('event_members').select('event_id,event_role').eq('user_id', user.id),
+    s.from('events').select('id').lte('start_at', now).gte('end_at', now),
   ])
 
   const profile = profileResult.data
@@ -32,7 +36,16 @@ export default async function Dashboard() {
 
   const events = eventsResult.data || []
   const shifts = shiftsResult.data || []
-  const hasLoadError = Boolean(profileResult.error || eventsResult.error || shiftsResult.error || incidentsResult.error)
+  const memberships = membershipsResult.data || []
+  const activeEventIds = new Set((activeEventsResult.data || []).map(event => event.id))
+  const hasEventAssignment = memberships.length > 0
+  const hasActiveIncidentContext = profile?.role === 'admin'
+    ? activeEventIds.size > 0
+    : memberships.some(member => member.event_role === 'responsible_lead' && activeEventIds.has(member.event_id))
+  const hasLoadError = Boolean(
+    profileResult.error || eventsResult.error || shiftsResult.error || incidentsResult.error
+    || membershipsResult.error || activeEventsResult.error
+  )
 
   return <main className="space-y-7 p-4 md:p-8">
     <div>
@@ -43,13 +56,13 @@ export default async function Dashboard() {
     {hasLoadError && <p className="rounded-xl border border-amber-500/40 p-4">Een deel van het overzicht kon niet worden geladen.</p>}
     <section className="grid gap-4 md:grid-cols-3">
       <Card href="/events" icon={CalendarDays} title="Evenementen" value={events.length}/>
-      <Card href="/shifts" icon={Clock3} title="Mijn diensten" value={shifts.length}/>
-      <ManagerOnly><Card href="/incidents" icon={AlertTriangle} title="Open incidenten" value={incidentsResult.count ?? 0}/></ManagerOnly>
+      <AssignedEventOnly available={hasEventAssignment}><Card href="/shifts" icon={Clock3} title="Mijn diensten" value={shifts.length}/></AssignedEventOnly>
+      {hasActiveIncidentContext && <ManagerOnly><Card href="/incidents" icon={AlertTriangle} title="Open incidenten" value={incidentsResult.count ?? 0}/></ManagerOnly>}
     </section>
     <section>
       <h2 className="mb-3 text-lg font-bold">Komende evenementen</h2>
       <div className="grid gap-3">
-        {events.length ? events.map(event => <Link href="/events" key={event.id} className="flex items-center justify-between rounded-2xl border border-border bg-card p-4"><div><div className="font-bold">{event.name}</div><div className="flex gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4"/>{event.venue || 'Locatie nog niet ingesteld'}</div></div><ArrowRight className="h-5 w-5"/></Link>) : <div className="rounded-2xl border border-dashed p-8 text-center text-muted-foreground">Nog geen evenementen.</div>}
+        {events.length ? events.map(event => <Link href="/events" key={event.id} className="flex items-center justify-between rounded-2xl border border-border bg-card p-4"><div><div className="font-bold">{event.name}</div><div className="flex gap-2 text-sm text-muted-foreground"><MapPin className="h-4 w-4"/>{event.venue || 'Locatie nog niet ingesteld'}</div></div><ArrowRight className="h-5 w-5"/></Link>) : <div className="rounded-2xl border border-dashed p-8 text-center text-muted-foreground">Geen evenementen beschikbaar.</div>}
       </div>
     </section>
   </main>

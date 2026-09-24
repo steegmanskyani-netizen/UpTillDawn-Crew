@@ -4,18 +4,24 @@ import { readFile } from 'node:fs/promises'
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8')
 
-test('staff-facing release navigation is lifecycle-gated', async () => {
+test('role-driven release navigation uses saved conditions and ordering', async () => {
   const layout = await read('components/layout/app-layout.tsx')
   const sidebar = await read('components/layout/sidebar.tsx')
   const mobile = await read('components/layout/mobile-nav.tsx')
+  const editor = await read('components/layout/test-mode-editor.tsx')
 
-  assert.match(layout, /setShowWorkplaces\(hasOpenResponsibleEvent\)/)
-  assert.match(layout, /setShowIncidents\(false\)/)
-  assert.match(layout, /setShowTasks\(hasOpenMemberEvent\)/)
-  assert.match(layout, /setShowBriefings\(hasOpenMemberEvent\)/)
-  assert.match(sidebar, /i\.href === "\/workplaces"\) return showWorkplaces/)
-  assert.match(sidebar, /i\.href === "\/incidents"\) return showIncidents/)
-  assert.match(mobile, /i\.href==="\/incidents"\) return showIncidents/)
+  assert.match(layout, /from\("role_ui_rules"\)/)
+  assert.match(layout, /feature\("workplaces",context\.assignedWorkplaceRole\)/)
+  assert.match(layout, /feature\("tasks",context\.shiftActive\)/)
+  assert.match(layout, /feature\("incidents",context\.shiftActive\)/)
+  assert.match(sidebar, /featureOrder/)
+  assert.match(sidebar, /featureLabels/)
+  assert.match(mobile, /operationalItems/)
+  assert.doesNotMatch(mobile, /key:"incidents"/)
+  assert.match(editor, /TESTLAYOUT & ROLRECHTEN OPSLAAN/)
+  assert.match(editor, /draggable/)
+  assert.match(editor, /Zichtbaar/)
+  assert.match(editor, /Bruikbaar/)
 })
 
 test('staff cannot see manager creation controls in test mode', async () => {
@@ -43,23 +49,29 @@ test('future event availability and batch assignment are present', async () => {
   assert.match(actions, /export async function addAvailableEventMembers/)
 })
 
-test('task assignment supports multiple selected staff members', async () => {
+test('task assignment supports multiple selected staff members and starts with shift', async () => {
   const fields = await read('components/crew/assignment-scope-fields.tsx')
   const actions = await read('lib/actions/uptilldawn.ts')
+  const tasks = await read('app/(app)/tasks/page.tsx')
 
   assert.match(fields, /multiplePeople/)
   assert.match(fields, /type="checkbox" name="user_id"/)
   assert.match(actions, /fd\.getAll\('user_id'\)/)
   assert.match(actions, /for\(const target of rest\)/)
+  assert.match(tasks, /hasActiveShift/)
+  assert.match(tasks, /Taken zijn beschikbaar vanaf de start van je toegewezen shift\./)
 })
 
-test('open incidents are manager-only while staff keep urgent reporting', async () => {
+test('staff can see only own incidents while managers can manage active-shift incidents', async () => {
   const incidents = await read('app/(app)/incidents/page.tsx')
-  const dashboard = await read('app/(app)/page.tsx')
+  const layout = await read('components/layout/app-layout.tsx')
 
-  assert.match(incidents, /\{manager && <>/)
-  assert.match(incidents, /manager \? 'Incidenten' : 'Urgent melden'/)
-  assert.match(dashboard, /<ManagerOnly><Card href="\/incidents"/)
+  assert.match(incidents, /manager\?'Incidenten':'Urgent melden'/)
+  assert.match(incidents, /'Mijn incidenten'/)
+  assert.match(incidents, /incident\.reporter_id===user\.id\|\|incident\.user_id===user\.id/)
+  assert.match(incidents, /if\(!isAdmin&&!activeShifts\.length\)redirect\('\/events'\)/)
+  assert.match(layout, /profile\?\.role==="staff"\) query=query\.eq\("reporter_id",user\.id\)/)
+  assert.match(layout, /showUrgent=.*context\.shiftActive/)
 })
 
 test('current brand asset is used on public auth screens', async () => {
@@ -67,13 +79,13 @@ test('current brand asset is used on public auth screens', async () => {
     'app/(auth)/forgot-password/page.tsx',
     'app/(auth)/signup/page.tsx',
     'app/(auth)/verify-email/verify-email-client.tsx',
+    'app/(auth)/auth/reset-password/page.tsx',
   ]) {
     const text = await read(path)
     assert.match(text, /\/up-till-dawn-mark\.webp/)
     assert.doesNotMatch(text, /alt="Uptilldawn"/)
   }
 })
-
 
 test('dashboard follows event lifecycle visibility', async () => {
   const dashboard = await read('app/(app)/page.tsx')
@@ -82,31 +94,37 @@ test('dashboard follows event lifecycle visibility', async () => {
   assert.match(dashboard, /Geen evenementen beschikbaar\./)
 })
 
-test('responsible workplace navigation requires event assignment', async () => {
+test('workplace visibility requires specific shift or responsible assignment', async () => {
   const layout = await read('components/layout/app-layout.tsx')
-  const sidebar = await read('components/layout/sidebar.tsx')
   const page = await read('app/(app)/workplaces/page.tsx')
-  assert.match(layout, /setShowWorkplaces\(hasOpenResponsibleEvent\)/)
-  assert.match(sidebar, /i\.href === "\/workplaces"\) return showWorkplaces/)
-  assert.match(page, /event_role', 'responsible_lead'/)
+  const migration = await read('supabase/migrations/20260924180631_uptilldawn_role_layout_shift_chat_media.sql')
+
+  assert.match(layout, /assignedWorkplaceRole=\(shifts\|\|\[\]\)\.length>0\|\|\(responsibleAssignments\|\|\[\]\)\.length>0/)
+  assert.match(page, /responsible_assignments/)
+  assert.match(page, /shifts/)
+  assert.match(migration, /when 'assigned_workplace_role'/)
 })
 
-test('event page exposes explicit empty state', async () => {
+test('event page exposes Google-linked location editing and explicit empty state', async () => {
   const events = await read('app/(app)/events/page.tsx')
+  const places = await read('components/events/google-place-fields.tsx')
+  assert.match(events, /GooglePlaceFields/)
+  assert.match(events, /Alle informatie bewerken/)
+  assert.match(events, /DeleteEventButton/)
   assert.match(events, /Geen evenementen beschikbaar\./)
+  assert.match(places, /googleMapsURI/)
+  assert.match(places, /formattedAddress/)
 })
 
-
-test('event tools disappear after the assigned event ends', async () => {
+test('event-scoped tools stop after the event or shift window', async () => {
   const layout = await read('components/layout/app-layout.tsx')
-  assert.match(layout, /\.gte\("end_at", now\)/)
-  assert.match(layout, /hasOpenMemberEvent/)
-  assert.match(layout, /hasOpenResponsibleEvent/)
-  assert.match(layout, /setShowTasks\(hasOpenMemberEvent\)/)
-  assert.match(layout, /setShowBriefings\(hasOpenMemberEvent\)/)
-  assert.match(layout, /setShowWorkplaces\(hasOpenResponsibleEvent\)/)
-})
+  const migration = await read('supabase/migrations/20260924180631_uptilldawn_role_layout_shift_chat_media.sql')
 
+  assert.match(layout, /\.gte\("end_at",nowIso\)/)
+  assert.match(layout, /Date\.parse\(s\.scheduled_start\)<=now\.getTime\(\)&&Date\.parse\(s\.scheduled_end\)>=now\.getTime\(\)/)
+  assert.match(migration, /condition_key='shift_active'/)
+  assert.match(migration, /now\(\) between s\.scheduled_start and s\.scheduled_end/)
+})
 
 test('post-event app tools redirect back to events for non-admin roles', async () => {
   for (const path of [
@@ -121,9 +139,28 @@ test('post-event app tools redirect back to events for non-admin roles', async (
   }
 })
 
-
-test('work and pause requires an active assigned shift for staff', async () => {
+test('work and pause is visible from event start but actions require an active shift', async () => {
   const layout = await read('components/layout/app-layout.tsx')
-  assert.match(layout, /const activeShiftEvents = activeEventIds\.filter\(id => shiftEventIds\.has\(id\)\)/)
-  assert.match(layout, /setShowOperations\(activeShiftEvents\.length > 0\)/)
+  const operations = await read('app/(app)/operations/page.tsx')
+  const migration = await read('supabase/migrations/20260924181844_uptilldawn_event_start_work_nav_and_shift_enforcement.sql')
+
+  assert.match(layout, /operationalMode=context\.eventActive\|\|previewAll/)
+  assert.match(operations, /\.lte\('scheduled_start',now\)/)
+  assert.match(operations, /\.gte\('scheduled_end',now\)/)
+  assert.match(migration, /condition_key='event_active'/)
+  assert.match(migration, /Je dienst is nog niet gestart of is al afgelopen\./)
+})
+
+test('chat is restricted to organization and assigned event channels with button-only send', async () => {
+  const chat = await read('components/crew/chat-client.tsx')
+  const page = await read('app/(app)/chat/page.tsx')
+  const migration = await read('supabase/migrations/20260924180631_uptilldawn_role_layout_shift_chat_media.sql')
+
+  assert.match(page, /\.in\('kind',\['organization','event'\]\)/)
+  assert.doesNotMatch(page, /private/)
+  assert.match(chat, /Enter = nieuwe regel · verzenden gebeurt met de knop\./)
+  assert.doesNotMatch(chat, /onKeyDown/)
+  assert.match(chat, /cache/)
+  assert.match(migration, /now\(\) >= e\.start_at/)
+  assert.match(migration, /e\.end_at \+ interval '3 days'/)
 })

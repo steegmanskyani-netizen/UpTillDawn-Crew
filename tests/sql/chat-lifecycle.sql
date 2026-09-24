@@ -5,6 +5,7 @@ BEGIN;
 CREATE TEMP TABLE chat_ids(name text primary key,id uuid default gen_random_uuid());
 INSERT INTO chat_ids(name) VALUES
 ('staff'),('future'),('active'),('recent'),('expired');
+GRANT SELECT ON chat_ids TO authenticated;
 
 INSERT INTO auth.users(id,email)
 SELECT id,name||'@chat-release.test'

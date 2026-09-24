@@ -253,7 +253,7 @@ test('admin live personnel and running shift cards use digital clocks and workpl
   assert.match(admin, /AdminRunningShifts/)
   assert.match(admin, /responsibleKeys/)
   assert.match(timers, /localeCompare\(b\.name,'nl'\)/)
-  assert.match(timers, /b\.isResponsible-a\.isResponsible/)
+  assert.match(timers, /Number\(b\.isResponsible\)-Number\(a\.isResponsible\)/)
   assert.match(timers, /WERK/)
   assert.match(timers, /PAUZE/)
   assert.match(timers, /Startuur/)

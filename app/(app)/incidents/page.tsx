@@ -61,7 +61,7 @@ export default async function Page(){
   }))
 
   return <main className="mx-auto max-w-4xl space-y-5 p-4 pb-28 md:p-8">
-    <h1 className="text-3xl font-black">{manager?'Incidenten':'Urgent melden'}</h1>
+    <h1 className="text-3xl font-black">{manager?'Help':'Urgent melden'}</h1>
     {!isAdmin&&<IncidentForm
       userId={user.id}
       events={(events||[]).filter(event=>activeShifts.some(shift=>shift.event_id===event.id))}
@@ -70,11 +70,11 @@ export default async function Page(){
       defaultWorkplaceId={activeShift?.workplace_id}
     />}
 
-    <h2 className="text-xl font-bold">{manager?'Open incidenten':'Mijn incidenten'}</h2>
+    <h2 className="text-xl font-bold">{manager?'Open help oproepen':'Mijn help oproepen'}</h2>
     {error
       ? <p>Meldingen konden niet worden geladen.</p>
       : !visibleIncidents.length
-        ? <p className="text-muted-foreground">Geen incidenten.</p>
+        ? <p className="text-muted-foreground">Geen help oproepen.</p>
         : visibleIncidents.map(i=><article key={i.id} className="rounded-xl border p-4">
             <div className="flex items-start justify-between gap-3">
               <p className="whitespace-pre-wrap">{i.message}</p>

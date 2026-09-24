@@ -94,13 +94,13 @@ export default async function Page(){
  }).sort((a,b)=>a.name.localeCompare(b.name,'nl'))
 
  return <main className="mx-auto max-w-7xl space-y-7 p-4 pb-28 md:p-8">
-  <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold tracking-[.2em] text-violet-400">UP TILL DAWN BEHEER</p><h1 className="text-3xl font-black">Operationeel overzicht</h1><p className="text-muted-foreground">Actuele serverstatus voor personeel, goedkeuringen, incidenten, taken en synchronisatie.</p></div><div className="flex gap-2"><Link href="/admin/time-records" className="rounded-xl border px-4 py-3">Tijdcorrecties</Link></div></div>
+  <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold tracking-[.2em] text-violet-400">UP TILL DAWN BEHEER</p><h1 className="text-3xl font-black">Operationeel overzicht</h1><p className="text-muted-foreground">Actuele serverstatus voor personeel, goedkeuringen, help oproepen, taken en synchronisatie.</p></div><div className="flex gap-2"><Link href="/admin/time-records" className="rounded-xl border px-4 py-3">Tijdcorrecties</Link></div></div>
 
   <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
    <Stat href="/events" label="Actieve evenementen" value={activeEvents.length} detail={String(eventRows.length)+' niet gearchiveerd'}/>
    <Stat href="/operations" label="Aan het werk" value={sessionRows.length} detail={String(breakRows.length)+' op pauze'}/>
    <Stat href="/operations" label="Wachtende goedkeuringen" value={inRows.length+outRows.length} detail={String(inRows.length)+' inklokverzoek · '+String(outRows.length)+' uitklokverzoek'}/>
-   <Stat href="/incidents" label="Open incidenten" value={incidentRows.length}/>
+   <Stat href="/incidents" label="Open help oproepen" value={incidentRows.length}/>
    <Stat href="/operations" label="Ontbrekende inklokacties" value={missing.length} detail="Dienst actief of binnen 60 min"/>
    <Stat href="/tasks" label="Open taaktoewijzingen" value={assignmentRows.length}/>
    <Stat href="/sync" label="Serversynchronisatieproblemen" value={syncRows.length}/>
@@ -121,7 +121,7 @@ export default async function Page(){
   </section>
 
   <section className="grid gap-5 lg:grid-cols-2">
-   <div className="space-y-3 rounded-2xl border p-4"><div className="flex items-center justify-between"><h2 className="text-xl font-bold">Open incidenten</h2><Link href="/incidents" className="text-sm underline">Alles bekijken</Link></div>{!incidentRows.length&&<p className="text-muted-foreground">Geen open incidenten.</p>}{incidentRows.slice(0,6).map(x=><article key={x.id} className="rounded-xl border p-3"><p className="font-semibold">{x.message}</p><p className="text-xs text-muted-foreground">{eventMap.get(x.event_id||'')?.name||'Evenement'} · {new Date(x.created_at).toLocaleString('nl-BE')} · {nlStatus(x.status)}</p></article>)}</div>
+   <div className="space-y-3 rounded-2xl border p-4"><div className="flex items-center justify-between"><h2 className="text-xl font-bold">Open help oproepen</h2><Link href="/incidents" className="text-sm underline">Alles bekijken</Link></div>{!incidentRows.length&&<p className="text-muted-foreground">Geen open help oproepen.</p>}{incidentRows.slice(0,6).map(x=><article key={x.id} className="rounded-xl border p-3"><p className="font-semibold">{x.message}</p><p className="text-xs text-muted-foreground">{eventMap.get(x.event_id||'')?.name||'Evenement'} · {new Date(x.created_at).toLocaleString('nl-BE')} · {nlStatus(x.status)}</p></article>)}</div>
    <div className="space-y-3 rounded-2xl border p-4">
     <div className="flex items-center justify-between gap-3"><h2 className="text-xl font-bold">Lopende diensten & pauzes</h2><span className="text-sm text-muted-foreground">{activeShiftRows.length} lopend</span></div>
     <AdminRunningShifts shifts={activeShiftRows}/>

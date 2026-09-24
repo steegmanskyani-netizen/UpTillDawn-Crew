@@ -29,7 +29,7 @@ test('role-driven release navigation uses saved conditions and ordering', async 
   assert.match(layout, /from\("role_ui_rules"\)/)
   assert.match(layout, /feature\("workplaces",Boolean\(isAdmin&&!testMode\)\|\|context\.assignedWorkplaceRole\)/)
   assert.match(layout, /feature\("tasks",Boolean\(isAdmin&&!testMode\)\|\|context\.shiftActive\)/)
-  assert.match(layout, /feature\("incidents",context\.shiftActive\)/)
+  assert.match(layout, /feature\("incidents",isAdmin\?true:context\.shiftActive\)/)
   assert.match(sidebar, /featureOrder/)
   assert.match(sidebar, /featureLabels/)
   assert.match(mobile, /operationalItems/)
@@ -89,8 +89,8 @@ test('staff can see only own incidents while managers can manage active-shift in
   const incidents = await read('app/(app)/incidents/page.tsx')
   const layout = await read('components/layout/app-layout.tsx')
 
-  assert.match(incidents, /manager\?'Incidenten':'Urgent melden'/)
-  assert.match(incidents, /'Mijn incidenten'/)
+  assert.match(incidents, /manager\?'Help':'Urgent melden'/)
+  assert.match(incidents, /'Mijn help oproepen'/)
   assert.match(incidents, /incident\.reporter_id===user\.id\|\|incident\.user_id===user\.id/)
   assert.match(incidents, /if\(!isAdmin&&!activeShifts\.length\)redirect\('\/events'\)/)
   assert.match(layout, /profile\?\.role==="staff"\) query=query\.eq\("reporter_id",user\.id\)/)
@@ -300,4 +300,19 @@ test('work hours navigation labels are role-specific', async () => {
   assert.match(sidebar, /roles: \["employee","responsible_lead","admin"\]/)
   assert.match(sidebar, /i\.key==="operations"&&isAdmin\?"Werkuren":i\.label/)
   assert.match(layout, /showOperations=feature\("operations",isAdmin\?true:context\.shiftActive\)/)
+})
+
+
+test('admin help navigation and help calls are accessible and consistently named', async () => {
+  const layout = await read('components/layout/app-layout.tsx')
+  const sidebar = await read('components/layout/sidebar.tsx')
+  const admin = await read('app/(app)/admin/page.tsx')
+  const incidents = await read('app/(app)/incidents/page.tsx')
+
+  assert.match(layout, /showIncidents=feature\("incidents",isAdmin\?true:context\.shiftActive\)/)
+  assert.match(sidebar, /i\.key==="incidents"&&isAdmin\?"Help":i\.label/)
+  assert.match(admin, /<Stat href="\/incidents" label="Open help oproepen"/)
+  assert.match(admin, /<h2 className="text-xl font-bold">Open help oproepen<\/h2>/)
+  assert.match(incidents, /manager\?'Help':'Urgent melden'/)
+  assert.match(incidents, /manager\?'Open help oproepen':'Mijn help oproepen'/)
 })

@@ -129,7 +129,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const showOperations=feature("operations",isAdmin?true:context.shiftActive)
   const showWorkplaces=feature("workplaces",Boolean(isAdmin&&!testMode)||context.assignedWorkplaceRole)
   const showTasks=feature("tasks",Boolean(isAdmin&&!testMode)||context.shiftActive)
-  const showIncidents=isAdmin?false:feature("incidents",context.shiftActive)
+  const showIncidents=feature("incidents",isAdmin?true:context.shiftActive)
   const showChat=feature("chat",true)
   const showCrew=feature("crew",true)
   const showExports=feature("exports",Boolean(isAdmin&&!testMode))

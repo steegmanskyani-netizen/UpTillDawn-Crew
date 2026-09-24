@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { DateInput } from '@/components/crew/date-input'
 import { AdminOnly } from '@/components/auth/admin-only'
-import { GooglePlaceFields } from '@/components/events/google-place-fields'
+import { GeoapifyPlaceFields } from '@/components/events/geoapify-place-fields'
 import { DeleteEventButton } from '@/components/events/delete-event-button'
 import { nlStatus } from '@/lib/ui-nl'
 import { createClient } from '@/lib/supabase/crew-server'
@@ -50,7 +50,7 @@ export default async function Page(){
 
     {user.isAdmin&&<AdminOnly><form action={createEvent} className="grid gap-3 rounded-2xl border p-4">
       <input name="name" required maxLength={200} placeholder="Evenementnaam" className={input}/>
-      <GooglePlaceFields/>
+      <GeoapifyPlaceFields/>
       <div className="grid gap-3 md:grid-cols-3">
         <DateInput name="start_at"/>
         <DateInput name="end_at"/>
@@ -120,7 +120,7 @@ export default async function Page(){
               <form action={updateEvent} className="mt-3 grid gap-3">
                 <input type="hidden" name="event_id" value={event.id}/>
                 <input aria-label="Evenementnaam" name="name" required maxLength={200} defaultValue={event.name} className={input}/>
-                <GooglePlaceFields defaultVenue={event.venue} defaultAddress={event.address} defaultLatitude={event.latitude} defaultLongitude={event.longitude}/>
+                <GeoapifyPlaceFields defaultVenue={event.venue} defaultAddress={event.address} defaultLatitude={event.latitude} defaultLongitude={event.longitude}/>
                 <div className="grid gap-3 md:grid-cols-3">
                   <DateInput name="start_at" initial={event.start_at}/>
                   <DateInput name="end_at" initial={event.end_at}/>

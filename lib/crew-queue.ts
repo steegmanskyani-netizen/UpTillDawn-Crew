@@ -13,13 +13,22 @@ export type QueuedOperation = {
   error?: string
 }
 
+type SupportedMediaMime =
+  | 'image/jpeg'
+  | 'image/png'
+  | 'image/webp'
+  | 'video/mp4'
+  | 'video/webm'
+  | 'video/quicktime'
+
 export type QueuedUpload = {
   id: string
   userId: string
+  // Legacy kind names are intentionally retained so existing IndexedDB queues keep working.
   kind: 'incident_photo' | 'chat_photo'
   payload: Record<string, Json>
   storagePath: string
-  mimeType: 'image/jpeg' | 'image/png' | 'image/webp'
+  mimeType: SupportedMediaMime
   blob: Blob
   createdAt: number
   attempts: number
@@ -123,13 +132,33 @@ export async function discardQueuedUpload(userId: string, id: string) {
   return true
 }
 
-function imageType(file: File): QueuedUpload['mimeType'] {
-  if (file.type === 'image/jpeg' || file.type === 'image/png' || file.type === 'image/webp') return file.type
-  throw new Error('Gebruik een JPG-, PNG- of WEBP-foto.')
+function mediaType(file: File): SupportedMediaMime {
+  const supported: SupportedMediaMime[] = [
+    'image/jpeg','image/png','image/webp',
+    'video/mp4','video/webm','video/quicktime',
+  ]
+  if (supported.includes(file.type as SupportedMediaMime)) return file.type as SupportedMediaMime
+  throw new Error('Gebruik een JPG-, PNG-, WEBP-, MP4-, WEBM- of MOV-bestand.')
 }
 
-function extension(mime: QueuedUpload['mimeType']) {
-  return mime === 'image/jpeg' ? 'jpg' : mime === 'image/png' ? 'png' : 'webp'
+function validateMedia(file: File) {
+  const mime = mediaType(file)
+  const limit = mime.startsWith('video/') ? 50 * 1024 * 1024 : 10 * 1024 * 1024
+  if (file.size > limit) {
+    throw new Error(mime.startsWith('video/')
+      ? 'De video mag maximaal 50 MB zijn.'
+      : 'De foto mag maximaal 10 MB zijn.')
+  }
+  return mime
+}
+
+function extension(mime: SupportedMediaMime) {
+  if (mime === 'image/jpeg') return 'jpg'
+  if (mime === 'image/png') return 'png'
+  if (mime === 'image/webp') return 'webp'
+  if (mime === 'video/mp4') return 'mp4'
+  if (mime === 'video/webm') return 'webm'
+  return 'mov'
 }
 
 async function ensureUploaded(upload: QueuedUpload) {
@@ -213,7 +242,7 @@ async function synchronizeUploads(userId: string) {
       await writeUpload({
         ...upload,
         attempts: upload.attempts + 1,
-        error: 'Foto niet verwerkt. Het bestand blijft lokaal bewaard en wordt opnieuw geprobeerd.',
+        error: 'Media niet verwerkt. Het bestand blijft lokaal bewaard en wordt opnieuw geprobeerd.',
       })
     }
   }
@@ -291,8 +320,7 @@ export async function enqueueIncidentPhoto(
   payload: Record<string, Json>,
   file: File,
 ) {
-  if (file.size > 10 * 1024 * 1024) throw new Error('De incidentfoto mag maximaal 10 MB zijn.')
-  const mimeType = imageType(file)
+  const mimeType = validateMedia(file)
   const id = crypto.randomUUID()
   const upload: QueuedUpload = {
     id,
@@ -320,8 +348,7 @@ export async function enqueueChatPhoto(
   body: string,
   file: File,
 ) {
-  if (file.size > 10 * 1024 * 1024) throw new Error('De chatfoto mag maximaal 10 MB zijn.')
-  const mimeType = imageType(file)
+  const mimeType = validateMedia(file)
   const id = crypto.randomUUID()
   const upload: QueuedUpload = {
     id,

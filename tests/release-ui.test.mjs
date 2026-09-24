@@ -79,7 +79,7 @@ test('current brand asset is used on public auth screens', async () => {
     'app/(auth)/forgot-password/page.tsx',
     'app/(auth)/signup/page.tsx',
     'app/(auth)/verify-email/verify-email-client.tsx',
-    'app/(auth)/auth/reset-password/page.tsx',
+    'app/auth/reset-password/page.tsx',
   ]) {
     const text = await read(path)
     assert.match(text, /\/up-till-dawn-mark\.webp/)

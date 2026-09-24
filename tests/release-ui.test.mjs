@@ -67,9 +67,9 @@ test('future event availability and batch assignment are present', async () => {
   assert.ok(events.includes('>IK KAN</button>'))
   assert.ok(events.includes('>IK KAN NIET</button>'))
   assert.match(events, /Mensen die kunnen/)
-  assert.match(events, /action=\{addAvailableEventMembers\}/)
+  assert.match(events, /action=\{assignAvailableCrewShift\}/)
   assert.match(actions, /export async function setEventAvailability/)
-  assert.match(actions, /export async function addAvailableEventMembers/)
+  assert.match(actions, /export async function assignAvailableCrewShift/)
 })
 
 test('task assignment supports multiple selected staff members and starts with shift', async () => {

@@ -1,6 +1,6 @@
 "use client"
 
-import { FormEvent, useEffect, useState } from "react"
+import { FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
 import { verifyAdminSettingsCode } from "@/lib/actions/auth"
 import { useAuth, type UiRole } from "@/lib/providers"
@@ -27,14 +27,6 @@ export function AdminEditControls() {
   const [busy,setBusy] = useState(false)
   const [message,setMessage] = useState("")
 
-  useEffect(() => {
-    if (!realIsAdmin) {
-      setUnlocked(false)
-      return
-    }
-    setUnlocked(window.sessionStorage.getItem("uptilldawn-admin-settings-unlocked") === "1")
-  }, [realIsAdmin])
-
   if (!realIsAdmin) return null
 
   async function unlock(event: FormEvent<HTMLFormElement>) {
@@ -47,7 +39,6 @@ export function AdminEditControls() {
         setMessage(result.error || "Onjuiste code.")
         return
       }
-      window.sessionStorage.setItem("uptilldawn-admin-settings-unlocked", "1")
       setUnlocked(true)
       setCode("")
     } finally {

@@ -220,11 +220,11 @@ test('responsible workplace access is read-only and own start approval requires 
 })
 
 
-test('admin approvals remain accessible without restoring admin work-pause navigation', async () => {
+test('admin approvals and work-hours navigation remain accessible', async () => {
   const layout = await read('components/layout/app-layout.tsx')
   const admin = await read('app/(app)/admin/page.tsx')
   assert.match(layout, /adminOperationsRoute=Boolean\(isAdmin&&!testMode&&pathname\.startsWith\("\/operations"\)\)/)
-  assert.match(layout, /const showOperations=isAdmin\?false:/)
+  assert.match(layout, /showOperations=feature\("operations",isAdmin\?true:context\.shiftActive\)/)
   assert.match(admin, /Goedkeuringen openen/)
   assert.match(admin, /Lopende diensten & pauzes/)
   assert.doesNotMatch(admin, /Snelle beheerlinks/)

@@ -18,6 +18,7 @@ import {
   type AssignmentWorkplace,
 } from '@/components/crew/assignment-scope-fields'
 import type { Tables } from '@/types/crew-database'
+import { redirect } from 'next/navigation'
 
 function PhotoInput() {
   return <label className="grid gap-1 text-sm">
@@ -81,6 +82,9 @@ export default async function Page() {
 
   const readableEventIds = new Set((eventWindows || []).map(event => event.id))
   const assignedEventIds = new Set((ownMemberships || []).map(row => row.event_id))
+  const hasOpenAssignedEvent = [...assignedEventIds].some(eventId => readableEventIds.has(eventId))
+  if (!isAdmin && !hasOpenAssignedEvent) redirect('/events')
+
   const staffCanReadBriefing = (briefing: Tables<'briefings'>) =>
     assignedEventIds.has(briefing.event_id) && readableEventIds.has(briefing.event_id)
   const staffCanReadInstruction = (instruction: Tables<'personal_instructions'>) =>
@@ -192,7 +196,7 @@ export default async function Page() {
     <div>
       <h1 className="text-3xl font-black">Instructies</h1>
       {isResponsible && <p className="text-sm text-muted-foreground">Je kunt instructies voorbereiden voor evenementen waaraan je als verantwoordelijke bent toegewezen.</p>}
-      <StaffUnavailableMessage available={Boolean(assignedEventIds.size)}>
+      <StaffUnavailableMessage available={hasOpenAssignedEvent}>
         <p className="mt-3 rounded-xl border p-4 text-muted-foreground">Instructies worden zichtbaar zodra je aan een evenement bent toegevoegd.</p>
       </StaffUnavailableMessage>
     </div>

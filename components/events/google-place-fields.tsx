@@ -55,8 +55,8 @@ export function GooglePlaceFields({
     const googleMaps=(window as GoogleMapsWindow).google?.maps
     if(!googleMaps)return
 
-    async function initialize(){
-      const library=await googleMaps.importLibrary("places")
+    async function initialize(maps: NonNullable<GoogleMapsWindow["google"]>["maps"]){
+      const library=await maps.importLibrary("places")
       if(cancelled)return
       const Autocomplete=library.PlaceAutocompleteElement
 
@@ -94,7 +94,7 @@ export function GooglePlaceFields({
       venueWidget.current=bind(venueHost.current!,venue,"Zoek locatie via Google Maps","venue")
       addressWidget.current=bind(addressHost.current!,address,"Zoek adres via Google Maps","address")
     }
-    void initialize()
+    void initialize(googleMaps)
     return()=>{cancelled=true}
   },[address,apiKey,ready,venue])
 

@@ -7,6 +7,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/crew-server'
 
 function extractName(email: string): string {
@@ -283,12 +284,23 @@ export async function getCurrentUser() {
         .eq('id', user.id)
         .single()
     if (error || !profile || !profile.approved) return null
-    const roles = [profile.role === 'staff' ? 'employee' : profile.role]
+    const realRole = profile.role
+    const cookieStore = await cookies()
+    const testMode = realRole === 'admin' && cookieStore.get('uptilldawn-admin-test-mode')?.value === '1'
+    const requestedTestRole = cookieStore.get('uptilldawn-admin-test-role')?.value
+    const effectiveRole = testMode
+        ? requestedTestRole === 'responsible_lead' ? 'responsible_lead' : 'staff'
+        : realRole
+    const roles = [effectiveRole === 'staff' ? 'employee' : effectiveRole]
     return {
         ...profile,
+        role: effectiveRole,
+        realRole,
         id: user.id,
         email: user.email ?? '',
         roles,
-        isAdmin: profile.role === 'admin',
+        isAdmin: realRole === 'admin' && !testMode,
+        realIsAdmin: realRole === 'admin',
+        isTestMode: testMode,
     }
 }

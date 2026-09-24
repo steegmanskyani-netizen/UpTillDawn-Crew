@@ -117,8 +117,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const setTestRole = (role: TestRole) => {
     if (!realIsAdmin || !testMode) return
-    setTestRoleState(role || "employee")
-    window.sessionStorage.setItem("uptilldawn-admin-test-role", role || "employee")
+    const next = role || "employee"
+    setTestRoleState(next)
+    window.sessionStorage.setItem("uptilldawn-admin-test-role", next)
+    document.cookie = `uptilldawn-admin-test-role=${next}; path=/; SameSite=Lax`
   }
 
   const setTestMode = (active: boolean) => {
@@ -129,10 +131,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setTestRoleState(role)
       window.sessionStorage.setItem("uptilldawn-admin-test-mode", "1")
       window.sessionStorage.setItem("uptilldawn-admin-test-role", role)
+      document.cookie = "uptilldawn-admin-test-mode=1; path=/; SameSite=Lax"
+      document.cookie = `uptilldawn-admin-test-role=${role}; path=/; SameSite=Lax`
     } else {
       setTestRoleState(null)
       window.sessionStorage.removeItem("uptilldawn-admin-test-mode")
       window.sessionStorage.removeItem("uptilldawn-admin-test-role")
+      document.cookie = "uptilldawn-admin-test-mode=; path=/; Max-Age=0; SameSite=Lax"
+      document.cookie = "uptilldawn-admin-test-role=; path=/; Max-Age=0; SameSite=Lax"
     }
   }
 

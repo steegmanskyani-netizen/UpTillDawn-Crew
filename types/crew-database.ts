@@ -1777,7 +1777,7 @@ export type Database = {
       }
       upt_audit_export: { Args: never; Returns: undefined }
       upt_can_access_workplace: {
-        Args: { p_event: string; p_workplace: string }
+        Args: { p_event: string; p_workplace: string | null }
         Returns: boolean
       }
       upt_can_read_channel: { Args: { p_channel: string }; Returns: boolean }

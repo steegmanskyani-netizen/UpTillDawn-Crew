@@ -134,8 +134,21 @@ export async function POST(request:Request){
   })
 
   if(!openAiResponse.ok){
-    console.error("[Edit assistant] OpenAI request failed",{status:openAiResponse.status})
-    return Response.json({error:"ChatGPT kon de aanvraag niet verwerken."},{status:502})
+    const failure=await openAiResponse.json().catch(()=>null) as {
+      error?:{code?:string|null;type?:string|null;message?:string|null}
+    } | null
+    const code=failure?.error?.code||failure?.error?.type||null
+    console.error("[Edit assistant] OpenAI request failed",{status:openAiResponse.status,code})
+    if(openAiResponse.status===429){
+      const billingCodes=new Set(["insufficient_quota","credit_balance_exhausted","billing_hard_limit_reached"])
+      return Response.json({
+        error:billingCodes.has(code||"")
+          ?"OpenAI API-tegoed is niet actief of is opgebruikt. Voeg API-billing/credits toe aan het OpenAI Platform-account."
+          :"OpenAI heeft de aanvraag tijdelijk begrensd (rate limit). Probeer zo meteen opnieuw.",
+        code,
+      },{status:429})
+    }
+    return Response.json({error:"ChatGPT kon de aanvraag niet verwerken.",code},{status:502})
   }
 
   const raw=await openAiResponse.json()

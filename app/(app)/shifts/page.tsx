@@ -15,7 +15,7 @@ export default async function Page() {
   const { data: { user } } = await s.auth.getUser()
   if (!user) return null
 
-  const [{ data: profile }, { data: shifts, error: shiftsError }, { data: activeEvents }, { data: memberships }, { data: openEvents }] = await Promise.all([
+  const [{ data: profile }, { data: shifts, error: shiftsError }, { data: memberships }, { data: openEvents }] = await Promise.all([
     s.from('profiles').select('role').eq('id', user.id).single(),
     s.from('shifts').select('*,workplaces(name),events(name)').order('scheduled_start'),
     s.from('event_members').select('event_id').eq('user_id', user.id),

@@ -389,7 +389,7 @@ test('edit mode contains role tabs, exit control and owner-only ChatGPT app edit
   assert.match(route, /process\.env\.OPENAI_API_KEY/)
   assert.match(route, /https:\/\/api\.openai\.com\/v1\/responses/)
   assert.match(route, /json_schema/)
-  assert.match(route, /gpt-6-astra/)
+  assert.match(route, /gpt-5.6/)
   assert.match(env, /OPENAI_API_KEY=/)
   assert.doesNotMatch(editor, /OPENAI_API_KEY/)
 })

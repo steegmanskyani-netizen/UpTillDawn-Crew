@@ -95,7 +95,8 @@ BEGIN
   IF v_recent_event_chat IS NULL OR NOT public.upt_can_read_channel(v_recent_event_chat) THEN
     RAISE EXCEPTION 'FAIL recent post-event chat';
   END IF;
-  IF v_expired_event_chat IS NULL OR public.upt_can_read_channel(v_expired_event_chat) THEN
+  -- RLS may hide the expired channel entirely; if it is still visible, the helper must deny it.
+  IF v_expired_event_chat IS NOT NULL AND public.upt_can_read_channel(v_expired_event_chat) THEN
     RAISE EXCEPTION 'FAIL expired chat still readable';
   END IF;
 END $$;

@@ -106,3 +106,17 @@ test('event tools disappear after the assigned event ends', async () => {
   assert.match(layout, /setShowBriefings\(hasOpenMemberEvent\)/)
   assert.match(layout, /setShowWorkplaces\(hasOpenResponsibleEvent\)/)
 })
+
+
+test('post-event app tools redirect back to events for non-admin roles', async () => {
+  for (const path of [
+    'app/(app)/tasks/page.tsx',
+    'app/(app)/briefings/page.tsx',
+    'app/(app)/shifts/page.tsx',
+    'app/(app)/operations/page.tsx',
+    'app/(app)/incidents/page.tsx',
+  ]) {
+    const text = await read(path)
+    assert.match(text, /redirect\('\/events'\)/, path)
+  }
+})

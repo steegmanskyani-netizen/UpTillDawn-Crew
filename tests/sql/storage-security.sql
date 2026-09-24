@@ -110,13 +110,13 @@ SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_storage_ids 
 SET LOCAL ROLE authenticated;
 DO $$
 BEGIN
- IF (SELECT count(*) FROM storage.objects WHERE bucket_id='profile-photos') <> 1
+ IF (SELECT count(*) FROM storage.objects WHERE bucket_id='profile-photos' AND split_part(name,'/',1)=(SELECT id::text FROM upt_storage_ids WHERE name='staff')) <> 1
  THEN RAISE EXCEPTION 'FAIL approved crew profile-photo read'; END IF;
- IF (SELECT count(*) FROM storage.objects WHERE bucket_id='checkin-selfies') <> 0
+ IF (SELECT count(*) FROM storage.objects WHERE bucket_id='checkin-selfies' AND split_part(name,'/',1)=(SELECT id::text FROM upt_storage_ids WHERE name='staff')) <> 0
  THEN RAISE EXCEPTION 'FAIL unrelated check-in selfie isolation'; END IF;
- IF (SELECT count(*) FROM storage.objects WHERE bucket_id='incident-photos') <> 0
+ IF (SELECT count(*) FROM storage.objects WHERE bucket_id='incident-photos' AND split_part(name,'/',1)=(SELECT id::text FROM upt_storage_ids WHERE name='staff')) <> 0
  THEN RAISE EXCEPTION 'FAIL unrelated incident photo isolation'; END IF;
- IF (SELECT count(*) FROM storage.objects WHERE bucket_id='chat-attachments') <> 1
+ IF (SELECT count(*) FROM storage.objects WHERE bucket_id='chat-attachments' AND split_part(name,'/',1)=(SELECT id::text FROM upt_storage_ids WHERE name='staff')) <> 1
  THEN RAISE EXCEPTION 'FAIL private-chat attachment membership read'; END IF;
 END $$;
 RESET ROLE;
@@ -127,11 +127,11 @@ SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_storage_ids 
 SET LOCAL ROLE authenticated;
 DO $$
 BEGIN
- IF (SELECT count(*) FROM storage.objects WHERE bucket_id='checkin-selfies') <> 1
+ IF (SELECT count(*) FROM storage.objects WHERE bucket_id='checkin-selfies' AND split_part(name,'/',1)=(SELECT id::text FROM upt_storage_ids WHERE name='staff')) <> 1
  THEN RAISE EXCEPTION 'FAIL responsible selfie access'; END IF;
- IF (SELECT count(*) FROM storage.objects WHERE bucket_id='incident-photos') <> 1
+ IF (SELECT count(*) FROM storage.objects WHERE bucket_id='incident-photos' AND split_part(name,'/',1)=(SELECT id::text FROM upt_storage_ids WHERE name='staff')) <> 1
  THEN RAISE EXCEPTION 'FAIL responsible incident-photo access'; END IF;
- IF (SELECT count(*) FROM storage.objects WHERE bucket_id='chat-attachments') <> 0
+ IF (SELECT count(*) FROM storage.objects WHERE bucket_id='chat-attachments' AND split_part(name,'/',1)=(SELECT id::text FROM upt_storage_ids WHERE name='staff')) <> 0
  THEN RAISE EXCEPTION 'FAIL responsible private-chat isolation'; END IF;
 END $$;
 RESET ROLE;
@@ -141,7 +141,7 @@ SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_storage_ids 
 SET LOCAL ROLE authenticated;
 DO $$
 BEGIN
- IF (SELECT count(*) FROM storage.objects WHERE bucket_id IN ('profile-photos','checkin-selfies','incident-photos','chat-attachments')) <> 0
+ IF (SELECT count(*) FROM storage.objects WHERE bucket_id IN ('profile-photos','checkin-selfies','incident-photos','chat-attachments') AND split_part(name,'/',1)=(SELECT id::text FROM upt_storage_ids WHERE name='staff')) <> 0
  THEN RAISE EXCEPTION 'FAIL unapproved storage read'; END IF;
 END $$;
 RESET ROLE;
@@ -168,7 +168,7 @@ SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_storage_ids 
 SET LOCAL ROLE authenticated;
 DO $$
 BEGIN
- IF (SELECT count(*) FROM storage.objects WHERE bucket_id IN ('profile-photos','checkin-selfies','incident-photos','chat-attachments')) <> 4
+ IF (SELECT count(*) FROM storage.objects WHERE bucket_id IN ('profile-photos','checkin-selfies','incident-photos','chat-attachments') AND split_part(name,'/',1)=(SELECT id::text FROM upt_storage_ids WHERE name='staff')) <> 4
  THEN RAISE EXCEPTION 'FAIL owner storage read'; END IF;
 END $$;
 RESET ROLE;
@@ -177,7 +177,7 @@ SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_storage_ids 
 SET LOCAL ROLE authenticated;
 DO $$
 BEGIN
- IF (SELECT count(*) FROM storage.objects WHERE bucket_id IN ('profile-photos','checkin-selfies','incident-photos','chat-attachments')) <> 4
+ IF (SELECT count(*) FROM storage.objects WHERE bucket_id IN ('profile-photos','checkin-selfies','incident-photos','chat-attachments') AND split_part(name,'/',1)=(SELECT id::text FROM upt_storage_ids WHERE name='staff')) <> 4
  THEN RAISE EXCEPTION 'FAIL admin storage read'; END IF;
 END $$;
 RESET ROLE;

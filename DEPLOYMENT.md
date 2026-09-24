@@ -19,9 +19,9 @@ Use `.env.example` as the authoritative template:
 | `NEXT_PUBLIC_SUPABASE_URL` | URL of the existing Uptilldawn Supabase project |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Active publishable key; variable name retained for compatibility |
 | `NEXT_PUBLIC_APP_URL` | Exact production HTTPS origin for auth email redirects |
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Browser-restricted Google Maps JavaScript API + Places API (New) key for event location/address suggestions |
+| `GEOAPIFY_API_KEY` | Server-side Geoapify key for event location/address autocomplete and coordinate resolution |
 
-The active crew application does not require a service-role key. Never use a service-role/secret key in a `NEXT_PUBLIC_` variable. Build with the correct production values: public Next.js variables are embedded into the bundle. Configure the same values for the Worker runtime where applicable.
+The active crew application does not require a service-role key. Never use a service-role/secret key in a `NEXT_PUBLIC_` variable. `GEOAPIFY_API_KEY` is server-side only and must be configured as a Cloudflare Worker secret. Build with the correct production values: public Next.js variables are embedded into the bundle.
 
 Set Supabase Auth's Site URL and allowed redirects to the final production origin and `/auth/callback`. Local testing uses `http://localhost:3000`. Do not ship a bundle built with localhost as the production app origin.
 
@@ -56,11 +56,11 @@ Configure these GitHub production-environment secrets before triggering it:
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 - `NEXT_PUBLIC_APP_URL` — exact HTTPS production origin
-- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` — browser-restricted key with Maps JavaScript API + Places API (New)
+- `GEOAPIFY_API_KEY` — Geoapify project API key; keep this server-side
 - `CLOUDFLARE_API_TOKEN` — scoped to the Worker deployment
 - `CLOUDFLARE_ACCOUNT_ID`
 
-The workflow runs lint, typecheck, tests, the OpenNext Cloudflare build and a Wrangler dry-run before the actual deployment. Deployment is blocked when the Google Maps key is missing, because event location/address autocomplete is a required production feature. Do not place the Supabase service-role key in GitHub frontend/deployment variables; the active crew app does not require it.
+The workflow runs lint, typecheck, tests, the OpenNext Cloudflare build and a Wrangler dry-run before the actual deployment. Deployment is blocked when the Geoapify key is missing, because event location/address autocomplete is a required production feature. The workflow writes it to the Worker as a runtime secret before deployment. Do not place the Supabase service-role key in GitHub frontend/deployment variables; the active crew app does not require it.
 
 ## Database
 

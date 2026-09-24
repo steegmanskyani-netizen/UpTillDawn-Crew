@@ -45,7 +45,7 @@ export default async function Page(){
  const paused=new Set(breakRows.map(x=>x.work_session_id))
 
  return <main className="mx-auto max-w-7xl space-y-7 p-4 pb-28 md:p-8">
-  <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold tracking-[.2em] text-violet-400">UP TILL DAWN BEHEER</p><h1 className="text-3xl font-black">Operationeel overzicht</h1><p className="text-muted-foreground">Actuele serverstatus voor personeel, goedkeuringen, incidenten, taken en synchronisatie.</p></div><div className="flex gap-2"><Link href="/admin/time-records" className="rounded-xl border px-4 py-3">Tijdcorrecties</Link><Link href="/audit" className="rounded-xl border px-4 py-3">Auditlog</Link></div></div>
+  <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold tracking-[.2em] text-violet-400">UP TILL DAWN BEHEER</p><h1 className="text-3xl font-black">Operationeel overzicht</h1><p className="text-muted-foreground">Actuele serverstatus voor personeel, goedkeuringen, incidenten, taken en synchronisatie.</p></div><div className="flex gap-2"><Link href="/admin/time-records" className="rounded-xl border px-4 py-3">Tijdcorrecties</Link></div></div>
 
   <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
    <Stat href="/events" label="Actieve evenementen" value={activeEvents.length} detail={String(eventRows.length)+' niet gearchiveerd'}/>

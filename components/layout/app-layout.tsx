@@ -126,7 +126,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const showEvents=feature("events",true)
   const showShifts=feature("shifts",Boolean(isAdmin&&!testMode)||context.assignedEvent)
   const showBriefings=feature("briefings",Boolean(isAdmin&&!testMode)||context.assignedEvent)
-  const showOperations=isAdmin?false:feature("operations",context.shiftActive)
+  const showOperations=feature("operations",isAdmin?true:context.shiftActive)
   const showWorkplaces=feature("workplaces",Boolean(isAdmin&&!testMode)||context.assignedWorkplaceRole)
   const showTasks=feature("tasks",Boolean(isAdmin&&!testMode)||context.shiftActive)
   const showIncidents=isAdmin?false:feature("incidents",context.shiftActive)

@@ -291,3 +291,13 @@ test('active personnel cards show identity only while running shifts keep timers
   assert.match(runningSection, /formatDigital/)
   assert.match(runningSection, /shift\.status/)
 })
+
+
+test('work hours navigation labels are role-specific', async () => {
+  const sidebar = await read('components/layout/sidebar.tsx')
+  const layout = await read('components/layout/app-layout.tsx')
+  assert.match(sidebar, /label: "Mijn werkuren"/)
+  assert.match(sidebar, /roles: \["employee","responsible_lead","admin"\]/)
+  assert.match(sidebar, /i\.key==="operations"&&isAdmin\?"Werkuren":i\.label/)
+  assert.match(layout, /showOperations=feature\("operations",isAdmin\?true:context\.shiftActive\)/)
+})

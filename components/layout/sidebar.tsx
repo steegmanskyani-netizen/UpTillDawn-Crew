@@ -9,7 +9,7 @@ import { LayoutDashboard, CalendarDays, MapPin, Clock3, AlertTriangle, Users, Sh
 
 const items = [
   { key:"overview", href: "/", label: "Overzicht", icon: LayoutDashboard, roles: ["employee","responsible_lead","admin"] },
-  { key:"operations", href: "/operations", label: "Werk & pauze", icon: Clock3, roles: ["employee","responsible_lead"] },
+  { key:"operations", href: "/operations", label: "Mijn werkuren", icon: Clock3, roles: ["employee","responsible_lead","admin"] },
   { key:"events", href: "/events", label: "Evenementen", icon: CalendarDays, roles: ["employee","responsible_lead","admin"] },
   { key:"workplaces", href: "/workplaces", label: "Werkplekken", icon: MapPin, roles: ["employee","responsible_lead","admin"] },
   { key:"shifts", href: "/shifts", label: "Diensten", icon: Clock3, roles: ["employee","responsible_lead","admin"] },
@@ -58,8 +58,9 @@ export function AppSidebar({
    const active=href==='/'?pathname==='/':pathname.startsWith(href)
    const Icon=i.icon
    const count=i.key==="chat"?chatMissed:i.key==="incidents"?incidentMissed:i.key==="tasks"?taskMissed:0
+   const fallbackLabel=i.key==="operations"&&isAdmin?"Werkuren":i.label
    return <Link data-layout-key={i.key} key={i.key} href={href} className={cn("flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-semibold",active?"bg-violet-600 text-white":"text-muted-foreground hover:bg-muted hover:text-foreground")}>
-    <span className="relative"><Icon className="h-5 w-5"/>{count>0&&<span className="absolute -right-3 -top-3 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-black leading-none text-white">{count>99?"99+":count}</span>}</span>{featureLabels[i.key] || i.label}
+    <span className="relative"><Icon className="h-5 w-5"/>{count>0&&<span className="absolute -right-3 -top-3 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-black leading-none text-white">{count>99?"99+":count}</span>}</span>{featureLabels[i.key] || fallbackLabel}
    </Link>
   })}</nav>
   <div className="mt-auto p-4"><div className="text-[11px] text-muted-foreground flex gap-2"><Shield className="h-4 w-4"/>Beveiligde personeelsoperaties</div></div>

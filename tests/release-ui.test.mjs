@@ -276,3 +276,18 @@ test('admin dashboard includes active responsible assignment even when underlyin
   assert.match(admin, /const isOperationalPerson=isResponsible\|\|person\.role==='staff'\|\|person\.role==='responsible_lead'/)
   assert.match(admin, /isResponsible\|\|person\?\.role==='staff'\|\|person\?\.role==='responsible_lead'/)
 })
+
+
+test('active personnel cards show identity only while running shifts keep timers and status', async () => {
+  const timers = await read('components/admin/live-operations-timers.tsx')
+  const activeSection = timers.slice(timers.indexOf('export function AdminActivePersonnel'), timers.indexOf('export function AdminRunningShifts'))
+  const runningSection = timers.slice(timers.indexOf('export function AdminRunningShifts'))
+  assert.match(activeSection, /person\.name/)
+  assert.match(activeSection, /person\.role/)
+  assert.match(activeSection, /person\.title/)
+  assert.doesNotMatch(activeSection, /formatDigital/)
+  assert.doesNotMatch(activeSection, /PAUZE/)
+  assert.doesNotMatch(activeSection, /WERK/)
+  assert.match(runningSection, /formatDigital/)
+  assert.match(runningSection, /shift\.status/)
+})

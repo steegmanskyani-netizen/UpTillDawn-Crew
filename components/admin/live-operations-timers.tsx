@@ -39,10 +39,6 @@ function breakSeconds(breaks:BreakWindow[],now:number){
  },0)
 }
 
-function activeBreakSeconds(breaks:BreakWindow[],now:number){
- const active=breaks.find(item=>!item.endedAt)
- return active?Math.max(0,Math.floor((now-Date.parse(active.startedAt))/1000)):0
-}
 
 function useClock(){
  const [now,setNow]=useState(()=>Date.now())
@@ -54,7 +50,6 @@ function useClock(){
 }
 
 export function AdminActivePersonnel({people}:{people:ActivePerson[]}){
- const now=useClock()
  const groups=useMemo(()=>{
   const sorted=[...people].sort((a,b)=>
    a.workplaceName.localeCompare(b.workplaceName,'nl')
@@ -75,25 +70,12 @@ export function AdminActivePersonnel({people}:{people:ActivePerson[]}){
  return <div className="space-y-4">
   {groups.map(([workplaceId,group])=><section key={workplaceId} className="space-y-2">
    <h3 className="text-sm font-black uppercase tracking-wide text-violet-300">{group.name}</h3>
-   {group.people.map(person=>{
-    const activePause=person.breaks.some(item=>!item.endedAt)
-    const totalPause=breakSeconds(person.breaks,now)
-    const gross=Math.max(0,Math.floor((now-Date.parse(person.startedAt))/1000))
-    const work=Math.max(0,gross-totalPause)
-    const displayed=activePause?activeBreakSeconds(person.breaks,now):work
-    return <article key={person.sessionId} className="rounded-xl border p-3">
-     <div className="flex flex-wrap items-center justify-between gap-3">
-      <div className="min-w-0">
-       <p className="truncate font-bold">{person.name}</p>
-       <p className="text-sm text-muted-foreground">{person.role} · {person.title}</p>
-      </div>
-      <div className="text-right">
-       <p className={activePause?'text-xs font-black text-amber-300':'text-xs font-black text-emerald-300'}>{activePause?'PAUZE':'WERK'}</p>
-       <p className="font-mono text-xl font-black tabular-nums">{formatDigital(displayed)}</p>
-      </div>
+   {group.people.map(person=><article key={person.sessionId} className="rounded-xl border p-3">
+     <div className="min-w-0">
+      <p className="truncate font-bold">{person.name}</p>
+      <p className="text-sm text-muted-foreground">{person.role} · {person.title}</p>
      </div>
-    </article>
-   })}
+    </article>)}
   </section>)}
  </div>
 }

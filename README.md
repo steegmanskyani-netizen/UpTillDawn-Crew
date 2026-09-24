@@ -33,9 +33,10 @@ Use only the variables in [`.env.example`](.env.example):
 NEXT_PUBLIC_SUPABASE_URL=https://PROJECT_REF.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_PUBLISHABLE_KEY
 NEXT_PUBLIC_APP_URL=https://YOUR_PRODUCTION_HOST
+GEOAPIFY_API_KEY=YOUR_GEOAPIFY_KEY
 ```
 
-The active crew app does not require a Supabase service-role key.
+`GEOAPIFY_API_KEY` is server-side only and powers event location/address autocomplete and coordinate resolution. The active crew app does not require a Supabase service-role key.
 
 ## Local checks
 

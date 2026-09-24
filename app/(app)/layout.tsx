@@ -1,7 +1,12 @@
-"use client"
-
-import { AppLayout } from "@/components/layout/app-layout"
-
-export default function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
-  return <AppLayout>{children}</AppLayout>
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/crew-server'
+import { AppLayout } from '@/components/layout/app-layout'
+export default async function AuthenticatedLayout({children}:{children:React.ReactNode}) {
+ const s=await createClient()
+ const {data:{user}}=await s.auth.getUser()
+ if(!user) redirect('/login')
+ const {data:p,error}=await s.from('profiles').select('approved').eq('id',user.id).single()
+ if(error || !p) return <main className="p-8">Je profiel kon niet worden geladen. Probeer opnieuw.</main>
+ if(!p.approved) return <main className="p-8">ACCOUNT NOG NIET GOEDGEKEURD</main>
+ return <AppLayout>{children}</AppLayout>
 }

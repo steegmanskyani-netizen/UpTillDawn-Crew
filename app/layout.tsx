@@ -1,45 +1,29 @@
 import { PwaRegister } from '@/components/pwa-register'
+import { LocaleSync } from '@/components/locale-sync'
 import type { Metadata, Viewport } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
-import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AuthProvider } from '@/lib/providers'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
-const _geist = Geist({ subsets: ["latin"] });
-const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'UPTILLDAWN Crew',
-  description: 'Open-source enterprise workforce management platform',
-  generator: 'v0.app',
-  manifest: '/manifest.json',
+  title: 'UP TILL DAWN Personeel',
+  description: 'Evenementen- en personeelsbeheer voor Up Till Dawn',
+  manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
-    title: 'UPTILLDAWN Crew',
+    title: 'UP TILL DAWN Personeel',
   },
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-    ],
-    apple: '/apple-icon.png',
+    icon: '/up-till-dawn-mark.webp',
+    apple: '/up-till-dawn-mark.webp',
   },
 }
 
 export const viewport: Viewport = {
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f5f5f7' },
-    { media: '(prefers-color-scheme: dark)', color: '#1c1c1e' },
-  ],
+  themeColor: '#050505',
   userScalable: true,
 }
 
@@ -51,13 +35,12 @@ export default function RootLayout({
   return (
     <html lang="nl" suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            <PwaRegister />{children}
+            <LocaleSync /><PwaRegister />{children}
             <Toaster richColors position="top-right" />
           </AuthProvider>
         </ThemeProvider>
-        <Analytics />
       </body>
     </html>
   )

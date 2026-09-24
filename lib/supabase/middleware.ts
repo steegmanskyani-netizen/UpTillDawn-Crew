@@ -31,11 +31,24 @@ export async function updateSession(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser()
 
     // Protected routes — redirect to login if unauthenticated
-    const protectedPaths = ['/dashboard', '/attendance', '/leave', '/calendar', '/visitors',
-        '/reception', '/directory', '/diary', '/feedback', '/complaints', '/admin',
-        '/settings', '/timesheets', '/corrections', '/manager',
-        '/office', '/polls', '/notice-board', '/announcements', '/expenses',
-        '/analytics', '/notifications', '/help']
+    const protectedPaths = [
+        '/admin',
+        '/settings',
+        '/notifications',
+        '/events',
+        '/workplaces',
+        '/shifts',
+        '/operations',
+        '/incidents',
+        '/personnel',
+        '/audit',
+        '/briefings',
+        '/tasks',
+        '/chat',
+        '/crew',
+        '/exports',
+        '/sync',
+    ]
 
     const isProtected = request.nextUrl.pathname === '/' ||
         protectedPaths.some(p => request.nextUrl.pathname.startsWith(p))
@@ -43,7 +56,9 @@ export async function updateSession(request: NextRequest) {
     if (isProtected && !user) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
-        return NextResponse.redirect(url)
+        const response = NextResponse.redirect(url)
+        supabaseResponse.cookies.getAll().forEach(cookie => response.cookies.set(cookie))
+        return response
     }
 
     // If user is authenticated and tries to access auth pages (including /login/{portal}), redirect to dashboard
@@ -55,7 +70,9 @@ export async function updateSession(request: NextRequest) {
     if (isAuthPage && user) {
         const url = request.nextUrl.clone()
         url.pathname = '/'
-        return NextResponse.redirect(url)
+        const response = NextResponse.redirect(url)
+        supabaseResponse.cookies.getAll().forEach(cookie => response.cookies.set(cookie))
+        return response
     }
 
     return supabaseResponse

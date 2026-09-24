@@ -27,5 +27,5 @@ test('remote check-in requires a fresh selfie path at database level', () => {
 test('PWA manifest and service worker are present', () => {
   assert.equal(fs.existsSync(new URL('../app/manifest.ts', import.meta.url)), true);
   assert.equal(fs.existsSync(new URL('../public/sw.js', import.meta.url)), true);
-  assert.match(read('app/manifest.ts'), /UPTILLDAWN CREW MANAGEMENT/);
+  assert.match(read('app/manifest.ts'), /UP TILL DAWN PERSONEELSBEHEER/);
 });

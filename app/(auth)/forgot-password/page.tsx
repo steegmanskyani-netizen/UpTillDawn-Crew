@@ -1,7 +1,8 @@
-﻿"use client"
+"use client"
 
 import { useState, useTransition } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -35,19 +36,15 @@ export default function ForgotPasswordPage() {
   return (
     <Card className="w-full max-w-md rounded-2xl border-border shadow-lg">
       <CardHeader className="items-center space-y-4 pb-2">
-        <img
-          src="/logo.png"
-          alt="StaffPortal"
-          className="h-10"
-        />
+        <Image src="/up-till-dawn-mark.webp" alt="UP TILL DAWN" width={48} height={48} className="h-12 w-12 rounded-xl object-cover" />
         <div className="text-center space-y-1">
           <h1 className="text-xl font-bold text-foreground">
-            {sent ? "Check your email" : "Reset your password"}
+            {sent ? "Controleer je e-mail" : "Wachtwoord herstellen"}
           </h1>
           <p className="text-sm text-muted-foreground">
             {sent
-              ? `If an account exists for ${sentTo}, a reset link has been sent.`
-              : "Enter your @yourcompany.com email and we'll send a reset link"}
+              ? `Als er een account bestaat voor ${sentTo}, is een herstel-link verstuurd.`
+              : "Vul je e-mailadres in en we sturen een herstel-link."}
           </p>
         </div>
       </CardHeader>
@@ -59,16 +56,16 @@ export default function ForgotPasswordPage() {
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
             <p className="text-sm text-muted-foreground text-center">
-              Check your spam folder if you don&apos;t see it, or{" "}
+              Controleer ook je spammap als je niets ziet, of{" "}
               <button
                 onClick={() => { setSent(false); setError(null) }}
                 className="text-brand-taupe hover:underline"
               >
-                try again
+                probeer opnieuw
               </button>.
             </p>
             <Button variant="outline" className="rounded-xl" asChild>
-              <Link href="/login"><ArrowLeft className="mr-2 h-4 w-4" />Back to login</Link>
+              <Link href="/login"><ArrowLeft className="mr-2 h-4 w-4" />Terug naar inloggen</Link>
             </Button>
           </div>
         ) : (
@@ -81,24 +78,24 @@ export default function ForgotPasswordPage() {
             )}
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Work email</Label>
+                <Label htmlFor="email">E-mail</Label>
                 <Input
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="you@yourcompany.com"
+                  placeholder="naam@email.com"
                   className="rounded-xl h-11"
                   required
                 />
               </div>
               <Button type="submit" className="w-full rounded-xl h-11" disabled={isPending}>
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Send reset link
+                Herstel-link versturen
               </Button>
             </form>
             <div className="flex justify-center">
               <Link href="/login" className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-                <ArrowLeft className="h-3 w-3" />Back to login
+                <ArrowLeft className="h-3 w-3" />Terug naar inloggen
               </Link>
             </div>
           </>

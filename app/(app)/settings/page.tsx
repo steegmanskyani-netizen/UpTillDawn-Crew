@@ -1,67 +1,32 @@
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
-import SettingsClient from "./settings-client"
-import { getCurrentUser } from "@/lib/actions/auth"
-import { getWorkSchedule } from "@/lib/actions/schedule"
-import { getProfileExtras } from "@/lib/actions/settings"
+import { createClient } from '@/lib/supabase/crew-server'
+import { ProfileForm } from '@/components/crew/profile-form'
+import { LanguageSwitcher } from '@/components/language-switcher'
 
-export default async function SettingsPage() {
-  const supabase = await createClient()
-  const _authCtx = await getCurrentUser()
-  const user = _authCtx!
-  const { isAdmin, isReception, isAccounts } = _authCtx!
+export const dynamic = 'force-dynamic'
 
-  const [
-    { data: profile },
-    { data: rolesData },
-    { data: dept },
-    { data: loc },
-    { data: approversData },
-    { data: allUsers },
-    schedule,
-    extras,
-  ] = await Promise.all([
-    supabase.from("user_profiles").select("*").eq("id", user.id).single(),
-    supabase.from("user_roles").select("role").eq("user_id", user.id),
-    supabase.from("departments").select("id, name"),
-    supabase.from("locations").select("id, name"),
-    // Current user's approvers with their profile info
-    supabase
-      .from("user_approvers")
-      .select("approver_id, priority, approver:user_profiles!user_approvers_approver_id_fkey(id, full_name, display_name, job_title)")
-      .eq("user_id", user.id)
-      .order("priority"),
-    // All active users for the approver picker (excluding self)
-    supabase
-      .from("user_profiles")
-      .select("id, full_name, display_name, job_title")
-      .eq("is_active", true)
-      .neq("id", user.id)
-      .order("full_name"),
-    getWorkSchedule(user.id),
-    getProfileExtras(user.id),
-  ])
+export default async function Page() {
+  const s = await createClient()
+  const { data: { user } } = await s.auth.getUser()
+  if (!user) return null
 
-  const roles = (rolesData ?? []).map((r: { role: string }) => r.role)
+  const { data, error } = await s.rpc('upt_own_profile_details')
+  const profile = data?.[0]
+  let photoUrl: string | null = null
+  if (profile?.profile_photo_url) {
+    const { data: signed } = await s.storage.from('profile-photos').createSignedUrl(profile.profile_photo_url, 300)
+    photoUrl = signed?.signedUrl || null
+  }
 
-  const currentApprovers = (approversData ?? []).map((a: any) => ({
-    id: a.approver_id as string,
-    name: (a.approver?.display_name || a.approver?.full_name || "Unknown") as string,
-    job_title: (a.approver?.job_title ?? null) as string | null,
-    priority: a.priority as number,
-  }))
-
-  const mergedProfile = profile ? { ...profile, ...extras } : null
-
-  return (
-    <SettingsClient
-      profile={mergedProfile}
-      roles={roles}
-      departments={dept ?? []}
-      locations={loc ?? []}
-      currentApprovers={currentApprovers}
-      allUsers={(allUsers ?? []) as { id: string; full_name: string; display_name: string | null; job_title: string | null }[]}
-      schedule={schedule}
-    />
-  )
+  return <main className="mx-auto max-w-xl space-y-5 p-5">
+    <div>
+      <h1 className="text-3xl font-black">Profiel</h1>
+      <p className="text-sm text-muted-foreground">{profile?.email || user.email}</p>
+    </div>
+    {error || !profile
+      ? <p>Profiel kon niet worden geladen.</p>
+      : <ProfileForm id={user.id} initial={profile} photoUrl={photoUrl}/>}
+    <section className="rounded-2xl border p-4">
+      <LanguageSwitcher />
+    </section>
+  </main>
 }

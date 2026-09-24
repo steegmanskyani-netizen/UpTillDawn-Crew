@@ -1,16 +1,17 @@
-﻿"use client"
+"use client"
 
 import { useState, useTransition } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react"
 import { signUp } from "@/lib/actions/auth"
 
-const ALLOWED_EXCEPTION_EMAILS = []
+
 
 export default function SignupPage() {
   const router = useRouter()
@@ -26,11 +27,11 @@ export default function SignupPage() {
     const confirm = formData.get("confirm_password") as string
     const name = (formData.get("full_name") as string)?.trim()
 
-    if (!name) errors.full_name = "Full name is required"
-    if (!email) errors.email = "Email is required"
-    else if (!email.endsWith("@yourcompany.com") && !ALLOWED_EXCEPTION_EMAILS.includes(email)) errors.email = "Must be a @yourcompany.com email address"
-    if (password.length < 8) errors.password = "Password must be at least 8 characters"
-    if (password !== confirm) errors.confirm_password = "Passwords do not match"
+    if (!name) errors.full_name = "Volledige naam is verplicht"
+    if (!email) errors.email = "E-mail is verplicht"
+
+    if (password.length < 8) errors.password = "Wachtwoord moet minstens 8 tekens bevatten"
+    if (password !== confirm) errors.confirm_password = "Wachtwoorden komen niet overeen"
 
     return errors
   }
@@ -61,15 +62,11 @@ export default function SignupPage() {
   return (
     <Card className="w-full max-w-md rounded-2xl border-border shadow-lg">
       <CardHeader className="items-center space-y-4 pb-2">
-        <img
-          src="/logo.png"
-          alt="StaffPortal"
-          className="h-10"
-        />
+        <Image src="/up-till-dawn-mark.webp" alt="UP TILL DAWN" width={48} height={48} className="h-12 w-12 rounded-xl object-cover" />
         <div className="text-center space-y-1">
-          <h1 className="text-xl font-bold text-foreground">Create your account</h1>
+          <h1 className="text-xl font-bold text-foreground">Account aanmaken</h1>
           <p className="text-sm text-muted-foreground">
-            Only <strong>@yourcompany.com</strong> email addresses are accepted
+            Je account moet na registratie door een beheerder worden goedgekeurd.
           </p>
         </div>
       </CardHeader>
@@ -86,11 +83,11 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Full name */}
           <div className="space-y-1.5">
-            <Label htmlFor="full_name">Full name</Label>
+            <Label htmlFor="full_name">Volledige naam</Label>
             <Input
               id="full_name"
               name="full_name"
-              placeholder="Alex Morgan"
+              placeholder="Voornaam Achternaam"
               className="rounded-xl h-11"
               autoComplete="name"
             />
@@ -101,12 +98,12 @@ export default function SignupPage() {
 
           {/* Email */}
           <div className="space-y-1.5">
-            <Label htmlFor="email">Work email</Label>
+            <Label htmlFor="email">E-mail</Label>
             <Input
               id="email"
               name="email"
               type="email"
-              placeholder="you@yourcompany.com"
+              placeholder="naam@voorbeeld.be"
               className="rounded-xl h-11"
               autoComplete="email"
             />
@@ -117,13 +114,13 @@ export default function SignupPage() {
 
           {/* Password */}
           <div className="space-y-1.5">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">Wachtwoord</Label>
             <div className="relative">
               <Input
                 id="password"
                 name="password"
                 type={showPassword ? "text" : "password"}
-                placeholder="Min. 8 characters"
+                placeholder="Min. 8 tekens"
                 className="rounded-xl h-11 pr-10"
                 autoComplete="new-password"
               />
@@ -131,7 +128,7 @@ export default function SignupPage() {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                aria-label="Toggle password visibility"
+                aria-label={showPassword ? "Verberg wachtwoord" : "Toon wachtwoord"}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -143,12 +140,12 @@ export default function SignupPage() {
 
           {/* Confirm password */}
           <div className="space-y-1.5">
-            <Label htmlFor="confirm_password">Confirm password</Label>
+            <Label htmlFor="confirm_password">Bevestig wachtwoord</Label>
             <Input
               id="confirm_password"
               name="confirm_password"
               type="password"
-              placeholder="Re-enter your password"
+              placeholder="Herhaal je wachtwoord"
               className="rounded-xl h-11"
               autoComplete="new-password"
             />
@@ -159,14 +156,14 @@ export default function SignupPage() {
 
           <Button type="submit" className="w-full rounded-xl h-11" disabled={isPending}>
             {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create account
+            Account aanmaken
           </Button>
         </form>
 
         <p className="text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
+          Heb je al een account?{" "}
           <Link href="/login" className="font-medium text-brand-taupe hover:underline">
-            Sign in
+            Inloggen
           </Link>
         </p>
       </CardContent>

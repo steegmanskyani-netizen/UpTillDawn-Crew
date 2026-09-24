@@ -7,23 +7,8 @@
 'use server'
 
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
-import { supabaseAdmin } from '@/lib/supabase/admin'
-import { writeAuditLog } from '@/lib/audit'
-import { headers } from 'next/headers'
-
-const ALLOWED_DOMAIN = process.env.NEXT_AUTH_DOMAIN ?? '@yourcompany.com'
-
-// Specific non-domain emails permitted to access the system.
-// Populate with additional allowlisted addresses if needed.
-const ALLOWED_EMAILS = new Set<string>([])
-
-// ── Input validation ─────────────────────────────────────────
-
-function isValidEmailDomain(email: string): boolean {
-    const e = email.trim().toLowerCase()
-    return e.endsWith(ALLOWED_DOMAIN) || ALLOWED_EMAILS.has(e)
-}
+import { cookies } from 'next/headers'
+import { createClient } from '@/lib/supabase/crew-server'
 
 function extractName(email: string): string {
     const local = email.split('@')[0]
@@ -31,25 +16,46 @@ function extractName(email: string): string {
         .split('.')
         .map(part => part.charAt(0).toUpperCase() + part.slice(1))
         .join(' ')
+        .slice(0, 200)
+}
+
+function appOrigin(): string | null {
+    const raw = process.env.NEXT_PUBLIC_APP_URL
+    if (!raw) return null
+    try {
+        const url = new URL(raw)
+        return url.protocol === 'http:' || url.protocol === 'https:' ? url.origin : null
+    } catch {
+        return null
+    }
 }
 
 // ── Sign Up ──────────────────────────────────────────────────
 
 export async function signUp(formData: FormData) {
-    const email = (formData.get('email') as string)?.trim().toLowerCase()
-    const password = formData.get('password') as string
-    const fullName = (formData.get('full_name') as string)?.trim() || extractName(email)
+    const email = String(formData.get('email') || '').trim().toLowerCase()
+    const password = String(formData.get('password') || '')
+    const confirmPassword = String(formData.get('confirm_password') || '')
+    const fullName = String(formData.get('full_name') || '').trim() || extractName(email)
 
     if (!email || !password) {
-        return { error: 'Email and password are required.' }
+        return { error: 'E-mail en wachtwoord zijn verplicht.' }
     }
-
-
+    if (!fullName || fullName.length > 200) {
+        return { error: 'Volledige naam moet tussen 1 en 200 tekens bevatten.' }
+    }
     if (password.length < 8) {
-        return { error: 'Password must be at least 8 characters.' }
+        return { error: 'Wachtwoord moet minstens 8 tekens bevatten.' }
+    }
+    if (confirmPassword && password !== confirmPassword) {
+        return { error: 'Wachtwoorden komen niet overeen.' }
     }
 
-    const origin = process.env.NEXT_PUBLIC_APP_URL
+    const origin = appOrigin()
+    if (!origin) {
+        console.error('[Auth] NEXT_PUBLIC_APP_URL is missing or invalid')
+        return { error: 'De applicatieconfiguratie is onvolledig. Neem contact op met de beheerder.' }
+    }
 
     const supabase = await createClient()
     const { data, error } = await supabase.auth.signUp({
@@ -65,20 +71,15 @@ export async function signUp(formData: FormData) {
 
     if (error) {
         if (error.message.includes('already registered')) {
-            return { error: 'An account with this email already exists. Please sign in.' }
+            return { error: 'Er bestaat al een account met dit e-mailadres. Log in.' }
         }
-        return { error: error.message }
+        console.error('[Auth]', { code: error.code, status: error.status })
+        return { error: 'De aanvraag kon niet worden verwerkt. Probeer opnieuw.' }
     }
-
-    // The handle_new_user() Postgres trigger fires automatically and:
-    //   1. Creates the user_profiles row
-    //   2. Assigns 'employee' role
-    //   3. Auto-assigns 'admin' role if email matches NEXT_PUBLIC_ADMIN_EMAIL
-    //   4. Seeds leave balances
 
     return {
         success: true,
-        message: `Check your email (${email}) for a verification link before signing in.`,
+        message: `Controleer ${email} voor de verificatielink voordat je inlogt.`,
         userId: data.user?.id,
     }
 }
@@ -86,12 +87,16 @@ export async function signUp(formData: FormData) {
 // ── Sign In ──────────────────────────────────────────────────
 
 export async function signIn(formData: FormData) {
-    const email = (formData.get('email') as string)?.trim().toLowerCase()
-    const password = formData.get('password') as string
-    const requestedPortal = ((formData.get('portal') as string) || 'staff').toLowerCase()
+    const email = String(formData.get('email') || '').trim().toLowerCase()
+    const password = String(formData.get('password') || '')
+    const requestedPortal = String(formData.get('portal') || 'staff').toLowerCase()
+
+    if (!['staff', 'responsible', 'admin'].includes(requestedPortal)) {
+        return { error: 'Ongeldig inlogportaal.', code: 'invalid_portal' }
+    }
 
     if (!email || !password) {
-        return { error: 'Email and password are required.' }
+        return { error: 'E-mail en wachtwoord zijn verplicht.' }
     }
 
     const supabase = await createClient()
@@ -104,34 +109,32 @@ export async function signIn(formData: FormData) {
     if (error || !data.user) {
         if (error?.message.includes('Email not confirmed')) {
             return {
-                error: 'Please verify your email address first.',
+                error: 'Verifieer eerst je e-mailadres.',
                 code: 'email_not_confirmed',
             }
         }
 
         if (error?.message.includes('Invalid login credentials')) {
             return {
-                error: 'Incorrect email or password. Please try again.',
+                error: 'Onjuist e-mailadres of wachtwoord.',
                 code: 'invalid_credentials',
             }
         }
 
-        return { error: error?.message || 'Login failed.' }
+        return { error: 'Aanmelden mislukt. Probeer opnieuw.' }
     }
 
-    const { data: profile, error: profileError } = await supabaseAdmin
-        .from('user_profiles')
+    const { data: profile, error: profileError } = await supabase
+        .from('profiles')
         .select('approved, role')
         .eq('id', data.user.id)
         .single()
 
     if (profileError || !profile) {
-        console.error('UPTILLDAWN PROFILE ERROR:', profileError)
+        console.error('[Auth] Profile lookup failed', { code: profileError?.code })
         await supabase.auth.signOut()
         return {
-            error: profileError
-                ? `PROFILE ERROR: ${profileError.message}`
-                : 'PROFILE ERROR: profiel niet gevonden',
+            error: 'Je profiel kon niet worden geladen. Probeer opnieuw.',
             code: 'profile_error',
         }
     }
@@ -139,7 +142,7 @@ export async function signIn(formData: FormData) {
     if (!profile.approved) {
         await supabase.auth.signOut()
         return {
-            error: 'ACCOUNT NOT APPROVED',
+            error: 'ACCOUNT NOG NIET GOEDGEKEURD',
             code: 'account_not_approved',
         }
     }
@@ -152,29 +155,16 @@ export async function signIn(formData: FormData) {
             : requestedPortal === 'responsible'
                 ? role === 'responsible_lead' || role === 'admin'
                 : role === 'staff' ||
-                  role === 'employee' ||
                   role === 'responsible_lead' ||
                   role === 'admin'
 
     if (!allowed) {
         await supabase.auth.signOut()
         return {
-            error: `Dit account heeft geen toegang tot de ${requestedPortal} portal.`,
+            error: `Dit account heeft geen toegang tot het gekozen portaal.`,
             code: 'wrong_portal',
         }
     }
-
-    await writeAuditLog({
-        actorId: data.user.id,
-        actorEmail: email,
-        action: 'login',
-        entityTable: 'auth.users',
-        entityId: data.user.id,
-        metadata: {
-            portal: requestedPortal,
-            role,
-        },
-    })
 
     redirect(
         requestedPortal === 'admin'
@@ -189,18 +179,6 @@ export async function signIn(formData: FormData) {
 
 export async function signOut() {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-
-    if (user) {
-        await writeAuditLog({
-            actorId: user.id,
-            actorEmail: user.email,
-            action: 'logout',
-            entityTable: 'auth.users',
-            entityId: user.id,
-        })
-    }
-
     await supabase.auth.signOut()
     redirect('/login')
 }
@@ -211,24 +189,29 @@ export async function forgotPassword(formData: FormData) {
     const email = (formData.get('email') as string)?.trim().toLowerCase()
 
     if (!email) {
-        return { error: 'Please enter your email address.' }
+        return { error: 'Vul je e-mailadres in.' }
     }
 
 
-    const origin = process.env.NEXT_PUBLIC_APP_URL
+    const origin = appOrigin()
+    if (!origin) {
+        console.error('[Auth] NEXT_PUBLIC_APP_URL is missing or invalid')
+        return { error: 'De applicatieconfiguratie is onvolledig. Neem contact op met de beheerder.' }
+    }
 
     const supabase = await createClient()
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${origin}/auth/reset-password`,
+        redirectTo: `${origin}/auth/callback?next=/auth/reset-password`,
     })
 
     if (error) {
-        return { error: error.message }
+        console.error('[Auth]', { code: error.code, status: error.status })
+        return { error: 'De aanvraag kon niet worden verwerkt. Probeer opnieuw.' }
     }
 
     return {
         success: true,
-        message: 'If that account exists, a reset link has been sent to your email.',
+        message: 'Als dit account bestaat, is een herstel-link naar het e-mailadres verstuurd.',
     }
 }
 
@@ -239,21 +222,22 @@ export async function updatePassword(formData: FormData) {
     const confirmPassword = formData.get('confirm_password') as string
 
     if (password !== confirmPassword) {
-        return { error: 'Passwords do not match.' }
+        return { error: 'Wachtwoorden komen niet overeen.' }
     }
 
     if (password.length < 8) {
-        return { error: 'Password must be at least 8 characters.' }
+        return { error: 'Wachtwoord moet minstens 8 tekens bevatten.' }
     }
 
     const supabase = await createClient()
     const { error } = await supabase.auth.updateUser({ password })
 
     if (error) {
-        return { error: error.message }
+        console.error('[Auth]', { code: error.code, status: error.status })
+        return { error: 'De aanvraag kon niet worden verwerkt. Probeer opnieuw.' }
     }
 
-    return { success: true, message: 'Password updated successfully.' }
+    return { success: true, message: 'Wachtwoord is bijgewerkt.' }
 }
 
 // ── Resend Verification Email ─────────────────────────────────
@@ -262,10 +246,14 @@ export async function resendVerificationEmail(formData: FormData) {
     const email = (formData.get('email') as string)?.trim().toLowerCase()
 
     if (!email) {
-        return { error: 'Please enter your email address.' }
+        return { error: 'Vul je e-mailadres in.' }
     }
 
-    const origin = process.env.NEXT_PUBLIC_APP_URL
+    const origin = appOrigin()
+    if (!origin) {
+        console.error('[Auth] NEXT_PUBLIC_APP_URL is missing or invalid')
+        return { error: 'De applicatieconfiguratie is onvolledig. Neem contact op met de beheerder.' }
+    }
 
     const supabase = await createClient()
     const { error } = await supabase.auth.resend({
@@ -275,10 +263,11 @@ export async function resendVerificationEmail(formData: FormData) {
     })
 
     if (error) {
-        return { error: error.message }
+        console.error('[Auth]', { code: error.code, status: error.status })
+        return { error: 'De aanvraag kon niet worden verwerkt. Probeer opnieuw.' }
     }
 
-    return { success: true, message: 'Verification email resent. Please check your inbox.' }
+    return { success: true, message: 'Verificatiemail opnieuw verstuurd. Controleer je inbox.' }
 }
 
 // ── Get Current User with Profile ────────────────────────────
@@ -289,31 +278,29 @@ export async function getCurrentUser() {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) return null
 
-    const { data: profile } = await supabase
-        .from('user_profiles')
-        .select(`
-      *,
-      department:departments(id, name),
-      location:locations(id, name)
-    `)
+    const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('id,full_name,phone_number,profile_photo_url,approved,role')
         .eq('id', user.id)
         .single()
-
-    const { data: rolesData } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-
-    const roles = rolesData?.map(r => r.role) ?? ['employee']
-
+    if (error || !profile || !profile.approved) return null
+    const realRole = profile.role
+    const cookieStore = await cookies()
+    const testMode = realRole === 'admin' && cookieStore.get('uptilldawn-admin-test-mode')?.value === '1'
+    const requestedTestRole = cookieStore.get('uptilldawn-admin-test-role')?.value
+    const effectiveRole = testMode
+        ? requestedTestRole === 'responsible_lead' ? 'responsible_lead' : 'staff'
+        : realRole
+    const roles = [effectiveRole === 'staff' ? 'employee' : effectiveRole]
     return {
         ...profile,
-        id: user.id as string,
-        email: (user.email ?? profile?.email ?? '') as string,
+        role: effectiveRole,
+        realRole,
+        id: user.id,
+        email: user.email ?? '',
         roles,
-        isAdmin: roles.includes('admin'),
-        isDirector: roles.includes('director'),
-        isAccounts: roles.includes('accounts'),
-        isReception: roles.includes('reception'),
+        isAdmin: realRole === 'admin' && !testMode,
+        realIsAdmin: realRole === 'admin',
+        isTestMode: testMode,
     }
 }

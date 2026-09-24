@@ -1,4 +1,63 @@
 'use client'
-import {useState} from 'react'
-import {createClient} from '@/lib/supabase/client'
-export default function OperationsClient({events,activeSession,activeBreak}:any){const [busy,setBusy]=useState(false);const [msg,setMsg]=useState('');const s:any=createClient();async function rpc(name:string,args:any){setBusy(true);setMsg('');const {error}=await s.rpc(name,args);setMsg(error?error.message:'Opgeslagen. Vernieuw de pagina.');setBusy(false)}return <main className="p-4 md:p-8 max-w-3xl mx-auto space-y-6"><div><h1 className="text-3xl font-bold">Crew Operations</h1><p className="text-muted-foreground">Check-in approval is required before START WORK.</p></div>{msg&&<div className="border rounded-xl p-3">{msg}</div>}<section className="grid gap-3">{events.map((e:any)=><div className="border rounded-2xl p-4" key={e.id}><b>{e.name}</b>{!activeSession&&<button disabled={busy} className="mt-3 w-full rounded-xl bg-primary p-4 font-bold" onClick={()=>rpc('upt_start_work',{p_event:e.id,p_shift:null})}>START WORK</button>}</div>)}</section>{activeSession&&<section className="border rounded-2xl p-4 space-y-3"><div className="text-xl font-bold">WERK ACTIEF</div>{!activeBreak?<button className="w-full border rounded-xl p-4" onClick={()=>rpc('upt_start_break',{p_work_session:activeSession.id})}>START BREAK</button>:<><div>Pauze actief sinds {new Date(activeBreak.started_at).toLocaleTimeString('nl-BE')}</div><button className="w-full border rounded-xl p-4" onClick={()=>rpc('upt_stop_break',{p_break:activeBreak.id})}>STOP BREAK</button></>}<button className="w-full rounded-xl bg-destructive text-destructive-foreground p-4 font-bold" onClick={()=>rpc('upt_stop_work',{p_work_session:activeSession.id})}>STOP WORK</button></section>}<a href="/incidents" className="fixed bottom-5 left-5 rounded-full bg-red-600 text-white font-black px-5 py-4 shadow-xl">URGENT</a></main>}
+import { useEffect,useMemo,useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/crew-client'
+import { enqueue } from '@/lib/crew-queue'
+import { captureLocation } from '@/lib/crew-gps'
+import { saveOperationsSnapshot } from '@/lib/crew-offline-snapshot'
+import { nlStatus } from '@/lib/ui-nl'
+import type { Tables,Database } from '@/types/crew-database'
+type Summary=Database['public']['Functions']['upt_work_session_time_summary']['Returns'][number]
+type CrewMember={id:string;full_name:string|null;phone_number:string|null;profile_photo_url:string|null}
+type Props={userId:string;shifts:Tables<'shifts'>[];events:Tables<'events'>[];workplaces:Tables<'workplaces'>[];activeSession:Tables<'work_sessions'>|null;activeBreak:Tables<'break_sessions'>|null;checkins:Tables<'check_ins'>[];checkouts:Tables<'check_outs'>[];manager:boolean;personalWork:boolean;summary:Summary|null;liveSessions:Tables<'work_sessions'>[];liveBreaks:Tables<'break_sessions'>[];liveShifts:Tables<'shifts'>[];crewDirectory:CrewMember[]}
+export default function OperationsClient(p:Props){
+ const router=useRouter();const [busy,setBusy]=useState(false),[msg,setMsg]=useState(''),[remote,setRemote]=useState(false),[file,setFile]=useState<File|null>(null)
+ const s=useMemo(()=>createClient(),[])
+ useEffect(()=>{const timer=setInterval(()=>{if(navigator.onLine)router.refresh()},15000);return()=>clearInterval(timer)},[router])
+ useEffect(()=>{void saveOperationsSnapshot({
+  version:1,
+  userId:p.userId,
+  savedAt:Date.now(),
+  events:p.events.map(e=>({id:e.id,name:e.name})),
+  workplaces:p.workplaces.map(w=>({id:w.id,event_id:w.event_id,name:w.name})),
+  shifts:p.shifts.map(x=>({id:x.id,event_id:x.event_id,workplace_id:x.workplace_id,role_name:x.role_name,scheduled_start:x.scheduled_start,scheduled_end:x.scheduled_end})),
+  activeSession:p.activeSession?{id:p.activeSession.id,event_id:p.activeSession.event_id,shift_id:p.activeSession.shift_id,started_at:p.activeSession.started_at}:null,
+  activeBreak:p.activeBreak?{id:p.activeBreak.id,work_session_id:p.activeBreak.work_session_id,started_at:p.activeBreak.started_at}:null,
+  checkins:p.checkins.filter(x=>x.user_id===p.userId).map(x=>({event_id:x.event_id,workplace_id:x.workplace_id,status:x.status})),
+}).catch(()=>{})},[p.userId,p.events,p.workplaces,p.shifts,p.activeSession,p.activeBreak,p.checkins])
+ async function run(action:()=>Promise<void>){if(busy)return;setBusy(true);setMsg('');try{await action();router.refresh()}catch{setMsg('Actie niet bevestigd. Controleer je verbinding en huidige status.')}finally{setBusy(false)}}
+ async function work(type:string,payload:Record<string,string>){const gps=(type==='start_work'||type==='stop_work')?await captureLocation():{};await enqueue(p.userId,type,{...payload,...gps});setMsg('Actie bewaard. Alleen de bevestigde serverstatus geldt.')}
+ async function requestCheckin(shift:Tables<'shifts'>){
+ let path:string|null=null
+ if(remote){
+  if(!file){setMsg('Maak eerst een nieuwe werkplekselfie.');return}
+  if(file.size>8*1024*1024){setMsg('Kies een foto van maximaal 8 MB.');return}
+  const extensions:Record<string,string>={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}
+  const extension=extensions[file.type]
+  if(!extension){setMsg('Gebruik een JPG-, PNG- of WEBP-foto.');return}
+  path=`${p.userId}/${crypto.randomUUID()}.${extension}`
+  const {error}=await s.storage.from('checkin-selfies').upload(path,file,{contentType:file.type,upsert:false});if(error)throw error
+ }
+ const {error}=await s.rpc('upt_request_check_in',{p_event:shift.event_id,p_workplace:shift.workplace_id,p_remote:remote,...(path?{p_selfie_path:path}:{})});if(error)throw error;setFile(null);setMsg('Inklokken aangevraagd. Goedkeuring start de werktimer niet.')
+ }
+ async function decide(kind:'in'|'out',id:string,approve:boolean){const result=kind==='in'?await s.rpc('upt_decide_check_in',{p_check_in:id,p_approve:approve}):await s.rpc('upt_decide_check_out',{p_check_out:id,p_approve:approve});if(result.error)throw result.error;setMsg(approve?'Goedgekeurd. De oorspronkelijke aanvraagtijd is als effectieve tijd toegepast.':'Beslissing opgeslagen.')}
+ const hours=(n:number)=>`${Math.floor(n/3600)}u ${Math.floor(n%3600/60)}m`
+ return <main className="mx-auto max-w-4xl space-y-6 p-4 pb-28 md:p-8"><h1 className="text-3xl font-black">{p.personalWork?'Werk & pauze':'Operationele status & goedkeuringen'}</h1>{msg&&<p role="status" className="rounded-xl border p-4">{msg}</p>}
+ {p.personalWork&&<section className="rounded-2xl border p-4"><label className="flex gap-3"><input type="checkbox" checked={remote} onChange={e=>setRemote(e.target.checked)}/>Inklokken op afstand met nieuwe werkplekselfie</label>{remote&&<input className="mt-3" type="file" accept="image/jpeg,image/png,image/webp" capture="user" onChange={e=>setFile(e.target.files?.[0]||null)}/>}</section>}
+ {p.personalWork&&p.activeSession&&<section className="space-y-4 rounded-2xl border border-violet-500 bg-card p-5"><h2 className="text-xl font-bold">WERK ACTIEF</h2><p>Gestart: {new Date(p.activeSession.started_at).toLocaleString('nl-BE')}</p>
+ {p.summary&&<div className="grid grid-cols-2 gap-3"><p>Bruto: {hours(p.summary.gross_seconds)}</p><p>Pauze: {hours(p.summary.break_seconds)}</p><p>Resterend tegoed: {hours(p.summary.break_balance_seconds)}</p><p>Betaalbaar: {hours(p.summary.net_payable_seconds)}</p></div>}
+ {p.activeBreak&&p.summary&&p.summary.break_balance_seconds<=300&&<p role="alert" className="text-amber-300">Pauzetegoed bijna of volledig opgebruikt.</p>}
+ <button disabled={busy} className="w-full rounded-xl border p-4 font-bold" onClick={()=>run(()=>p.activeBreak?work('stop_break',{break_id:p.activeBreak.id}):work('start_break',{session_id:p.activeSession!.id}))}>{p.activeBreak?'PAUZE STOPPEN':'PAUZE STARTEN'}</button>
+ <button disabled={busy} className="w-full rounded-xl bg-red-700 p-4 font-bold text-white" onClick={()=>run(()=>work('stop_work',{session_id:p.activeSession!.id}))}>WERK STOPPEN</button>
+ <button disabled={busy} className="w-full rounded-xl border p-4" onClick={()=>run(async()=>{const {error}=await s.rpc('upt_request_check_out',{p_event:p.activeSession!.event_id});if(error)throw error;setMsg('Uitklokken aangevraagd. WERK STOPPEN blijft een aparte actie.')})}>UITKLOKKEN AANVRAGEN</button>
+ </section>}
+ {p.personalWork&&<section className="space-y-3"><h2 className="text-xl font-bold">Mijn diensten</h2>{!p.shifts.length&&<p>Er zijn geen diensten toegewezen.</p>}{p.shifts.map(shift=>{const checkin=p.checkins.find(c=>c.user_id===p.userId&&c.event_id===shift.event_id&&c.workplace_id===shift.workplace_id);return <article key={shift.id} className="space-y-3 rounded-2xl border p-4"><h3 className="font-bold">{p.events.find(e=>e.id===shift.event_id)?.name} · {p.workplaces.find(w=>w.id===shift.workplace_id)?.name}</h3><p>{new Date(shift.scheduled_start).toLocaleString('nl-BE')} → {new Date(shift.scheduled_end).toLocaleString('nl-BE')}</p><p>Inklokken: {checkin ? nlStatus(checkin.status) : 'nog niet aangevraagd'}</p>
+ {(!checkin||checkin.status==='rejected')&&<button disabled={busy} className="w-full rounded-xl border p-4" onClick={()=>run(()=>requestCheckin(shift))}>INKLOKKEN AANVRAGEN</button>}
+ {checkin?.status==='approved'&&!p.activeSession&&<button disabled={busy} className="w-full rounded-xl bg-violet-600 p-4 font-bold" onClick={()=>run(()=>work('start_work',{event_id:shift.event_id,shift_id:shift.id}))}>WERK STARTEN</button>}
+ {checkin?.status==='approved'&&!p.activeSession&&<button disabled={busy} className="w-full rounded-xl border p-4" onClick={()=>run(async()=>{const {error}=await s.rpc('upt_request_check_out',{p_event:shift.event_id});if(error)throw error;setMsg('Uitklokken aangevraagd.')})}>UITKLOKKEN AANVRAGEN</button>}
+ {p.activeSession?.event_id===shift.event_id&&p.activeSession.shift_id!==shift.id&&<button disabled={busy} className="w-full rounded-xl border p-4" onClick={()=>run(()=>work('transition',{session_id:p.activeSession!.id,workplace_id:shift.workplace_id}))}>NIEUWE WERKPLEK — OVERGANG BEVESTIGEN</button>}
+ </article>})}</section>}
+ {p.manager&&<section className="space-y-3 rounded-2xl border p-4"><div className="flex items-center justify-between gap-3"><h2 className="text-xl font-bold">Actuele personeelstatus</h2><span className="text-sm text-muted-foreground">{p.liveSessions.length} actief</span></div>{!p.liveSessions.length&&<p className="text-muted-foreground">Momenteel is er geen zichtbaar personeel aan het werk.</p>}{p.liveSessions.map(ws=>{const crew=p.crewDirectory.find(m=>m.id===ws.user_id);const shift=p.liveShifts.find(x=>x.id===ws.shift_id);const workplace=p.workplaces.find(w=>w.id===shift?.workplace_id);const onBreak=p.liveBreaks.some(b=>b.work_session_id===ws.id&&!b.ended_at);return <article key={ws.id} className="rounded-xl border p-4"><div className="flex items-start justify-between gap-3"><div><p className="font-bold">{crew?.full_name||'Personeelslid'}</p><p className="text-sm text-muted-foreground">{workplace?.name||'Werkplek'} · gestart {new Date(ws.started_at).toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'})}</p>{crew?.phone_number&&<a className="text-sm underline" href={`tel:${crew.phone_number}`}>{crew.phone_number}</a>}</div><span className={`rounded-full px-3 py-1 text-xs font-bold ${onBreak?'bg-amber-500/20 text-amber-300':'bg-emerald-500/20 text-emerald-300'}`}>{onBreak?'PAUZE':'AAN HET WERK'}</span></div></article>})}</section>}
+ {p.manager&&<section className="space-y-3"><h2 className="text-xl font-bold">Goedkeuringen</h2>{[...p.checkins.filter(c=>c.status==='pending').map(c=>({...c,kind:'in' as const})),...p.checkouts.filter(c=>c.status==='pending').map(c=>({...c,kind:'out' as const}))].map(c=><article key={c.id} className="rounded-xl border p-4"><p>{c.kind==='in'?'Inklokken':'Uitklokken'} · {p.workplaces.find(w=>w.id===c.workplace_id)?.name} · {c.user_id}</p><p className="mt-1 text-sm text-muted-foreground">Aangevraagd: {new Date(c.requested_at).toLocaleString('nl-BE')}</p>{c.kind==='in'&&c.selfie_path&&<button className="underline" onClick={()=>run(async()=>{const {data,error}=await s.storage.from('checkin-selfies').createSignedUrl(c.selfie_path!,60);if(error)throw error;window.open(data.signedUrl,'_blank','noopener,noreferrer')})}>Selfie bekijken</button>}<div className="mt-3 flex gap-3"><button disabled={busy} className="rounded-lg bg-violet-600 p-3" onClick={()=>run(()=>decide(c.kind,c.id,true))}>Goedkeuren</button><button disabled={busy} className="rounded-lg border p-3" onClick={()=>run(()=>decide(c.kind,c.id,false))}>Afwijzen</button></div></article>)}</section>}
+ </main>
+}

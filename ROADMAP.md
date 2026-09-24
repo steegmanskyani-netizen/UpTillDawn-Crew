@@ -1,35 +1,39 @@
-# Roadmap
+# Uptilldawn roadmap
 
-What is in, what is next, and what is parked. The living version is in the [project wiki](https://github.com/sarmakska/staff-portal/wiki/Roadmap).
+The application is in production-hardening, not final production release.
 
-## Shipped
+## Completed
 
-- Attendance, timesheets, leave, expenses, purchase requests
-- Visitor management and reception desk
-- Mobile-friendly public kiosk with per-user PIN sign-in
-- Five-role RBAC enforced via Row Level Security
-- Single sign-on via Microsoft Entra ID, Google Workspace, GitHub, GitLab, and SAML 2.0
-- Leave-balance accruals with a monthly cron, an annual cap, and idempotent runs
-- Year-end leave rollover with per-employee carry-forward caps
-- GDPR data-portability export, self-service and admin-driven
-- Immutable audit log covering logins, SSO logins, leave events, accruals, and exports
-- Cron jobs for reminders, cleanups, leave accrual, and year-end rollover
-- the assistant AI assistant (optional Groq integration)
-- PDF generation and Excel export
-- Bank-statement reconciliation, wellness module, IT support tickets
-- Logic test suites for SSO, accruals, and GDPR export with fixtures
+- Core Auth / approval / role model
+- RLS and authenticated mutation boundaries
+- Event, workplace and shift management
+- Check-in/out approval
+- Work/break tracking and 60-minute break allowance
+- Workplace transitions
+- Briefings, personal instructions and tasks
+- Realtime chat, private chat, moderation and photo attachments
+- URGENT incident workflow and private incident photos
+- Admin time corrections, audit and XLSX export
+- Responsible live crew view
+- Admin operational dashboard
+- IndexedDB offline operation/upload queues
+- Reopen-offline work/break/transition/URGENT shell
+- Cloudflare/OpenNext build and Wrangler dry-run validation
+- SQL security regression suites
 
-## Next
+## Release gates still open
 
-- Mobile app wrapper for offline clock-in
-- Slack and Teams notifications alongside email
-- Multi-step expense approval chains
-- Two-way calendar sync for leave
-- SCIM provisioning to complement SSO
-- Browser-driven UI tests on top of the logic suite
+1. Browser/device E2E with separate Staff, Responsible and Admin accounts.
+2. Real camera/GPS tests, including denied/poor-accuracy/offline cases.
+3. Web Push if it is retained as a release requirement.
+4. Explicit overtime/pay-period policy before payroll-style overtime output is enabled.
+5. Complete migration replay on an isolated Supabase project.
+6. Cloudflare production credentials, deployment and production smoke test.
+7. Enable Supabase leaked-password protection in the Auth project settings.
 
-## Parked
+## Later improvements
 
-- Native time-tracking integrations (Toggl, Harvest)
-- Multi-tenant SaaS mode (the project is self-host first)
-- Country-specific payroll export
+- Broader offline browsing for briefings/tasks/chat history
+- Optional notification preference controls
+- More adversarial concurrency/device testing
+- Operational observability after production traffic exists

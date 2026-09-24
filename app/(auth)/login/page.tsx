@@ -3,13 +3,15 @@
 import { useState, useTransition } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
+import Image from "next/image"
 import { Menu, X, Eye, EyeOff, Loader2, AlertCircle, ArrowRight, ShieldCheck, Users, UserCog } from "lucide-react"
 import { signIn } from "@/lib/actions/auth"
+import { LanguageSwitcher } from "@/components/language-switcher"
 
 const portals = {
-  staff: { label: "Staff Login", icon: Users },
-  responsible: { label: "Responsible Login", icon: UserCog },
-  admin: { label: "Admin Login", icon: ShieldCheck },
+  staff: { label: "Personeel", icon: Users },
+  responsible: { label: "Verantwoordelijke", icon: UserCog },
+  admin: { label: "Beheerder", icon: ShieldCheck },
 } as const
 
 type Portal = keyof typeof portals
@@ -39,7 +41,7 @@ export default function LoginPage() {
     <main className="min-h-screen bg-black text-white relative overflow-hidden">
       <button
         type="button"
-        aria-label="Open login menu"
+        aria-label="Open inlogmenu"
         aria-expanded={menuOpen}
         onClick={() => setMenuOpen(v => !v)}
         className="fixed left-5 top-5 z-50 grid h-12 w-12 place-items-center rounded-xl border border-white/15 bg-black/70 backdrop-blur hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white"
@@ -67,11 +69,7 @@ export default function LoginPage() {
 
       <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col items-center px-6 pb-10 pt-20 sm:pt-12">
         <div className="flex min-h-[260px] w-full items-center justify-center sm:min-h-[330px]">
-          <img
-            src="/uptilldawn-logo.jpeg"
-            alt="Up Till Dawn crew"
-            className="max-h-[320px] w-full max-w-[500px] object-contain"
-          />
+          <Image src="/uptilldawn-logo.jpeg" alt="Up Till Dawn personeel" width={500} height={320} priority className="max-h-[320px] w-full max-w-[500px] object-contain" />
         </div>
 
         <section className="w-full rounded-3xl border border-white/15 bg-zinc-950 p-6 shadow-2xl sm:p-8">
@@ -80,7 +78,7 @@ export default function LoginPage() {
               <PortalIcon className="h-5 w-5" />
             </div>
             <h1 className="text-2xl font-black tracking-tight">{portals[portal].label}</h1>
-            <p className="mt-1 text-sm text-zinc-400">UPTILLDAWN CREW MANAGEMENT</p>
+            <p className="mt-1 text-sm text-zinc-400">UP TILL DAWN PERSONEELSBEHEER</p>
           </div>
 
           {error && (
@@ -116,6 +114,7 @@ export default function LoginPage() {
             Nog geen account? <Link href="/signup" className="font-bold text-white hover:underline">Account aanmaken</Link>
           </div>
         </section>
+        <div className="mt-6 w-full rounded-2xl border border-white/10 bg-zinc-950/70 p-4"><LanguageSwitcher dark /></div>
       </div>
     </main>
   )

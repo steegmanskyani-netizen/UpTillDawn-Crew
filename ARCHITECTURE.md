@@ -1,46 +1,72 @@
-# Architecture
+# Uptilldawn architecture
 
-StaffPortal is a single Next.js 16 App Router application on React 19, backed by Supabase. There is no separate backend service: data access runs through React Server Components and server actions that talk to Supabase directly, with a small set of route handlers for the AI assistant, scheduled jobs, and the GDPR export.
+## Runtime
 
-```mermaid
-flowchart TD
-    Browser["Staff browser / Kiosk"] --> MW["middleware.ts (session + role guard)"]
-    MW --> Pages["App Router pages + server components"]
-    Pages --> Actions["Server actions (lib/actions)"]
-    Pages --> API["API routes + cron handlers"]
-    Actions --> Auth["Supabase Auth + SSO"]
-    Auth --> IdP["Identity provider (Entra ID / Google / SAML)"]
-    Actions --> DB[("PostgreSQL + Row Level Security")]
-    API --> DB
-    API --> Resend["Resend (email)"]
-    API --> Groq["Groq API (the assistant, optional)"]
-    Cron["Vercel Cron / GitHub Actions"] -->|Bearer CRON_SECRET| API
+Uptilldawn is a single Next.js 16 App Router application on React 19.
+
+```text
+Browser / installed PWA
+        |
+        v
+Next.js + OpenNext Cloudflare Worker
+  - Server Components
+  - Server Actions
+  - Auth callback
+  - XLSX export route
+        |
+        v
+Supabase
+  - Auth
+  - PostgreSQL + RLS
+  - private Storage
+  - Realtime
+  - pg_cron break notifications
 ```
 
-## Layout
+There is no separate trusted application backend and no service-role key in the active runtime. Browser and server code use the Supabase publishable/anon key; authorization is enforced by authenticated RPCs, RLS and server-side role checks.
 
-- `app/(app)/` authenticated routes, with `admin/` for admin and accounts pages
-- `app/(auth)/` login, signup, password reset, email verification
-- `app/kiosk/` public PIN-based kiosk
-- `app/api/chat/` the assistant assistant; `app/api/cron/` scheduled jobs; `app/api/gdpr/export/` data export
-- `app/auth/callback/` OAuth, SAML, and email-link callback
-- `lib/supabase/` server, browser, and service-role clients
-- `lib/actions/` server actions (the only place that mutates data)
-- `lib/audit.ts`, `lib/sso.ts`, `lib/leave-accrual.ts`, `lib/gdpr.ts` core logic
-- `supabase/migrations/` ordered SQL, currently through `025`
-- `tests/` Node test-runner suites with fixtures
+## Application areas
 
-## Auth and authorisation
+- `app/(auth)/` — login, registration, verification and password recovery
+- `app/(app)/operations/` — check-in/out, work/break and workplace transitions
+- `app/(app)/events/`, `workplaces/`, `shifts/` — event configuration
+- `app/(app)/briefings/`, `tasks/` — crew instructions and task packages
+- `app/(app)/chat/` — realtime crew chat
+- `app/(app)/incidents/` — URGENT incident workflow
+- `app/(app)/admin/` — operational admin dashboard and time corrections
+- `app/api/uptilldawn/export/` — admin XLSX export
 
-- Supabase Auth with email and password plus single sign-on
-- Session via `@supabase/ssr` cookies, refreshed in `middleware.ts`
-- Five roles enforced by Row Level Security on every table
-- SSO layered on Supabase: OAuth via `signInWithOAuth`, SAML via `signInWithSSO`, both returning through `/auth/callback`
+## Authorization model
 
-## Key flows
+Roles stored in `profiles.role`:
 
-- **Leave accrual.** `/api/cron/leave-accrual` runs monthly. `computeAccrual` grants elapsed months times the per-balance rate, capped at the entitlement, and is idempotent within a month.
-- **GDPR export.** `/api/gdpr/export` gathers every personal-data table for the subject, streams a portable JSON document, and audits the export.
-- **Expense claim.** Server action stores the receipt and row, Resend notifies the approver, and a PDFKit claim form is generated on demand.
+- `staff`
+- `responsible_lead`
+- `admin`
 
-The deep reference, including the full cron schedule and per-feature detail, lives in the [project wiki](https://github.com/sarmakska/staff-portal/wiki).
+Unapproved accounts are rejected with `ACCOUNT NOT APPROVED`.
+
+Sensitive changes use SECURITY DEFINER RPCs that validate `auth.uid()`, account approval and the relevant Admin/Responsible/ownership scope. Direct table mutation is intentionally restricted for timekeeping, approvals, incidents, chat moderation and offline replay.
+
+## Offline model
+
+The browser stores pending operations in IndexedDB with a client-generated operation UUID. The server records processed IDs in `offline_operation_records` and rejects conflicting reuse. Ordered time actions can reference the server entity produced by an earlier queued action.
+
+Photo uploads for URGENT incidents and chat are stored as IndexedDB Blobs until both the private Storage upload and matching server RPC succeed.
+
+A service-worker fallback serves a non-sensitive per-user operational snapshot after the authenticated page has been closed. It never fabricates server timestamps, GPS verification or approval state.
+
+## Storage
+
+Private buckets:
+
+- `profile-photos`
+- `checkin-selfies`
+- `incident-photos`
+- `chat-attachments`
+
+Operational evidence cannot be directly deleted by authenticated uploaders after server acceptance. Access is scoped through RLS and short-lived signed URLs.
+
+## Database history
+
+Migrations are ordered in `supabase/migrations/`. The local filenames are aligned with the migration versions recorded in the target Supabase project. Historical pre-Uptilldawn migrations remain because they are part of that history.

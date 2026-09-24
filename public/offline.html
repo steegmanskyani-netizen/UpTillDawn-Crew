@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050505">
+<title>Up Till Dawn — geen verbinding</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,sans-serif;background:#050505;color:#f7f7f8}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#171126 0,#050505 42%);min-height:100vh}
+main{max-width:760px;margin:auto;padding:24px 16px 110px}.top{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+h1{margin:0;font-size:30px;letter-spacing:-.03em}.muted{color:#a1a1aa}.pill{border:1px solid #7c3aed;border-radius:999px;padding:7px 10px;font-size:12px;font-weight:800;color:#c4b5fd}
+.card{margin-top:16px;border:1px solid #27272a;background:rgba(9,9,11,.88);border-radius:18px;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.2)}
+.card h2{margin:0 0 10px;font-size:18px}.grid{display:grid;gap:10px}.row{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:11px 0;border-top:1px solid #27272a}.row:first-child{border-top:0}
+button,select,textarea,input{font:inherit}button{border:0;border-radius:13px;padding:13px 15px;font-weight:900;background:#7c3aed;color:white;cursor:pointer}button.secondary{background:#18181b;border:1px solid #3f3f46}button.danger{background:#b91c1c}button:disabled{opacity:.45;cursor:not-allowed}
+select,textarea,input[type=file]{width:100%;border:1px solid #3f3f46;border-radius:12px;padding:12px;background:#09090b;color:white}textarea{min-height:96px;resize:vertical}
+.notice{border-color:#854d0e;background:#1c1404;color:#fde68a}.ok{color:#86efac}.bad{color:#fca5a5}.actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.actions button{flex:1;min-width:145px}
+small{display:block;color:#a1a1aa;line-height:1.45}.urgent{border-color:#7f1d1d}.urgent h2{color:#f87171}.empty{padding:10px 0;color:#a1a1aa}
+.fixed{position:fixed;left:0;right:0;bottom:0;background:rgba(5,5,5,.94);border-top:1px solid #27272a;padding:10px 16px calc(10px + env(safe-area-inset-bottom));backdrop-filter:blur(12px)}
+.fixed>div{max-width:760px;margin:auto;display:flex;gap:10px}.fixed button{width:100%}
+</style>
+</head>
+<body>
+<main>
+  <div class="top"><div><h1>UP TILL DAWN — GEEN VERBINDING</h1><p class="muted">Lokale operationele modus</p></div><span class="pill">GEEN VERBINDING</span></div>
+  <section id="notice" class="card notice">De server is niet bereikbaar. Alleen de laatst bevestigde serverstatus en lokale wachtrij worden gebruikt. Lokale acties krijgen geen verzonnen servertijd.</section>
+  <section id="status" class="card"><h2>Werkstatus</h2><div id="statusBody" class="empty">Offline gegevens laden…</div></section>
+  <section id="shifts" class="card"><h2>Mijn diensten</h2><div id="shiftBody" class="empty">Offline gegevens laden…</div></section>
+  <section class="card urgent">
+    <h2>URGENT lokaal bewaren</h2>
+    <form id="urgentForm" class="grid">
+      <select id="urgentEvent" required><option value="">Selecteer evenement</option></select>
+      <select id="urgentWorkplace"><option value="">Geen specifieke werkplek</option></select>
+      <textarea id="urgentMessage" maxlength="4000" required placeholder="Wat is er aan de hand?"></textarea>
+      <input id="urgentPhoto" type="file" accept="image/jpeg,image/png,image/webp">
+      <button type="submit" class="danger">URGENT BEWAREN</button>
+    </form>
+    <small id="urgentResult"></small>
+  </section>
+  <section id="queue" class="card"><h2>Lokale wachtrij</h2><div id="queueBody" class="empty">Wachtrij laden…</div></section>
+  <section class="card"><small>De lokale momentopname bevat alleen je eigen operationele status, diensten, evenementnamen en werkplekken. Goedkeuringen voor inklokken blijven door de server bepaald. Selfies voor inklokken op afstand kunnen zonder verbinding niet worden hergebruikt.</small></section>
+</main>
+<div class="fixed"><div><button class="secondary" onclick="location.reload()">OPNIEUW VERBINDEN</button></div></div>
+<script>
+const TIME_TYPES=new Set(['start_work','start_break','stop_break','stop_work','transition'])
+let snapshot=null,userId='',ops=[],uploads=[]
+
+function req(request){return new Promise((resolve,reject)=>{request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})}
+function txDone(tx){return new Promise((resolve,reject)=>{tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error)})}
+function shellDb(){return new Promise((resolve,reject)=>{const r=indexedDB.open('uptilldawn-offline-shell',1);r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains('snapshots'))db.createObjectStore('snapshots',{keyPath:'userId'});if(!db.objectStoreNames.contains('meta'))db.createObjectStore('meta',{keyPath:'key'})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+function queueDb(){return new Promise((resolve,reject)=>{const r=indexedDB.open('uptilldawn-operations',2);r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains('operations'))db.createObjectStore('operations',{keyPath:'id'});if(!db.objectStoreNames.contains('uploads'))db.createObjectStore('uploads',{keyPath:'id'})};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+
+async function loadSnapshot(){
+ const db=await shellDb();try{
+  const meta=await req(db.transaction('meta').objectStore('meta').get('activeUserId'))
+  userId=meta?.value||''
+  if(userId)snapshot=await req(db.transaction('snapshots').objectStore('snapshots').get(userId))
+ }finally{db.close()}
+}
+async function loadQueue(){
+ if(!userId){ops=[];uploads=[];return}
+ const db=await queueDb();try{
+  const o=await req(db.transaction('operations').objectStore('operations').getAll())
+  const u=await req(db.transaction('uploads').objectStore('uploads').getAll())
+  ops=(o||[]).filter(x=>x.userId===userId).sort((a,b)=>a.createdAt-b.createdAt)
+  uploads=(u||[]).filter(x=>x.userId===userId).sort((a,b)=>a.createdAt-b.createdAt)
+ }finally{db.close()}
+}
+async function putOperation(type,payload){
+ const op={id:crypto.randomUUID(),userId,type,payload,createdAt:Date.now(),attempts:0}
+ const db=await queueDb();try{const tx=db.transaction('operations','readwrite');tx.objectStore('operations').put(op);await txDone(tx)}finally{db.close()}
+ await refresh();return op
+}
+async function putIncidentUpload(payload,file){
+ if(file.size>10*1024*1024)throw new Error('Foto is groter dan 10 MB.')
+ const ext=file.type==='image/jpeg'?'jpg':file.type==='image/png'?'png':file.type==='image/webp'?'webp':''
+ if(!ext)throw new Error('Gebruik JPG, PNG of WEBP.')
+ const id=crypto.randomUUID()
+ const upload={id,userId,kind:'incident_photo',payload:{incident_operation_id:crypto.randomUUID(),incident_payload:payload},storagePath:userId+'/'+id+'.'+ext,mimeType:file.type,blob:file,createdAt:Date.now(),attempts:0}
+ const db=await queueDb();try{const tx=db.transaction('uploads','readwrite');tx.objectStore('uploads').put(upload);await txDone(tx)}finally{db.close()}
+ await refresh()
+}
+async function gps(){
+ if(!navigator.geolocation)return {gps_status:'unavailable'}
+ return new Promise(resolve=>navigator.geolocation.getCurrentPosition(
+  p=>resolve({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy}),
+  e=>resolve({gps_status:e.code===1?'denied':'unavailable'}),
+  {timeout:7000,maximumAge:0,enableHighAccuracy:true}
+ ))
+}
+function derive(){
+ let active=snapshot?.activeSession?{serverId:snapshot.activeSession.id,operationId:null,eventId:snapshot.activeSession.event_id,shiftId:snapshot.activeSession.shift_id}:null
+ let brk=snapshot?.activeBreak?{serverId:snapshot.activeBreak.id,operationId:null}:null
+ let workplace=active?shiftById(active.shiftId)?.workplace_id:null
+ for(const op of ops.filter(x=>TIME_TYPES.has(x.type))){
+  if(op.type==='start_work'){active={serverId:null,operationId:op.id,eventId:op.payload.event_id,shiftId:op.payload.shift_id};brk=null;workplace=shiftById(op.payload.shift_id)?.workplace_id||null}
+  if(op.type==='start_break'&&active)brk={serverId:null,operationId:op.id}
+  if(op.type==='stop_break')brk=null
+  if(op.type==='transition'&&active)workplace=op.payload.workplace_id||workplace
+  if(op.type==='stop_work'){active=null;brk=null;workplace=null}
+ }
+ return {active,brk,workplace}
+}
+function shiftById(id){return snapshot?.shifts?.find(x=>x.id===id)}
+function eventName(id){return snapshot?.events?.find(x=>x.id===id)?.name||'Evenement'}
+function workplaceName(id){return snapshot?.workplaces?.find(x=>x.id===id)?.name||'Werkplek'}
+function approved(shift){return snapshot?.checkins?.some(x=>x.event_id===shift.event_id&&x.workplace_id===shift.workplace_id&&x.status==='approved')}
+function dateTime(v){try{return new Date(v).toLocaleString('nl-BE')}catch{return v}}
+function button(label,cls,handler,disabled=false){const b=document.createElement('button');b.textContent=label;if(cls)b.className=cls;b.disabled=disabled;b.onclick=handler;return b}
+
+async function queueStartWork(shift){
+ const p=await gps();await putOperation('start_work',{event_id:shift.event_id,shift_id:shift.id,...p})
+}
+async function queueStartBreak(state){
+ const payload=state.active.serverId?{session_id:state.active.serverId}:{session_operation_id:state.active.operationId}
+ await putOperation('start_break',payload)
+}
+async function queueStopBreak(state){
+ const payload=state.brk.serverId?{break_id:state.brk.serverId}:{break_operation_id:state.brk.operationId}
+ await putOperation('stop_break',payload)
+}
+async function queueStopWork(state){
+ const p=await gps();const ref=state.active.serverId?{session_id:state.active.serverId}:{session_operation_id:state.active.operationId}
+ await putOperation('stop_work',{...ref,...p})
+}
+async function queueTransition(state,shift){
+ const ref=state.active.serverId?{session_id:state.active.serverId}:{session_operation_id:state.active.operationId}
+ await putOperation('transition',{...ref,workplace_id:shift.workplace_id})
+}
+function renderStatus(state,blocked){
+ const el=document.getElementById('statusBody');el.innerHTML=''
+ if(!snapshot){el.className='bad';el.textContent='Geen lokale momentopname beschikbaar. Open Werk & pauze minstens één keer online op dit toestel.';return}
+ const saved=document.createElement('small');saved.textContent='Laatst bevestigd/opgeslagen: '+dateTime(snapshot.savedAt);el.append(saved)
+ if(blocked){const p=document.createElement('p');p.className='bad';p.textContent='Een eerdere tijdactie vereist controle. Nieuwe tijdacties zijn geblokkeerd tot synchronisatie.';el.append(p)}
+ if(!state.active){const p=document.createElement('p');p.textContent='Geen actieve werksessie volgens bevestigde status + lokale wachtrij.';el.append(p);return}
+ const p=document.createElement('p');p.innerHTML='<strong>WERK ACTIEF'+(state.brk?' — PAUZE':'')+'</strong><br>'+eventName(state.active.eventId)+' · '+workplaceName(state.workplace);el.append(p)
+ const a=document.createElement('div');a.className='actions'
+ a.append(state.brk?button('PAUZE STOPPEN','secondary',()=>queueStopBreak(state),blocked):button('PAUZE STARTEN','secondary',()=>queueStartBreak(state),blocked))
+ a.append(button('WERK STOPPEN','danger',()=>queueStopWork(state),blocked))
+ el.append(a)
+}
+function renderShifts(state,blocked){
+ const el=document.getElementById('shiftBody');el.innerHTML=''
+ if(!snapshot?.shifts?.length){el.className='empty';el.textContent='Geen opgeslagen diensten.';return}
+ for(const s of snapshot.shifts){
+  const row=document.createElement('div');row.className='row'
+  const left=document.createElement('div');left.innerHTML='<strong>'+eventName(s.event_id)+' · '+workplaceName(s.workplace_id)+'</strong><small>'+dateTime(s.scheduled_start)+' → '+dateTime(s.scheduled_end)+(s.role_name?' · '+s.role_name:'')+'</small>'
+  const actions=document.createElement('div')
+  if(!state.active&&approved(s))actions.append(button('WERK STARTEN','',()=>queueStartWork(s),blocked))
+  else if(!state.active&&!approved(s)){const sm=document.createElement('small');sm.textContent='Inklokken niet goedgekeurd';actions.append(sm)}
+  else if(state.active&&state.active.eventId===s.event_id&&state.workplace!==s.workplace_id)actions.append(button('WISSEL','secondary',()=>queueTransition(state,s),blocked))
+  row.append(left,actions);el.append(row)
+ }
+}
+function renderQueue(){
+ const el=document.getElementById('queueBody');el.innerHTML=''
+ const total=ops.length+uploads.length
+ if(!total){el.className='empty';el.textContent='Geen lokale acties of bestanden.';return}
+ const p=document.createElement('p');p.innerHTML='<strong>'+ops.length+' actie(s) + '+uploads.length+' bestand(en)</strong> wachten op serverbevestiging.';el.append(p)
+ for(const op of ops){const r=document.createElement('small');r.textContent=(op.error?'CONTROLE NODIG · ':'')+op.type+' · '+dateTime(op.createdAt);el.append(r)}
+ for(const up of uploads){const r=document.createElement('small');r.textContent=(up.error?'CONTROLE NODIG · ':'')+up.kind+' · '+dateTime(up.createdAt);el.append(r)}
+}
+function renderUrgentOptions(){
+ const event=document.getElementById('urgentEvent'),work=document.getElementById('urgentWorkplace')
+ event.innerHTML='<option value="">Selecteer evenement</option>';work.innerHTML='<option value="">Geen specifieke werkplek</option>'
+ for(const e of snapshot?.events||[]){const o=document.createElement('option');o.value=e.id;o.textContent=e.name;event.append(o)}
+ for(const w of snapshot?.workplaces||[]){const o=document.createElement('option');o.value=w.id;o.dataset.event=w.event_id;o.textContent=eventName(w.event_id)+' — '+w.name;work.append(o)}
+ event.onchange=()=>{for(const o of [...work.options])if(o.value)o.hidden=!!event.value&&o.dataset.event!==event.value;if(work.selectedOptions[0]?.hidden)work.value=''}
+}
+async function refresh(){
+ await loadQueue()
+ const blocked=ops.some(x=>TIME_TYPES.has(x.type)&&x.error)
+ const state=derive();renderStatus(state,blocked);renderShifts(state,blocked);renderQueue()
+}
+document.getElementById('urgentForm').addEventListener('submit',async e=>{
+ e.preventDefault();const result=document.getElementById('urgentResult');result.textContent='Lokaal bewaren…'
+ try{
+  if(!snapshot||!userId)throw new Error('Geen lokale gebruikersmomentopname beschikbaar.')
+  const event_id=document.getElementById('urgentEvent').value,workplace_id=document.getElementById('urgentWorkplace').value,message=document.getElementById('urgentMessage').value.trim(),file=document.getElementById('urgentPhoto').files[0]
+  if(!event_id||!message)throw new Error('Evenement en melding zijn verplicht.')
+  const location=await gps();const payload={event_id,message,...location,...(workplace_id?{workplace_id}:{})}
+  if(file)await putIncidentUpload(payload,file);else await putOperation('incident',payload)
+  e.target.reset();renderUrgentOptions();result.className='ok';result.textContent='URGENT melding is lokaal bewaard. Ze wordt pas serverbevestigd na synchronisatie.'
+ }catch(err){result.className='bad';result.textContent=err?.message||'Lokaal bewaren mislukt.'}
+})
+;(async()=>{try{await loadSnapshot();renderUrgentOptions();await refresh()}catch{document.getElementById('statusBody').textContent='Offline opslag kon niet worden geopend.'}})()
+</script>
+</body>
+</html>

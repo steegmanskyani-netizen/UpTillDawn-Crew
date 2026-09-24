@@ -179,20 +179,30 @@ begin
     raise exception 'ACCOUNT NOT APPROVED';
   end if;
 
-  if not exists (
-    select 1
-    from public.workplaces w
-    where w.id = p_workplace
-      and w.event_id = p_event
-  ) then
-    raise exception 'Werkplek niet gevonden.';
-  end if;
+  if p_workplace is not null then
+    if not exists (
+      select 1
+      from public.workplaces w
+      where w.id = p_workplace
+        and w.event_id = p_event
+    ) then
+      raise exception 'Werkplek niet gevonden.';
+    end if;
 
-  if not (
-    public.upt_is_admin(auth.uid())
-    or public.upt_is_responsible(p_event, p_workplace, auth.uid())
-  ) then
-    raise exception 'Geen toegang.';
+    if not (
+      public.upt_is_admin(auth.uid())
+      or public.upt_is_responsible(p_event, p_workplace, auth.uid())
+      or upt_private.is_event_responsible(p_event, auth.uid())
+    ) then
+      raise exception 'Geen toegang.';
+    end if;
+  else
+    if not (
+      public.upt_is_admin(auth.uid())
+      or upt_private.is_event_responsible(p_event, auth.uid())
+    ) then
+      raise exception 'Geen toegang.';
+    end if;
   end if;
 
   return query

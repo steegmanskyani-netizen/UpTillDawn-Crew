@@ -99,7 +99,7 @@ export default async function Page(){
     isAdmin={isAdmin}
     personalWork={personalWork}
     summary={summary?.data?.[0]||null}
-    summaryAsOf={Date.now()}
+    summaryAsOf={new Date(now).getTime()}
     liveSessions={liveSessions}
     liveBreaks={liveBreaks}
     liveShifts={liveShifts}

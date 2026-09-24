@@ -80,8 +80,9 @@ export function ChatClient({
   useEffect(()=>{endRef.current?.scrollIntoView({block:'end'})},[current.messages.length,effectiveSelected])
 
   const directory=useMemo(()=>new Map(crewDirectory.map(member=>[member.id,member])),[crewDirectory])
-  const channelName=(channel:Tables<'chat_channels'>)=>channel.kind==='organization'?'Algemene chat':channel.name||'Eventchat'
+  const channelName=(channel:Tables<'chat_channels'>)=>channel.kind==='organization'?'Algemene chat':channel.kind==='workplace'?(channel.name||'Werkplekchat'):(channel.name||'Eventchat')
   const eventChannels=channels.filter(channel=>channel.kind==='event')
+  const workplaceChannels=channels.filter(channel=>channel.kind==='workplace')
   const organizationChannels=channels.filter(channel=>channel.kind==='organization')
 
   function chooseChannel(id:string){
@@ -144,6 +145,10 @@ export function ChatClient({
         {!!eventChannels.length&&<div className="mt-2">
           <p className="px-2 py-1 text-[11px] font-bold uppercase tracking-[.16em] text-muted-foreground">Evenementen</p>
           <div className="space-y-1">{eventChannels.map(channel=><ChannelButton key={channel.id} channel={channel} selected={effectiveSelected} onChoose={chooseChannel} name={channelName(channel)}/>)}</div>
+        </div>}
+        {!!workplaceChannels.length&&<div className="mt-2">
+          <p className="px-2 py-1 text-[11px] font-bold uppercase tracking-[.16em] text-muted-foreground">Werkplekken</p>
+          <div className="space-y-1">{workplaceChannels.map(channel=><ChannelButton key={channel.id} channel={channel} selected={effectiveSelected} onChoose={chooseChannel} name={channelName(channel)}/>)}</div>
         </div>}
       </div>}
     </header>

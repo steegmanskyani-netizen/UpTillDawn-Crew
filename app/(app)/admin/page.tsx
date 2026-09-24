@@ -27,7 +27,7 @@ export default async function Page(){
   s.from('incidents').select('id,event_id,workplace_id,message,status,created_at').neq('status','resolved').order('created_at',{ascending:false}),
   s.from('task_assignments').select('id,status').neq('status','COMPLETED'),
   s.from('shifts').select('id,user_id,event_id,workplace_id,scheduled_start,scheduled_end,status').neq('status','cancelled').lte('scheduled_start',soon.toISOString()).gte('scheduled_end',now.toISOString()),
-  s.from('profiles').select('id,full_name,phone_number').eq('approved',true),
+  s.from('profiles').select('id,full_name,phone_number,role').eq('approved',true),
   s.from('workplaces').select('id,event_id,name'),
   s.from('offline_operation_records').select('id,status').neq('status','synced').limit(100),
   s.from('check_ins').select('user_id,event_id,workplace_id').eq('status','approved'),
@@ -43,6 +43,13 @@ export default async function Page(){
  const workplaceMap=new Map(workplaceRows.map(w=>[w.id,w]))
  const shiftMap=new Map(shiftRows.map(x=>[x.id,x]))
  const paused=new Set(breakRows.map(x=>x.work_session_id))
+ const activeSessionByShift=new Map(sessionRows.filter(ws=>ws.shift_id).map(ws=>[ws.shift_id!,ws]))
+ const activeShiftRows=shiftRows.filter(shift=>{
+  const person=people.get(shift.user_id)
+  return Date.parse(shift.scheduled_start)<=nowMs
+    && Date.parse(shift.scheduled_end)>=nowMs
+    && (person?.role==='staff'||person?.role==='responsible_lead')
+ })
 
  return <main className="mx-auto max-w-7xl space-y-7 p-4 pb-28 md:p-8">
   <div className="flex flex-wrap items-end justify-between gap-3"><div><p className="text-xs font-bold tracking-[.2em] text-violet-400">UP TILL DAWN BEHEER</p><h1 className="text-3xl font-black">Operationeel overzicht</h1><p className="text-muted-foreground">Actuele serverstatus voor personeel, goedkeuringen, incidenten, taken en synchronisatie.</p></div><div className="flex gap-2"><Link href="/admin/time-records" className="rounded-xl border px-4 py-3">Tijdcorrecties</Link></div></div>
@@ -74,7 +81,25 @@ export default async function Page(){
 
   <section className="grid gap-5 lg:grid-cols-2">
    <div className="space-y-3 rounded-2xl border p-4"><div className="flex items-center justify-between"><h2 className="text-xl font-bold">Open incidenten</h2><Link href="/incidents" className="text-sm underline">Alles bekijken</Link></div>{!incidentRows.length&&<p className="text-muted-foreground">Geen open incidenten.</p>}{incidentRows.slice(0,6).map(x=><article key={x.id} className="rounded-xl border p-3"><p className="font-semibold">{x.message}</p><p className="text-xs text-muted-foreground">{eventMap.get(x.event_id||'')?.name||'Evenement'} · {new Date(x.created_at).toLocaleString('nl-BE')} · {nlStatus(x.status)}</p></article>)}</div>
-   <div className="space-y-3 rounded-2xl border p-4"><h2 className="text-xl font-bold">Snelle beheerlinks</h2><div className="grid gap-2 sm:grid-cols-2">{[['/events','Evenementen beheren'],['/workplaces','Werkplekken'],['/shifts','Diensten'],['/personnel','Personeel'],['/briefings','Instructies'],['/tasks','Taken'],['/chat','Gesprekken'],['/exports','Excel-export']].map(([href,label])=><Link key={href} href={href} className="rounded-xl border p-3">{label}</Link>)}</div></div>
+   <div className="space-y-3 rounded-2xl border p-4">
+    <div className="flex items-center justify-between gap-3"><h2 className="text-xl font-bold">Lopende diensten & pauzes</h2><span className="text-sm text-muted-foreground">{activeShiftRows.length} lopend</span></div>
+    {!activeShiftRows.length&&<p className="text-muted-foreground">Er lopen momenteel geen diensten van personeel of verantwoordelijken.</p>}
+    {activeShiftRows.map(shift=>{
+      const person=people.get(shift.user_id)
+      const event=eventMap.get(shift.event_id)
+      const workplace=workplaceMap.get(shift.workplace_id)
+      const session=activeSessionByShift.get(shift.id)
+      const onBreak=Boolean(session&&paused.has(session.id))
+      const roleLabel=person?.role==='responsible_lead'?'VERANTWOORDELIJKE':'PERSONEEL'
+      const status=session?(onBreak?'PAUZE':'WERKT'):'DIENST LOPEND · NOG NIET GESTART'
+      return <article key={shift.id} className="rounded-xl border p-3">
+       <div className="flex flex-wrap items-start justify-between gap-3">
+        <div><p className="font-bold">{person?.full_name||'Personeelslid'}</p><p className="text-sm text-muted-foreground">{roleLabel} · {event?.name||'Evenement'} · {workplace?.name||'Werkplek'}</p><p className="text-xs text-muted-foreground">{new Date(shift.scheduled_start).toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'})} → {new Date(shift.scheduled_end).toLocaleTimeString('nl-BE',{hour:'2-digit',minute:'2-digit'})}</p></div>
+        <span className={onBreak?'rounded-full bg-amber-500/20 px-3 py-1 text-xs font-bold text-amber-300':session?'rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-300':'rounded-full border px-3 py-1 text-xs font-bold'}>{status}</span>
+       </div>
+      </article>
+    })}
+   </div>
   </section>
  </main>
 }

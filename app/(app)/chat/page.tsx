@@ -15,7 +15,7 @@ export default async function Page(){
     {data:directory},
     {data:activeEvents},
   ]=await Promise.all([
-    s.from('chat_channels').select('*').in('kind',['organization','event']).order('created_at'),
+    s.from('chat_channels').select('*').in('kind',['organization','event','workplace']).order('created_at'),
     s.rpc('upt_crew_directory'),
     s.from('events').select('id,start_at,end_at').lte('start_at','now').gte('end_at','now').order('start_at'),
   ])
@@ -26,9 +26,9 @@ export default async function Page(){
     if(signed?.signedUrl)profilePhotoUrls[member.id]=signed.signedUrl
   }))
 
-  const readable=(channels||[]).filter(channel=>channel.kind==='organization'||channel.kind==='event')
+  const readable=(channels||[]).filter(channel=>['organization','event','workplace'].includes(channel.kind))
   const ordered=[...readable].sort((a,b)=>{
-    const weight=(kind:string)=>kind==='organization'?0:1
+    const weight=(kind:string)=>kind==='organization'?0:kind==='event'?1:2
     const byKind=weight(a.kind)-weight(b.kind)
     if(byKind)return byKind
     return (a.name||'').localeCompare(b.name||'','nl')

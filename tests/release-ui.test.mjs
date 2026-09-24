@@ -178,18 +178,20 @@ test('work and pause is visible from event start but actions require an active s
   assert.match(migration, /Je dienst is nog niet gestart of is al afgelopen\./)
 })
 
-test('chat is restricted to organization and assigned event channels with button-only send', async () => {
+test('chat includes organization, event and authorized workplace channels with button-only send', async () => {
   const chat = await read('components/crew/chat-client.tsx')
   const page = await read('app/(app)/chat/page.tsx')
-  const migration = await read('supabase/migrations/20260924180631_uptilldawn_role_layout_shift_chat_media.sql')
+  const migration = await read('supabase/migrations/20260924213600_uptilldawn_workplace_task_and_chat_scope.sql')
 
-  assert.match(page, /\.in\('kind',\['organization','event'\]\)/)
+  assert.match(page, /\.in\('kind',\['organization','event','workplace'\]\)/)
   assert.doesNotMatch(page, /private/)
+  assert.match(chat, /Werkplekken/)
+  assert.match(chat, /workplaceChannels/)
   assert.match(chat, /Enter = nieuwe regel · verzenden gebeurt met de knop\./)
   assert.doesNotMatch(chat, /onKeyDown/)
   assert.match(chat, /cache/)
-  assert.match(migration, /now\(\) >= e\.start_at/)
-  assert.match(migration, /e\.end_at \+ interval '3 days'/)
+  assert.match(migration, /c\.kind='workplace'/)
+  assert.match(migration, /upt_is_responsible\(c\.event_id,c\.workplace_id,auth\.uid\(\)\)/)
 })
 
 
@@ -215,4 +217,30 @@ test('responsible workplace access is read-only and own start approval requires 
   assert.match(approvedStart, /insert into public\.work_sessions/)
   assert.match(roleSnapshot, /requested_role/)
   assert.match(roleSnapshot, /coalesce\(v_check_in\.requested_role,public\.upt_effective_role\(v_check_in\.user_id\)\)/)
+})
+
+
+test('admin approvals remain accessible without restoring admin work-pause navigation', async () => {
+  const layout = await read('components/layout/app-layout.tsx')
+  const admin = await read('app/(app)/admin/page.tsx')
+  assert.match(layout, /adminOperationsRoute=Boolean\(isAdmin&&!testMode&&pathname\.startsWith\("\/operations"\)\)/)
+  assert.match(layout, /const showOperations=isAdmin\?false:/)
+  assert.match(admin, /Goedkeuringen openen/)
+  assert.match(admin, /Lopende diensten & pauzes/)
+  assert.doesNotMatch(admin, /Snelle beheerlinks/)
+})
+
+test('responsible task creation is restricted to assigned workplace', async () => {
+  const tasks = await read('app/(app)/tasks/page.tsx')
+  const fields = await read('components/crew/assignment-scope-fields.tsx')
+  const actions = await read('lib/actions/uptilldawn.ts')
+  const migration = await read('supabase/migrations/20260924213600_uptilldawn_workplace_task_and_chat_scope.sql')
+
+  assert.match(tasks, /from\('responsible_assignments'\)/)
+  assert.match(tasks, /p_workplace: assignment\.workplace_id/)
+  assert.match(tasks, /workplaceRequired=\{!isAdmin\}/)
+  assert.match(fields, /workplaceRequired\?'Werkplek…':'Geheel evenement'/)
+  assert.match(actions, /Je kunt alleen taken beheren binnen je eigen toegewezen werkplek\./)
+  assert.match(actions, /Selecteer alleen personeel dat aan jouw werkplek is toegewezen\./)
+  assert.match(migration, /p_workplace is not null[\s\S]*upt_is_responsible\(p_event,p_workplace,auth\.uid\(\)\)/)
 })

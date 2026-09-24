@@ -101,14 +101,16 @@ export default async function Page() {
       ...(shiftRows || []).map(row => ({ event_id: row.event_id, workplace_id: row.workplace_id, user_id: row.user_id })),
     ]
   } else if (isResponsible) {
-    const { data: responsibleMemberships } = await s
-      .from('event_members')
-      .select('event_id')
+    const { data: responsibleAssignments } = await s
+      .from('responsible_assignments')
+      .select('event_id,workplace_id')
       .eq('user_id', user.id)
-      .in('event_role', ['responsible_lead','admin'])
 
-    const eventIds = [...new Set((responsibleMemberships || []).map(row => row.event_id).filter(id => activeShiftEventIds.has(id)))]
-    if (eventIds.length) {
+    const activeAssignments = (responsibleAssignments || []).filter(row => activeShiftEventIds.has(row.event_id))
+    const eventIds = [...new Set(activeAssignments.map(row => row.event_id))]
+    const workplaceIds = [...new Set(activeAssignments.map(row => row.workplace_id))]
+
+    if (eventIds.length && workplaceIds.length) {
       const [{ data: eventRows }, { data: workplaceRows }] = await Promise.all([
         s.from('events')
           .select('id,name')
@@ -118,7 +120,7 @@ export default async function Page() {
           .order('start_at'),
         s.from('workplaces')
           .select('id,name,event_id,events(name)')
-          .in('event_id', eventIds)
+          .in('id', workplaceIds)
           .eq('is_active', true)
           .order('sort_order'),
       ])
@@ -126,9 +128,13 @@ export default async function Page() {
       selectableEvents = eventRows || []
       workplaces = workplaceRows || []
 
-      const directories = await Promise.all(eventIds.map(async eventId => ({
-        eventId,
-        result: await s.rpc('upt_responsible_event_members', { p_event: eventId, p_workplace: null as unknown as string }),
+      const directories = await Promise.all(activeAssignments.map(async assignment => ({
+        eventId: assignment.event_id,
+        workplaceId: assignment.workplace_id,
+        result: await s.rpc('upt_responsible_event_members', {
+          p_event: assignment.event_id,
+          p_workplace: assignment.workplace_id,
+        }),
       })))
       const unique = new Map<string, CrewOption>()
       for (const directory of directories) {
@@ -136,7 +142,7 @@ export default async function Page() {
           unique.set(member.id, { id: member.id, full_name: member.full_name })
           memberships.push({
             event_id: directory.eventId,
-            workplace_id: null,
+            workplace_id: directory.workplaceId,
             user_id: member.id,
           })
         }
@@ -152,7 +158,7 @@ export default async function Page() {
   return <main className="space-y-4 p-4 md:p-8">
     <div>
       <h1 className="text-3xl font-black">Taken</h1>
-      {isResponsible && <p className="text-sm text-muted-foreground">Je kunt taken voorbereiden voor evenementen waaraan je als verantwoordelijke bent toegewezen.</p>}
+      {isResponsible && <p className="text-sm text-muted-foreground">Je kunt alleen taken aanmaken en toewijzen binnen je eigen toegewezen werkplek.</p>}
       <StaffUnavailableMessage available={isAdmin || hasActiveShift}>
         <p className="mt-3 rounded-xl border p-4 text-muted-foreground">Taken zijn beschikbaar vanaf de start van je toegewezen shift.</p>
       </StaffUnavailableMessage>
@@ -166,7 +172,7 @@ export default async function Page() {
         memberships={memberships}
         isAdmin={isAdmin}
         showEventSelect
-        workplaceRequired={false}
+        workplaceRequired={!isAdmin}
         multiplePeople
         availability={availabilityRows || []}
       />

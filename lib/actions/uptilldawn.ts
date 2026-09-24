@@ -482,13 +482,27 @@ export async function createTask(fd:FormData){
  let workplaceId:string|null=null
  if(rawWorkplace){
   workplaceId=uuid.parse(rawWorkplace)
-  const {data:w,error:wError}=await s.from('workplaces').select('event_id').eq('id',workplaceId).single()
-  check(wError);if(!w)throw new Error('Werkplek niet gevonden.')
+  const {data:w,error:wError}=await s.from('workplaces').select('event_id,is_active').eq('id',workplaceId).single()
+  check(wError);if(!w||!w.is_active)throw new Error('Werkplek niet gevonden.')
   eventId=w.event_id
  }else{
   eventId=uuid.parse(fd.get('event_id'))
  }
- await requireEventManager(s,user.id,profile.role,eventId)
+
+ if(profile.role==='responsible_lead'){
+  if(!workplaceId)throw new Error('Kies je toegewezen werkplek.')
+  const {data:assignment,error:assignmentError}=await s.from('responsible_assignments')
+   .select('workplace_id')
+   .eq('event_id',eventId)
+   .eq('workplace_id',workplaceId)
+   .eq('user_id',user.id)
+   .maybeSingle()
+  check(assignmentError)
+  if(!assignment)throw new Error('Je kunt alleen taken beheren binnen je eigen toegewezen werkplek.')
+ }else{
+  await requireEventManager(s,user.id,profile.role,eventId)
+ }
+
  await requireFeature(s,profile.role,'tasks',eventId,workplaceId)
 
  const userIds=[...new Set(fd.getAll('user_id').map(value=>uuid.parse(value)))]
@@ -502,6 +516,18 @@ export async function createTask(fd:FormData){
  const memberIds=new Set((members||[]).map(row=>row.user_id))
  const availableIds=new Set((available||[]).map(row=>row.user_id))
  if(userIds.some(id=>!memberIds.has(id)||!availableIds.has(id)))throw new Error('Selecteer alleen toegevoegde medewerkers die hebben aangeduid dat ze kunnen.')
+
+ if(profile.role==='responsible_lead'&&workplaceId){
+  const {data:workplaceShifts,error:shiftError}=await s.from('shifts')
+   .select('user_id')
+   .eq('event_id',eventId)
+   .eq('workplace_id',workplaceId)
+   .neq('status','cancelled')
+   .in('user_id',userIds)
+  check(shiftError)
+  const workplaceUserIds=new Set((workplaceShifts||[]).map(row=>row.user_id))
+  if(userIds.some(id=>!workplaceUserIds.has(id)))throw new Error('Selecteer alleen personeel dat aan jouw werkplek is toegewezen.')
+ }
 
  const [first,...rest]=userIds
  const {data:taskId,error}=await s.rpc('upt_create_assigned_task',{

@@ -101,7 +101,7 @@ export function AssignmentScopeFields({
       className="border bg-background p-3"
     >
       {showEventSelect
-        ? <option value="">Geheel evenement</option>
+        ? <option value="">{workplaceRequired?'Werkplek…':'Geheel evenement'}</option>
         : <option value="">Werkplek…</option>}
       {visibleWorkplaces.map(workplace => {
         const eventName = events.find(event => event.id === workplace.event_id)?.name

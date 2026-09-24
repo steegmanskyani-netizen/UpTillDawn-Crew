@@ -67,8 +67,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     null
   const currentRule=currentFeature?ruleMap.get(currentFeature):undefined
   const rulesReady=!roleKey||rules.length>0
-  const currentVisible=!currentFeature||!roleKey||!rulesReady||previewAll||ruleMatches(currentRule,context,false)
-  const currentUsable=!currentFeature||!roleKey||!rulesReady||ruleUsable(currentRule,context,false)
+  const adminOperationsRoute=Boolean(isAdmin&&!testMode&&pathname.startsWith("/operations"))
+  const currentVisible=adminOperationsRoute||!currentFeature||!roleKey||!rulesReady||previewAll||ruleMatches(currentRule,context,false)
+  const currentUsable=adminOperationsRoute||!currentFeature||!roleKey||!rulesReady||ruleUsable(currentRule,context,false)
   const contentLocked=Boolean(testMode||(currentVisible&&!currentUsable))
 
   const refresh=useCallback(async()=>{

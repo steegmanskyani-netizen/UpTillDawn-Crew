@@ -244,3 +244,27 @@ test('responsible task creation is restricted to assigned workplace', async () =
   assert.match(actions, /Selecteer alleen personeel dat aan jouw werkplek is toegewezen\./)
   assert.match(migration, /p_workplace is not null[\s\S]*upt_is_responsible\(p_event,p_workplace,auth\.uid\(\)\)/)
 })
+
+
+test('admin live personnel and running shift cards use digital clocks and workplace sorting', async () => {
+  const admin = await read('app/(app)/admin/page.tsx')
+  const timers = await read('components/admin/live-operations-timers.tsx')
+  assert.match(admin, /AdminActivePersonnel/)
+  assert.match(admin, /AdminRunningShifts/)
+  assert.match(admin, /responsibleKeys/)
+  assert.match(timers, /localeCompare\(b\.name,'nl'\)/)
+  assert.match(timers, /b\.isResponsible-a\.isResponsible/)
+  assert.match(timers, /WERK/)
+  assert.match(timers, /PAUZE/)
+  assert.match(timers, /Startuur/)
+  assert.match(timers, /font-mono/)
+})
+
+test('personal work screen uses live work and pause clocks without payable metric', async () => {
+  const operations = await read('app/(app)/operations/operations-client.tsx')
+  assert.match(operations, /LiveWorkSummary/)
+  assert.match(operations, /formatDigital/)
+  assert.match(operations, /Resterend tegoed/)
+  assert.doesNotMatch(operations, /Betaalbaar:/)
+  assert.doesNotMatch(operations, /net_payable_seconds/)
+})

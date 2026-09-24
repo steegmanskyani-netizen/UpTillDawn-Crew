@@ -268,3 +268,11 @@ test('personal work screen uses live work and pause clocks without payable metri
   assert.doesNotMatch(operations, /Betaalbaar:/)
   assert.doesNotMatch(operations, /net_payable_seconds/)
 })
+
+
+test('admin dashboard includes active responsible assignment even when underlying profile role is admin', async () => {
+  const admin = await read('app/(app)/admin/page.tsx')
+  assert.match(admin, /const isResponsible=responsibleKeys\.has/)
+  assert.match(admin, /const isOperationalPerson=isResponsible\|\|person\.role==='staff'\|\|person\.role==='responsible_lead'/)
+  assert.match(admin, /isResponsible\|\|person\?\.role==='staff'\|\|person\?\.role==='responsible_lead'/)
+})

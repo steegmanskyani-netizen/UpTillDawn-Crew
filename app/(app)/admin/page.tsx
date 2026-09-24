@@ -55,9 +55,11 @@ export default async function Page(){
  const activePersonnel=sessionRows.flatMap(ws=>{
   const person=people.get(ws.user_id)
   const shift=ws.shift_id?shiftMap.get(ws.shift_id):undefined
-  if(!person||!shift||(person.role!=='staff'&&person.role!=='responsible_lead'))return []
+  if(!person||!shift)return []
   const workplace=workplaceMap.get(shift.workplace_id)
   const isResponsible=responsibleKeys.has(`${shift.workplace_id}:${ws.user_id}`)
+  const isOperationalPerson=isResponsible||person.role==='staff'||person.role==='responsible_lead'
+  if(!isOperationalPerson)return []
   return [{
    sessionId:ws.id,
    name:person.full_name||'Personeelslid',
@@ -72,9 +74,11 @@ export default async function Page(){
  })
  const activeShiftRows=shiftRows.filter(shift=>{
   const person=people.get(shift.user_id)
+  const isResponsible=responsibleKeys.has(`${shift.workplace_id}:${shift.user_id}`)
   return Date.parse(shift.scheduled_start)<=nowMs
     && Date.parse(shift.scheduled_end)>=nowMs
-    && (person?.role==='staff'||person?.role==='responsible_lead')
+    && Boolean(person)
+    && (isResponsible||person?.role==='staff'||person?.role==='responsible_lead')
  }).map(shift=>{
   const person=people.get(shift.user_id)
   const session=activeSessionByShift.get(shift.id)

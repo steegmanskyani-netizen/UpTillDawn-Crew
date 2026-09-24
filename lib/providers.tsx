@@ -25,6 +25,8 @@ interface AuthContextType {
   isAdmin: boolean
   loading: boolean
   refreshProfile: () => Promise<void>
+  testMode: boolean
+  setTestMode: (active: boolean) => void
   testRole: TestRole
   setTestRole: (role: TestRole) => void
 }
@@ -37,6 +39,8 @@ const AuthContext = createContext<AuthContextType>({
   isAdmin: false,
   loading: true,
   refreshProfile: async () => {},
+  testMode: false,
+  setTestMode: () => {},
   testRole: null,
   setTestRole: () => {},
 })
@@ -49,6 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [roles, setRoles] = useState<UiRole[]>([])
   const [loading, setLoading] = useState(true)
+  const [testMode, setTestModeState] = useState(false)
   const [testRole, setTestRoleState] = useState<TestRole>(null)
 
   const loadProfile = useCallback(async (userId: string) => {
@@ -77,80 +82,81 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let alive = true
-
     const refreshAuth = async () => {
       const [{ data: { user: currentUser } }, { data: { session: currentSession } }] = await Promise.all([
         supabase.auth.getUser(),
         supabase.auth.getSession(),
       ])
       if (!alive) return
-
       setUser(currentUser)
       setSession(currentSession)
-      if (currentUser) {
-        await loadProfile(currentUser.id)
-      } else {
+      if (currentUser) await loadProfile(currentUser.id)
+      else {
         setProfile(null)
         setRoles([])
         await clearOfflineIdentity().catch(() => {})
       }
       if (alive) setLoading(false)
     }
-
     void refreshAuth()
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
       setSession(currentSession)
       setUser(currentSession?.user ?? null)
-      if (currentSession?.user) {
-        setTimeout(() => void loadProfile(currentSession.user.id), 0)
-      } else {
+      if (currentSession?.user) setTimeout(() => void loadProfile(currentSession.user.id), 0)
+      else {
         setProfile(null)
         setRoles([])
         void clearOfflineIdentity().catch(() => {})
       }
     })
-
-    return () => {
-      alive = false
-      subscription.unsubscribe()
-    }
+    return () => { alive = false; subscription.unsubscribe() }
   }, [pathname, loadProfile, supabase])
 
   const realIsAdmin = profile?.role === "admin"
-  const effectiveRoles: UiRole[] = realIsAdmin && testRole ? [testRole] : roles
+  const effectiveRoles: UiRole[] = realIsAdmin && testMode && testRole ? [testRole] : roles
+
   const setTestRole = (role: TestRole) => {
+    if (!realIsAdmin || !testMode) return
+    setTestRoleState(role || "employee")
+    window.sessionStorage.setItem("uptilldawn-admin-test-role", role || "employee")
+  }
+
+  const setTestMode = (active: boolean) => {
     if (!realIsAdmin) return
-    setTestRoleState(role)
-    if (role) window.sessionStorage.setItem("uptilldawn-admin-test-role", role)
-    else window.sessionStorage.removeItem("uptilldawn-admin-test-role")
+    setTestModeState(active)
+    if (active) {
+      const role = testRole || "employee"
+      setTestRoleState(role)
+      window.sessionStorage.setItem("uptilldawn-admin-test-mode", "1")
+      window.sessionStorage.setItem("uptilldawn-admin-test-role", role)
+    } else {
+      setTestRoleState(null)
+      window.sessionStorage.removeItem("uptilldawn-admin-test-mode")
+      window.sessionStorage.removeItem("uptilldawn-admin-test-role")
+    }
   }
 
   useEffect(() => {
     if (!realIsAdmin) return
+    const active = window.sessionStorage.getItem("uptilldawn-admin-test-mode") === "1"
     const saved = window.sessionStorage.getItem("uptilldawn-admin-test-role")
-    const restored = saved === "employee" || saved === "responsible_lead" ? saved : null
-    queueMicrotask(() => setTestRoleState(restored))
+    const role = saved === "employee" || saved === "responsible_lead" ? saved : "employee"
+    queueMicrotask(() => {
+      setTestModeState(active)
+      setTestRoleState(active ? role : null)
+    })
   }, [realIsAdmin])
 
   return <AuthContext.Provider value={{
-    user,
-    session,
-    profile,
-    roles: effectiveRoles,
-    isAdmin: realIsAdmin,
-    loading,
+    user, session, profile, roles: effectiveRoles, isAdmin: Boolean(realIsAdmin), loading,
     refreshProfile: async () => { if (user) await loadProfile(user.id) },
-    testRole,
-    setTestRole,
+    testMode, setTestMode, testRole, setTestRole,
   }}>
     {children}
   </AuthContext.Provider>
 }
 
-export function useAuth() {
-  return useContext(AuthContext)
-}
+export function useAuth() { return useContext(AuthContext) }
 
 export function useDisplayName(): string {
   const { profile, user } = useAuth()

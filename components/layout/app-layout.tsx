@@ -1,221 +1,128 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { AppSidebar } from "@/components/layout/sidebar"
 import { Topbar } from "@/components/layout/topbar"
 import { MobileBottomNav } from "@/components/layout/mobile-nav"
 import { FloatingChatButton } from "@/components/layout/floating-chat-button"
+import { TestModeEditor } from "@/components/layout/test-mode-editor"
 import { QueueStatus } from "@/components/crew/queue-status"
 import { createClient } from "@/lib/supabase/crew-client"
 import { useAuth } from "@/lib/providers"
+import { ruleMatches, type RoleUiContext, type RoleUiRule } from "@/lib/role-ui"
 
 function CountBadge({ count }: { count: number }) {
   if (count < 1) return null
-  return <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-black leading-none text-white shadow ring-2 ring-background">
-    {count > 99 ? "99+" : count}
-  </span>
+  return <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-black leading-none text-white shadow ring-2 ring-background">{count>99?"99+":count}</span>
 }
 
+const emptyContext:RoleUiContext={assignedEvent:false,assignedWorkplaceRole:false,eventActive:false,shiftActive:false}
+
 export function AppLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname()
-  const { user, roles, testRole } = useAuth()
-  const [chatMissed, setChatMissed] = useState(0)
-  const [incidentMissed, setIncidentMissed] = useState(0)
-  const [taskMissed, setTaskMissed] = useState(0)
-  const [hasActiveEvent, setHasActiveEvent] = useState(false)
-  const [showOperations, setShowOperations] = useState(false)
-  const [showEvents, setShowEvents] = useState(false)
-  const [showTasks, setShowTasks] = useState(false)
-  const [showBriefings, setShowBriefings] = useState(false)
-  const [showShifts, setShowShifts] = useState(false)
-  const [showWorkplaces, setShowWorkplaces] = useState(false)
-  const [showIncidents, setShowIncidents] = useState(false)
+  const pathname=usePathname()
+  const {user,profile,roles,isAdmin,testMode,testRole}=useAuth()
+  const supabase=useMemo(()=>createClient(),[])
+  const db=supabase as any
+  const [chatMissed,setChatMissed]=useState(0)
+  const [incidentMissed,setIncidentMissed]=useState(0)
+  const [taskMissed,setTaskMissed]=useState(0)
+  const [context,setContext]=useState<RoleUiContext>(emptyContext)
+  const [rules,setRules]=useState<RoleUiRule[]>([])
 
-  const refreshMissed = useCallback(async () => {
-    if (!user) return
+  const roleKey=testMode&&testRole==="responsible_lead"?"responsible_lead":testMode?"staff":profile?.role==="responsible_lead"?"responsible_lead":profile?.role==="staff"?"staff":null
 
-    const now = new Date().toISOString()
-    const chatKey = `uptilldawn-last-chat-view:${user.id}`
-    const incidentKey = `uptilldawn-last-incidents-view:${user.id}`
-    const taskKey = `uptilldawn-last-tasks-view:${user.id}`
-    let chatSince = window.localStorage.getItem(chatKey)
-    let incidentSince = window.localStorage.getItem(incidentKey)
-    const taskSince = window.localStorage.getItem(taskKey) || "1970-01-01T00:00:00.000Z"
+  const loadRules=useCallback(async()=>{
+    if(!roleKey){setRules([]);return}
+    const {data}=await db.from("role_ui_rules").select("role,feature_key,label,group_key,visible,enabled,condition_key,sort_order,settings").eq("role",roleKey).order("sort_order")
+    setRules((data||[]) as RoleUiRule[])
+  },[db,roleKey])
 
-    if (!chatSince) {
-      chatSince = now
-      window.localStorage.setItem(chatKey, chatSince)
-    }
-    if (!incidentSince) {
-      incidentSince = now
-      window.localStorage.setItem(incidentKey, incidentSince)
-    }
+  useEffect(()=>{void loadRules();const fn=()=>void loadRules();window.addEventListener("uptilldawn-role-rules-updated",fn);return()=>window.removeEventListener("uptilldawn-role-rules-updated",fn)},[loadRules])
 
-    const supabase = createClient()
+  const ruleMap=useMemo(()=>new Map(rules.map(rule=>[rule.feature_key,rule])),[rules])
+  const previewAll=Boolean(isAdmin&&testMode)
+  const feature=(key:string,fallback:boolean)=>{
+    if(isAdmin&&!testMode) return fallback
+    const rule=ruleMap.get(key)
+    return rule?ruleMatches(rule,context,previewAll):fallback
+  }
+  const order=rules.map(rule=>rule.feature_key)
 
-    const [{ data: activeEvents }, { data: openEvents }] = await Promise.all([
-      supabase
-        .from("events")
-        .select("id")
-        .lte("start_at", now)
-        .gte("end_at", now),
-      supabase
-        .from("events")
-        .select("id")
-        .gte("end_at", now),
+  const refresh=useCallback(async()=>{
+    if(!user)return
+    const now=new Date()
+    const nowIso=now.toISOString()
+    const chatKey=`uptilldawn-last-chat-view:${user.id}`
+    const incidentKey=`uptilldawn-last-incidents-view:${user.id}`
+    const taskKey=`uptilldawn-last-tasks-view:${user.id}`
+    let chatSince=window.localStorage.getItem(chatKey)
+    let incidentSince=window.localStorage.getItem(incidentKey)
+    const taskSince=window.localStorage.getItem(taskKey)||"1970-01-01T00:00:00.000Z"
+    if(!chatSince){chatSince=nowIso;window.localStorage.setItem(chatKey,chatSince)}
+    if(!incidentSince){incidentSince=nowIso;window.localStorage.setItem(incidentKey,incidentSince)}
+
+    const [{data:events},{data:memberships},{data:shifts},{data:responsibleAssignments}]=await Promise.all([
+      supabase.from("events").select("id,start_at,end_at,status").neq("status","archived").gte("end_at",nowIso),
+      supabase.from("event_members").select("event_id,event_role").eq("user_id",user.id),
+      supabase.from("shifts").select("event_id,workplace_id,scheduled_start,scheduled_end,status").eq("user_id",user.id).neq("status","cancelled"),
+      supabase.from("responsible_assignments").select("event_id,workplace_id").eq("user_id",user.id),
     ])
+    const eventRows=events||[]
+    const memberIds=new Set((memberships||[]).map(x=>x.event_id))
+    const assignedEvent=eventRows.some(e=>memberIds.has(e.id))
+    const eventActive=eventRows.some(e=>memberIds.has(e.id)&&Date.parse(e.start_at)<=now.getTime()&&Date.parse(e.end_at)>=now.getTime())
+    const shiftActive=(shifts||[]).some(s=>Date.parse(s.scheduled_start)<=now.getTime()&&Date.parse(s.scheduled_end)>=now.getTime())
+    const assignedWorkplaceRole=(shifts||[]).length>0||(responsibleAssignments||[]).length>0
+    setContext({assignedEvent,assignedWorkplaceRole,eventActive,shiftActive})
 
-    const activeEventIds = (activeEvents || []).map(event => event.id)
-    const openEventIds = new Set((openEvents || []).map(event => event.id))
-    const active = activeEventIds.length > 0
-
-    const realAdmin = roles.includes("admin") && testRole === null
-    const effectiveResponsible = roles.includes("responsible_lead")
-    const effectiveStaff = roles.includes("employee") && !effectiveResponsible && !roles.includes("admin")
-
-    const [{ data: memberships }, { data: shifts }] = await Promise.all([
-      supabase.from("event_members").select("event_id,event_role").eq("user_id", user.id),
-      supabase.from("shifts").select("event_id").eq("user_id", user.id).neq("status", "cancelled"),
-    ])
-
-    const memberEventIds = new Set((memberships || []).map(row => row.event_id))
-    const shiftEventIds = new Set((shifts || []).map(row => row.event_id))
-    const responsibleEventIds = new Set(
-      (memberships || [])
-        .filter(row => row.event_role === "responsible_lead")
-        .map(row => row.event_id),
-    )
-    const activeShiftEvents = activeEventIds.filter(id => shiftEventIds.has(id))
-    const activeMemberEvents = activeEventIds.filter(id => memberEventIds.has(id) || shiftEventIds.has(id))
-    const activeResponsibleEvents = activeEventIds.filter(id => responsibleEventIds.has(id))
-    const hasOpenMemberEvent = [...memberEventIds].some(id => openEventIds.has(id))
-    const hasOpenResponsibleEvent = [...responsibleEventIds].some(id => openEventIds.has(id))
-
-    setShowEvents(true)
-
-    if (realAdmin) {
-      setShowOperations(active)
-      setShowTasks(true)
-      setShowBriefings(true)
-      setShowShifts(true)
-      setShowWorkplaces(true)
-      setShowIncidents(active)
-      setHasActiveEvent(active)
-    } else if (effectiveResponsible) {
-      setShowOperations(activeShiftEvents.length > 0 || activeResponsibleEvents.length > 0)
-      setShowTasks(hasOpenResponsibleEvent)
-      setShowBriefings(hasOpenResponsibleEvent)
-      setShowShifts(hasOpenMemberEvent)
-      setShowWorkplaces(hasOpenResponsibleEvent)
-      setShowIncidents(activeResponsibleEvents.length > 0)
-      setHasActiveEvent(activeMemberEvents.length > 0 || activeResponsibleEvents.length > 0)
-    } else if (effectiveStaff) {
-      setShowOperations(activeShiftEvents.length > 0)
-      setShowTasks(hasOpenMemberEvent)
-      setShowBriefings(hasOpenMemberEvent)
-      setShowShifts(hasOpenMemberEvent)
-      setShowWorkplaces(false)
-      setShowIncidents(false)
-      setHasActiveEvent(activeMemberEvents.length > 0)
-    } else {
-      setShowOperations(false)
-      setShowTasks(false)
-      setShowBriefings(false)
-      setShowShifts(false)
-      setShowWorkplaces(false)
-      setShowIncidents(false)
-      setHasActiveEvent(false)
+    if(pathname.startsWith("/tasks")){window.localStorage.setItem(taskKey,nowIso);setTaskMissed(0)}
+    else{
+      const {count}=await supabase.from("task_assignments").select("id",{count:"exact",head:true}).gt("created_at",taskSince).neq("status","COMPLETED")
+      setTaskMissed(count??0)
     }
 
-    if (pathname.startsWith("/tasks")) {
-      window.localStorage.setItem(taskKey, now)
-      setTaskMissed(0)
-    } else {
-      const { count } = await supabase
-        .from("task_assignments")
-        .select("id", { count: "exact", head: true })
-        .gt("created_at", taskSince)
-        .neq("status", "COMPLETED")
-      setTaskMissed(count ?? 0)
+    if(pathname.startsWith("/chat")){window.localStorage.setItem(chatKey,nowIso);setChatMissed(0)}
+    else{
+      const {count}=await supabase.from("messages").select("id",{count:"exact",head:true}).gt("created_at",chatSince).neq("sender_id",user.id)
+      setChatMissed(count??0)
     }
 
-    if (pathname.startsWith("/chat")) {
-      window.localStorage.setItem(chatKey, now)
-      setChatMissed(0)
-    } else {
-      const { count } = await supabase
-        .from("messages")
-        .select("id", { count: "exact", head: true })
-        .gt("created_at", chatSince)
-        .neq("sender_id", user.id)
-      setChatMissed(count ?? 0)
+    if(pathname.startsWith("/incidents")){window.localStorage.setItem(incidentKey,nowIso);setIncidentMissed(0)}
+    else{
+      let query=supabase.from("incidents").select("id",{count:"exact",head:true}).gt("created_at",incidentSince)
+      if(profile?.role==="staff") query=query.eq("reporter_id",user.id)
+      const {count}=await query
+      setIncidentMissed(count??0)
     }
+  },[pathname,profile?.role,supabase,user])
 
-    const canManageIncidents = roles.includes("responsible_lead") || roles.includes("admin")
-    if (!canManageIncidents) {
-      setIncidentMissed(0)
-    } else if (pathname.startsWith("/incidents")) {
-      window.localStorage.setItem(incidentKey, now)
-      setIncidentMissed(0)
-    } else {
-      const { count } = await supabase
-        .from("incidents")
-        .select("id", { count: "exact", head: true })
-        .gt("created_at", incidentSince)
-      setIncidentMissed(count ?? 0)
-    }
-  }, [pathname, roles, testRole, user])
+  useEffect(()=>{queueMicrotask(()=>void refresh());const timer=window.setInterval(()=>void refresh(),10000);const focus=()=>void refresh();window.addEventListener("focus",focus);return()=>{window.clearInterval(timer);window.removeEventListener("focus",focus)}},[refresh])
 
-  useEffect(() => {
-    queueMicrotask(() => void refreshMissed())
-    const timer = window.setInterval(() => void refreshMissed(), 10_000)
-    const onFocus = () => void refreshMissed()
-    window.addEventListener("focus", onFocus)
-    return () => {
-      window.clearInterval(timer)
-      window.removeEventListener("focus", onFocus)
-    }
-  }, [refreshMissed])
+  const showEvents=feature("events",true)
+  const showShifts=feature("shifts",context.assignedEvent)
+  const showBriefings=feature("briefings",context.assignedEvent)
+  const showOperations=isAdmin&&!testMode?false:feature("operations",context.shiftActive)
+  const showWorkplaces=feature("workplaces",context.assignedWorkplaceRole)
+  const showTasks=isAdmin&&!testMode?true:feature("tasks",context.shiftActive)
+  const showIncidents=isAdmin&&!testMode?context.eventActive:feature("incidents",context.shiftActive)
+  const operationalMode=context.eventActive||previewAll
+  const showUrgent=!pathname.startsWith("/chat")&&!isAdmin&&showIncidents&&context.shiftActive
 
-  return (
-    <div className="flex h-dvh overflow-hidden bg-background print:block print:h-auto print:overflow-visible">
-      <div className="print:hidden"><AppSidebar
-        chatMissed={chatMissed}
-        incidentMissed={incidentMissed}
-        taskMissed={taskMissed}
-        showOperations={showOperations}
-        showEvents={showEvents}
-        showTasks={showTasks}
-        showBriefings={showBriefings}
-        showShifts={showShifts}
-        showWorkplaces={showWorkplaces}
-        showIncidents={showIncidents}
-      /></div>
-      <div className="flex flex-1 flex-col overflow-hidden print:block print:overflow-visible">
-        <div className="print:hidden"><Topbar /><QueueStatus /></div>
-        <div id="app-scroll" className="flex-1 overflow-y-auto bg-background scroll-smooth print:overflow-visible">
-          <main className="min-h-[calc(100dvh-theme(spacing.16)-theme(spacing.12))] pb-20 md:pb-0 print:min-h-0 print:pb-0">
-            {children}
-          </main>
-        </div>
-        <div className="print:hidden"><MobileBottomNav
-          incidentMissed={incidentMissed}
-          taskMissed={taskMissed}
-          showOperations={showOperations}
-          showEvents={showEvents}
-          showTasks={showTasks}
-          showIncidents={showIncidents}
-        /></div>
+  return <div className="flex h-dvh overflow-hidden bg-background print:block print:h-auto print:overflow-visible">
+    <div className="print:hidden"><AppSidebar chatMissed={chatMissed} incidentMissed={incidentMissed} taskMissed={taskMissed} showOperations={showOperations} showEvents={showEvents} showTasks={showTasks} showBriefings={showBriefings} showShifts={showShifts} showWorkplaces={showWorkplaces} showIncidents={showIncidents} featureOrder={order}/></div>
+    <div className="flex flex-1 flex-col overflow-hidden print:block print:overflow-visible">
+      <div className="print:hidden"><Topbar/><QueueStatus/></div>
+      <div id="app-scroll" className="flex-1 overflow-y-auto bg-background scroll-smooth print:overflow-visible">
+        <main className="min-h-[calc(100dvh-theme(spacing.16)-theme(spacing.12))] pb-20 md:pb-0 print:min-h-0 print:pb-0">{children}</main>
       </div>
-      {!pathname.startsWith("/chat") && <>
-        {(hasActiveEvent || testRole !== null) && <Link href="/incidents" className="fixed bottom-20 left-4 z-50 rounded-full bg-red-600 px-5 py-4 font-black text-white print:hidden md:hidden">
-          URGENT
-          <CountBadge count={incidentMissed} />
-        </Link>}
-        <FloatingChatButton count={chatMissed} />
-      </>}
+      <div className="print:hidden"><MobileBottomNav taskMissed={taskMissed} operationalMode={operationalMode} showOperations={showOperations} showEvents={showEvents} showTasks={showTasks} showBriefings={showBriefings} showShifts={showShifts} featureOrder={order}/></div>
     </div>
-  )
+    {!pathname.startsWith("/chat")&&<>
+      {showUrgent&&<Link href="/incidents" className="fixed bottom-20 left-4 z-50 rounded-full bg-red-600 px-5 py-4 font-black text-white print:hidden md:hidden">URGENT<CountBadge count={incidentMissed}/></Link>}
+      <FloatingChatButton count={chatMissed}/>
+    </>}
+    <TestModeEditor/>
+  </div>
 }

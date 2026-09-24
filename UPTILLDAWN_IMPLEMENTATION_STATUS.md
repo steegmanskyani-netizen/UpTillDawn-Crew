@@ -2,7 +2,7 @@
 
 This is a verified hardening milestone, **not a production-complete release**.
 
-**Current implementation estimate: ~97%.** This estimate counts only implemented and verified work; production deployment, browser/device E2E and the remaining offline/Web Push work are not counted as complete.
+**Current implementation estimate: ~98%.** This estimate counts only implemented and verified work; production deployment, browser/device E2E and the remaining offline/Web Push work are not counted as complete.
 
 ## Verified implementation
 
@@ -39,6 +39,10 @@ This is a verified hardening milestone, **not a production-complete release**.
 - UI cleanup removes legacy profile/settings fields (Job Title, Department, Desk Extension, Work Schedule, Kiosk PIN and Hobbies), removes the legacy footer branding bar, uses the Uptilldawn app icon instead of the sidebar placeholder, and keeps displayed roles synchronized with the authenticated profile role.
 - App launch now normalizes the device/browser locale to supported `nl`, `fr` or `en`, falling back to English and persisting the selected locale for subsequent launches.
 - TypeScript enforcement is enabled in production builds. Cloudflare Workers/OpenNext configuration is present.
+- Future events are visible to every approved account with explicit **IK KAN / IK KAN NIET** availability responses. Admin can select multiple available people into an event; task assignment can select multiple eligible event members.
+- Once a person is selected into an event, Instructies/Diensten/Taken navigation becomes available according to role. Instruction content is readable before the event; task/shift operational content remains gated until event start. Work & pauze is shown to staff only for an active assigned shift.
+- Responsible users gain Tasks/Instructies/Werkplekken only after being selected for the event. Event-level Responsible preparation is supported before start while shift creation/edit/cancellation remains Admin-only.
+- Incident management is available only during active events. Staff never see the Open incidenten manager list; they retain only the active-event URGENT reporting flow.
 
 ## Database migrations added in this hardening continuation
 
@@ -68,7 +72,7 @@ Generated TypeScript database types were refreshed from the live target schema a
 
 ## Verification executed
 
-- Current Node suite: 16 tests pass, including paid-break allocation, midnight/DST behavior, overlap protection, offline-shell syntax/invariants, core migration checks and PWA/service-worker smoke checks. The earlier larger legacy suite was intentionally removed with the retired StaffPortal runtime.
+- Current Node suite passes, including paid-break allocation, midnight/DST behavior, overlap protection, offline-shell syntax/invariants, release UI gating, repository hygiene, core migration checks and PWA/service-worker smoke checks.
 - Recent GitHub CI runs pass lint, TypeScript checking, Node tests, the Next.js production build, the OpenNext Cloudflare build and Wrangler deployment dry-run for the current implementation commits, including the Admin dashboard/offline/security continuation. This is not a production deployment.
 - Local HTTP smoke tests previously passed for public/auth redirects, anonymous export denial, offline fallback and service worker. These are not authenticated browser E2E tests.
 - `tests/sql/operational-security.sql` was rerun against the target database inside a transaction and rolled back successfully after the new migrations. It covers profile isolation, self-promotion denial, cross-workplace access denial, unapproved accounts, anonymous RPC privileges, shared break allowance, sync replay/conflicts, GPS assessment, briefing acknowledgement, event duplication, work/break lifecycle, stored GPS evidence and warning deduplication.
@@ -77,6 +81,9 @@ Generated TypeScript database types were refreshed from the live target schema a
 - `tests/sql/storage-security.sql` was executed against the target database inside a transaction and rolled back successfully. It verifies approved profile-photo access, unapproved denial, Responsible access to linked check-in/incident evidence, private-chat attachment membership isolation and the absence of direct authenticated DELETE policies for operational media.
 - `tests/sql/privilege-matrix.sql` passed against the target database. All public base tables have RLS enabled, `anon` has no public-table/Uptilldawn-RPC grants, no crew RLS policy is granted to `PUBLIC`, and trigger functions are not directly callable.
 - `tests/sql/offline-time-dependencies.sql` passed against the target database. It verifies an ordered queued START WORK → START BREAK → STOP BREAK → STOP WORK chain using operation dependencies instead of pre-existing server entity IDs.
+- `tests/sql/release-access-matrix.sql` passed against the target database and verifies future-event visibility, availability privacy, Responsible pre-event preparation, staff pre-start instruction visibility, hidden pre-start tasks/shifts/workplaces, active-event task/shift/workplace access, incident timing and post-event lockout.
+- `tests/sql/responsible-event-selection-guard.sql` passed and verifies that a workplace Responsible must first be selected for the event.
+- `tests/sql/security-definer-surface.sql` passed and verifies that public SECURITY DEFINER functions are not executable by anon/PUBLIC, pin `search_path`, and expose an explicit authorization primitive when authenticated.
 - The operational, queued-upload, storage, privilege-matrix, offline-time-dependency, foreign-key-index and Responsible read-scope suites were rerun during the final cleanup and passed; the new-feature suite retains its previously verified pass. `tests/sql/profile-role-integrity.sql` also passed and verifies that `profiles.role` is constrained to `staff`, `responsible_lead` or `admin`.
 - Current Supabase performance advisor no longer reports unindexed foreign keys. Current Supabase security advisor no longer reports the private break-warning table as policy-less. Remaining warnings are the authenticated `SECURITY DEFINER` RPC entry points that intentionally implement validated application workflows/helpers, plus leaked-password protection being disabled at project level. A source scan found no authenticated SECURITY DEFINER entry point lacking either direct auth checks or a validated authorization helper. Advisor output is not treated as a complete security audit.
 - `npm ci` and `npm audit` now report **0 known vulnerabilities** after pinning the vulnerable transitive `uuid` dependency to patched v11.1.1; the full Next/OpenNext build remains green with that override.
@@ -84,7 +91,7 @@ Generated TypeScript database types were refreshed from the live target schema a
 
 ## Latest release-gate verification
 
-- GitHub CI run #203 passed on commit `1de2167b876398d1482db99bbdd76b4ed641f3c4`: dependency audit, lint, TypeScript, Node tests, Next.js production build, OpenNext Cloudflare build and Wrangler deployment dry-run all succeeded.
+- Latest verified GitHub CI on commit `28dcd2f0d57a6b7c8e55d46fcb3ea5151ae4c4c9` passed dependency audit, lint, TypeScript, Node tests, Next.js production build, OpenNext Cloudflare build and Wrangler deployment dry-run.
 - The current remaining blockers require external production credentials/settings or real browser/device execution; they cannot be truthfully marked complete from repository CI alone.
 
 ## Still required before production

@@ -1132,6 +1132,48 @@ export type Database = {
           },
         ]
       }
+      role_ui_rules: {
+        Row: {
+          condition_key: string
+          enabled: boolean
+          feature_key: string
+          group_key: string
+          label: string
+          role: string
+          settings: Json
+          sort_order: number
+          updated_at: string
+          updated_by: string | null
+          visible: boolean
+        }
+        Insert: {
+          condition_key?: string
+          enabled?: boolean
+          feature_key: string
+          group_key?: string
+          label: string
+          role: string
+          settings?: Json
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+          visible?: boolean
+        }
+        Update: {
+          condition_key?: string
+          enabled?: boolean
+          feature_key?: string
+          group_key?: string
+          label?: string
+          role?: string
+          settings?: Json
+          sort_order?: number
+          updated_at?: string
+          updated_by?: string | null
+          visible?: boolean
+        }
+        Relationships: []
+      }
       shifts: {
         Row: {
           created_at: string
@@ -1855,6 +1897,10 @@ export type Database = {
           p_start: string
         }
         Returns: string
+      }
+      upt_feature_allowed: {
+        Args: { p_event?: string; p_feature: string; p_workplace?: string }
+        Returns: boolean
       }
       upt_gps_assessment: {
         Args: {

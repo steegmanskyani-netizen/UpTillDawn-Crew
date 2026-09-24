@@ -10,6 +10,15 @@ type Props = {
   defaultLongitude?: number | null
 }
 
+type PlaceAutocompleteElementConstructor = new (options?: Record<string, unknown>) => HTMLElement & { value?: string }
+type GoogleMapsWindow = Window & {
+  google?: {
+    maps: {
+      importLibrary: (name: string) => Promise<{ PlaceAutocompleteElement: PlaceAutocompleteElementConstructor }>
+    }
+  }
+}
+
 type SelectedPlace = {
   displayName?: string
   formattedAddress?: string
@@ -41,16 +50,10 @@ export function GooglePlaceFields({
   )
 
   useEffect(()=>{
-    if(!apiKey)return
-    if((window as unknown as {google?:unknown}).google)setReady(true)
-  },[apiKey])
-
-  useEffect(()=>{
     if(!ready||!apiKey||!venueHost.current||!addressHost.current)return
     let cancelled=false
-    const googleObj=(window as unknown as {google:{
-      maps:{importLibrary:(name:string)=>Promise<{PlaceAutocompleteElement:new(options?:Record<string,unknown>)=>HTMLElement & {value?:string}>}>}
-    }}).google
+    const googleObj=(window as GoogleMapsWindow).google
+    if(!googleObj)return
 
     async function initialize(){
       const library=await googleObj.maps.importLibrary("places")

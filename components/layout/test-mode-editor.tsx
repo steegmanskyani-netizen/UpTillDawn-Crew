@@ -21,7 +21,7 @@ export function TestModeEditor() {
   const [message, setMessage] = useState("")
   const [collapsed, setCollapsed] = useState(false)
   const [dragKey, setDragKey] = useState<string | null>(null)
-  const db = useMemo(() => createClient() as any, [])
+  const db = useMemo(() => createClient(), [])
 
   const role = testRole === "responsible_lead" ? "responsible_lead" : "staff"
 

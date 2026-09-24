@@ -48,7 +48,7 @@ async function requireFeature(
  workplaceId: string | null = null,
 ){
  if(role==='admin')return
- const {data,error}=await (s as any).rpc('upt_feature_allowed',{
+ const {data,error}=await s.rpc('upt_feature_allowed',{
   p_feature:feature,
   p_event:eventId,
   p_workplace:workplaceId,

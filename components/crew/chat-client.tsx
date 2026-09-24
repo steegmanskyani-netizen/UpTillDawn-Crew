@@ -1,4 +1,5 @@
 'use client'
+/* eslint-disable @next/next/no-img-element */
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ChevronDown, ImagePlus, Send, Users, X } from 'lucide-react'
@@ -162,7 +163,7 @@ export function ChatClient({
         return <article key={message.id} className={`flex items-end gap-2 ${mine?'justify-end':'justify-start'}`}>
           {!mine&&<div className="h-8 w-8 shrink-0 overflow-hidden rounded-full border bg-muted">
             {photoUrl
-              ? <>{/* eslint-disable-next-line @next/next/no-img-element */}<img src={photoUrl} alt={`Profielfoto van ${senderName}`} className="h-full w-full object-cover"/></>
+              ? <><img src={photoUrl} alt={`Profielfoto van ${senderName}`} className="h-full w-full object-cover"/></>
               : <div className="flex h-full w-full items-center justify-center text-[10px] font-black">{initials}</div>}
           </div>}
           <div className={`max-w-[82%] ${mine?'items-end':'items-start'} flex flex-col`}>
@@ -173,7 +174,7 @@ export function ChatClient({
                 attachment.mimeType?.startsWith('video/')
                   ? <video key={index} src={attachment.url} controls playsInline className="mt-2 max-h-80 w-full rounded-xl border border-white/15 bg-black"/>
                   : <a key={index} href={attachment.url} target="_blank" rel="noreferrer" className="mt-2 block overflow-hidden rounded-xl border border-white/15">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      
                       <img src={attachment.url} alt="Chatmedia" className="max-h-80 w-full object-contain bg-black/20"/>
                     </a>
               )}

@@ -22,9 +22,8 @@ const emptyContext:RoleUiContext={assignedEvent:false,assignedWorkplaceRole:fals
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname=usePathname()
-  const {user,profile,roles,isAdmin,testMode,testRole}=useAuth()
+  const {user,profile,isAdmin,testMode,testRole}=useAuth()
   const supabase=useMemo(()=>createClient(),[])
-  const db=supabase as any
   const [chatMissed,setChatMissed]=useState(0)
   const [incidentMissed,setIncidentMissed]=useState(0)
   const [taskMissed,setTaskMissed]=useState(0)
@@ -35,11 +34,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const loadRules=useCallback(async()=>{
     if(!roleKey){setRules([]);return}
-    const {data}=await db.from("role_ui_rules").select("role,feature_key,label,group_key,visible,enabled,condition_key,sort_order,settings").eq("role",roleKey).order("sort_order")
+    const {data}=await supabase.from("role_ui_rules").select("role,feature_key,label,group_key,visible,enabled,condition_key,sort_order,settings").eq("role",roleKey).order("sort_order")
     setRules((data||[]) as RoleUiRule[])
-  },[db,roleKey])
+  },[roleKey,supabase])
 
-  useEffect(()=>{void loadRules();const fn=()=>void loadRules();window.addEventListener("uptilldawn-role-rules-updated",fn);return()=>window.removeEventListener("uptilldawn-role-rules-updated",fn)},[loadRules])
+  useEffect(()=>{const first=window.setTimeout(()=>void loadRules(),0);const fn=()=>void loadRules();window.addEventListener("uptilldawn-role-rules-updated",fn);return()=>{window.clearTimeout(first);window.removeEventListener("uptilldawn-role-rules-updated",fn)}},[loadRules])
 
   const ruleMap=useMemo(()=>new Map(rules.map(rule=>[rule.feature_key,rule])),[rules])
   const previewAll=Boolean(isAdmin&&testMode)

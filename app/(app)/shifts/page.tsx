@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/crew-server'
 import { cancelShift, createShift, updateShift } from '@/lib/actions/uptilldawn'
 import { nlStatus } from '@/lib/ui-nl'
 import { redirect } from 'next/navigation'
+import { getCurrentUser } from '@/lib/actions/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,17 +13,17 @@ type CrewOption = { id: string; full_name: string | null }
 
 export default async function Page() {
   const s = await createClient()
-  const { data: { user } } = await s.auth.getUser()
-  if (!user) return null
+  const current = await getCurrentUser()
+  if (!current) return null
+  const user = { id: current.id }
 
-  const [{ data: profile }, { data: shifts, error: shiftsError }, { data: memberships }, { data: openEvents }] = await Promise.all([
-    s.from('profiles').select('role').eq('id', user.id).single(),
+  const [{ data: shifts, error: shiftsError }, { data: memberships }, { data: openEvents }] = await Promise.all([
     s.from('shifts').select('*,workplaces(name),events(name)').order('scheduled_start'),
     s.from('event_members').select('event_id').eq('user_id', user.id),
     s.from('events').select('id').gte('end_at', 'now'),
   ])
 
-  const isAdmin = profile?.role === 'admin'
+  const isAdmin = current.role === 'admin'
   const openEventIds = new Set((openEvents || []).map(event => event.id))
   const hasOpenAssignedEvent = (memberships || []).some(member => openEventIds.has(member.event_id))
   if (!isAdmin && !hasOpenAssignedEvent) redirect('/events')

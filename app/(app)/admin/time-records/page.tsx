@@ -1,16 +1,16 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/crew-server'
 import { TimeCorrectionForm } from '@/components/crew/time-correction-form'
+import { getCurrentUser } from '@/lib/actions/auth'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Page() {
   const s = await createClient()
-  const { data: { user } } = await s.auth.getUser()
-  if (!user) redirect('/login')
-
-  const { data: profile } = await s.from('profiles').select('approved,role').eq('id', user.id).single()
-  if (!profile?.approved || profile.role !== 'admin') redirect('/')
+  const current = await getCurrentUser()
+  if (!current) redirect('/login')
+  if (!current.isAdmin) redirect('/')
+  const user = { id: current.id }
 
   const { data: sessions, error: sessionsError } = await s
     .from('work_sessions')

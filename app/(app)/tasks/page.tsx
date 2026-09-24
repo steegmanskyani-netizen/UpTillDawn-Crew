@@ -10,6 +10,7 @@ import {
 import { nlStatus } from '@/lib/ui-nl'
 import type { Tables } from '@/types/crew-database'
 import { redirect } from 'next/navigation'
+import { getCurrentUser } from '@/lib/actions/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,11 +19,11 @@ type WorkplaceOption = { id: string; name: string; event_id: string; events: { n
 
 export default async function Page() {
   const s = await createClient()
-  const { data: { user } } = await s.auth.getUser()
-  if (!user) return null
+  const current = await getCurrentUser()
+  if (!current) return null
+  const user = { id: current.id }
 
   const [
-    { data: profile },
     { data: events },
     { data, error },
     { data: activeEvents },
@@ -31,7 +32,6 @@ export default async function Page() {
     { data: openEvents },
     { data: ownActiveShifts },
   ] = await Promise.all([
-    s.from('profiles').select('role').eq('id', user.id).single(),
     s.from('events').select('id,name').neq('status', 'archived').order('start_at'),
     s.from('task_assignments').select('id,user_id,status,tasks(id,title,description,event_id,workplace_id)').order('created_at'),
     s.from('events').select('id').lte('start_at', 'now').gte('end_at', 'now'),
@@ -46,8 +46,8 @@ export default async function Page() {
       .gte('scheduled_end', 'now'),
   ])
 
-  const isAdmin = profile?.role === 'admin'
-  const isResponsible = profile?.role === 'responsible_lead'
+  const isAdmin = current.role === 'admin'
+  const isResponsible = current.role === 'responsible_lead'
   const manager = isAdmin || isResponsible
   const hasActiveShift = Boolean(ownActiveShifts?.length)
   const activeShiftEventIds = new Set((ownActiveShifts || []).map(shift => shift.event_id))
@@ -105,7 +105,7 @@ export default async function Page() {
       .from('event_members')
       .select('event_id')
       .eq('user_id', user.id)
-      .eq('event_role', 'responsible_lead')
+      .in('event_role', ['responsible_lead','admin'])
 
     const eventIds = [...new Set((responsibleMemberships || []).map(row => row.event_id).filter(id => activeShiftEventIds.has(id)))]
     if (eventIds.length) {

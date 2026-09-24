@@ -1,22 +1,22 @@
 import { createClient } from '@/lib/supabase/crew-server'
 import { ChatClient } from '@/components/crew/chat-client'
+import { getCurrentUser } from '@/lib/actions/auth'
 
 export const dynamic='force-dynamic'
 
 export default async function Page(){
   const s=await createClient()
-  const {data:{user}}=await s.auth.getUser()
-  if(!user)return null
+  const current=await getCurrentUser()
+  if(!current)return null
+  const user={id:current.id}
 
   const [
     {data:channels,error},
     {data:directory},
-    {data:profile},
     {data:activeEvents},
   ]=await Promise.all([
     s.from('chat_channels').select('*').in('kind',['organization','event']).order('created_at'),
     s.rpc('upt_crew_directory'),
-    s.from('profiles').select('role').eq('id',user.id).single(),
     s.from('events').select('id,start_at,end_at').lte('start_at','now').gte('end_at','now').order('start_at'),
   ])
 
@@ -48,7 +48,7 @@ export default async function Page(){
           defaultChannelId={defaultChannelId}
           userId={user.id}
           crewDirectory={directory||[]}
-          isAdmin={profile?.role==='admin'}
+          isAdmin={current.role==='admin'}
           profilePhotoUrls={profilePhotoUrls}
         />}
   </main>

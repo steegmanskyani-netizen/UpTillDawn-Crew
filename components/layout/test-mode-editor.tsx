@@ -15,7 +15,7 @@ const conditions: Array<{value:RoleCondition;label:string}> = [
 ]
 
 export function TestModeEditor() {
-  const { user, isAdmin, testMode, testRole } = useAuth()
+  const { user, realIsAdmin, testMode, testRole } = useAuth()
   const [rules, setRules] = useState<RoleUiRule[]>([])
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState("")
@@ -26,7 +26,7 @@ export function TestModeEditor() {
   const role = testRole === "responsible_lead" ? "responsible_lead" : testRole === "admin" ? "admin" : "staff"
 
   useEffect(() => {
-    if (!isAdmin || !testMode) return
+    if (!realIsAdmin || !testMode) return
     let alive = true
     ;(async () => {
       const { data } = await db
@@ -37,9 +37,9 @@ export function TestModeEditor() {
       if (alive) setRules((data || []) as RoleUiRule[])
     })()
     return () => { alive = false }
-  }, [db, isAdmin, role, testMode])
+  }, [db, realIsAdmin, role, testMode])
 
-  if (!isAdmin || !testMode) return null
+  if (!realIsAdmin || !testMode) return null
 
   function patch(key:string, changes:Partial<RoleUiRule>) {
     setRules(current => current.map(rule => rule.feature_key === key ? { ...rule, ...changes } : rule))

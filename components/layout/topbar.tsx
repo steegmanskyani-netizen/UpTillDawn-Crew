@@ -1,13 +1,15 @@
 "use client"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
 import { useAuth,useDisplayName } from "@/lib/providers"
 import { signOut } from "@/lib/actions/auth"
 
 export function Topbar(){
  const router=useRouter()
  const name=useDisplayName()
- const {roles,isAdmin,testMode,setTestMode,testRole,setTestRole}=useAuth()
+ const {roles,isAdmin,realIsAdmin,roleMode,setRoleMode,testMode,setTestMode,testRole,setTestRole}=useAuth()
+ const [roleBusy,setRoleBusy]=useState(false)
  const roleLabel=testMode&&testRole==='employee'?'Personeel (test)':testMode&&testRole==='responsible_lead'?'Verantwoordelijke (test)':testMode&&testRole==='admin'?'Beheerder (test)':roles.includes('admin')?'Beheerder':roles.includes('responsible_lead')?'Verantwoordelijke':'Personeel'
 
  function activate(){
@@ -17,19 +19,29 @@ export function Topbar(){
  }
  function deactivate(){
    setTestMode(false)
-   router.push("/admin")
+   router.push(roleMode==="admin"?"/admin":"/")
    router.refresh()
  }
- function changeRole(role:"employee"|"responsible_lead"|"admin"){
+ function changeTestRole(role:"employee"|"responsible_lead"|"admin"){
    setTestRole(role)
    router.push(role==="admin"?"/admin":"/")
    router.refresh()
  }
+ async function changeRoleMode(role:"employee"|"responsible_lead"|"admin"){
+   setRoleBusy(true)
+   try{
+     await setRoleMode(role)
+     router.push(role==="admin"?"/admin":"/")
+     router.refresh()
+   }finally{
+     setRoleBusy(false)
+   }
+ }
 
  return <>
-  {isAdmin&&testMode&&<div className="flex flex-wrap items-center justify-center gap-3 bg-amber-500 px-3 py-2 text-sm font-bold text-black">
+  {realIsAdmin&&testMode&&<div className="flex flex-wrap items-center justify-center gap-3 bg-amber-500 px-3 py-2 text-sm font-bold text-black">
     <span>TESTMODUS ACTIEF</span>
-    <select aria-label="Testrol" value={testRole||"employee"} onChange={e=>changeRole(e.target.value as "employee"|"responsible_lead"|"admin")} className="rounded-lg border border-black/30 bg-white px-3 py-1 text-black">
+    <select aria-label="Testrol" value={testRole||"employee"} onChange={e=>changeTestRole(e.target.value as "employee"|"responsible_lead"|"admin")} className="rounded-lg border border-black/30 bg-white px-3 py-1 text-black">
       <option value="employee">Personeel</option>
       <option value="responsible_lead">Verantwoordelijke</option>
       <option value="admin">Beheerder</option>
@@ -40,6 +52,14 @@ export function Topbar(){
    <Link href={isAdmin&&!testMode?"/admin":"/"} className="font-black">Up Till Dawn</Link>
    <div className="flex items-center gap-3 text-sm">
     <span className="hidden sm:inline">{name} · {roleLabel}</span>
+    {realIsAdmin&&!testMode&&<label className="flex items-center gap-2 font-bold">
+      <span className="hidden lg:inline">ROL</span>
+      <select aria-label="Actieve rol" disabled={roleBusy} value={roleMode||"admin"} onChange={e=>void changeRoleMode(e.target.value as "employee"|"responsible_lead"|"admin")} className="rounded-lg border bg-background px-3 py-2">
+        <option value="admin">Beheerder</option>
+        <option value="employee">Personeel</option>
+        <option value="responsible_lead">Verantwoordelijke</option>
+      </select>
+    </label>}
     {isAdmin&&!testMode&&<button type="button" onClick={activate} className="rounded-lg border border-amber-500/50 px-3 py-2 font-bold">TESTMODUS ACTIVEREN</button>}
     <Link href="/notifications">Meldingen</Link><Link href="/settings">Profiel</Link>
     <form action={signOut}><button className="rounded-lg border p-2">Uitloggen</button></form>

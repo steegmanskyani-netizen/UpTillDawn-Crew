@@ -23,6 +23,9 @@ interface AuthContextType {
   profile: UserProfile | null
   roles: UiRole[]
   isAdmin: boolean
+  realIsAdmin: boolean
+  roleMode: UiRole | null
+  setRoleMode: (role: UiRole) => Promise<void>
   loading: boolean
   refreshProfile: () => Promise<void>
   testMode: boolean
@@ -37,6 +40,9 @@ const AuthContext = createContext<AuthContextType>({
   profile: null,
   roles: [],
   isAdmin: false,
+  realIsAdmin: false,
+  roleMode: null,
+  setRoleMode: async () => {},
   loading: true,
   refreshProfile: async () => {},
   testMode: false,
@@ -52,6 +58,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [roles, setRoles] = useState<UiRole[]>([])
+  const [roleMode, setRoleModeState] = useState<UiRole | null>(null)
   const [loading, setLoading] = useState(true)
   const [testMode, setTestModeState] = useState(false)
   const [testRole, setTestRoleState] = useState<TestRole>(null)
@@ -67,6 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (error || !data?.approved || (role !== "staff" && role !== "responsible_lead" && role !== "admin")) {
       setProfile(null)
       setRoles([])
+      setRoleModeState(null)
       return
     }
 
@@ -77,7 +85,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       approved: data.approved,
       role,
     })
-    setRoles([role === "staff" ? "employee" : role])
+    const baseUiRole: UiRole = role === "staff" ? "employee" : role
+    setRoles([baseUiRole])
+    if (role === "admin") {
+      const { data: effectiveRole, error: roleError } = await supabase.rpc("upt_current_effective_role")
+      const nextMode: UiRole = !roleError && effectiveRole === "responsible_lead"
+        ? "responsible_lead"
+        : !roleError && effectiveRole === "staff"
+          ? "employee"
+          : "admin"
+      setRoleModeState(nextMode)
+    } else {
+      setRoleModeState(baseUiRole)
+    }
   }, [supabase])
 
   useEffect(() => {
@@ -94,6 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       else {
         setProfile(null)
         setRoles([])
+        setRoleModeState(null)
         await clearOfflineIdentity().catch(() => {})
       }
       if (alive) setLoading(false)
@@ -106,6 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       else {
         setProfile(null)
         setRoles([])
+        setRoleModeState(null)
         void clearOfflineIdentity().catch(() => {})
       }
     })
@@ -113,7 +135,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [pathname, loadProfile, supabase])
 
   const realIsAdmin = profile?.role === "admin"
-  const effectiveRoles: UiRole[] = realIsAdmin && testMode && testRole ? [testRole] : roles
+  const effectiveRoles: UiRole[] = realIsAdmin && testMode && testRole
+    ? [testRole]
+    : realIsAdmin && roleMode
+      ? [roleMode]
+      : roles
+  const effectiveIsAdmin = effectiveRoles.includes("admin")
+
+  const setRoleMode = async (role: UiRole) => {
+    if (!realIsAdmin || testMode) return
+    const dbRole = role === "employee" ? "staff" : role
+    const { data, error } = await supabase.rpc("upt_set_admin_role_mode", { p_role: dbRole })
+    if (error || data !== dbRole) throw new Error("Rolmodus kon niet worden gewijzigd.")
+    setRoleModeState(role)
+  }
 
   const setTestRole = (role: TestRole) => {
     if (!realIsAdmin || !testMode) return
@@ -154,7 +189,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [realIsAdmin])
 
   return <AuthContext.Provider value={{
-    user, session, profile, roles: effectiveRoles, isAdmin: Boolean(realIsAdmin), loading,
+    user, session, profile, roles: effectiveRoles, isAdmin: effectiveIsAdmin, realIsAdmin: Boolean(realIsAdmin),
+    roleMode, setRoleMode, loading,
     refreshProfile: async () => { if (user) await loadProfile(user.id) },
     testMode, setTestMode, testRole, setTestRole,
   }}>

@@ -4,6 +4,19 @@ import { readFile } from 'node:fs/promises'
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8')
 
+test('admin can switch live role mode while test mode remains separate', async () => {
+  const providers = await read('lib/providers.tsx')
+  const topbar = await read('components/layout/topbar.tsx')
+  const auth = await read('lib/actions/auth.ts')
+  assert.match(providers, /upt_set_admin_role_mode/)
+  assert.match(providers, /roleMode/)
+  assert.match(topbar, /aria-label="Actieve rol"/)
+  assert.match(topbar, /<option value="admin">Beheerder<\/option>/)
+  assert.match(topbar, /<option value="employee">Personeel<\/option>/)
+  assert.match(topbar, /<option value="responsible_lead">Verantwoordelijke<\/option>/)
+  assert.match(auth, /upt_current_effective_role/)
+})
+
 test('role-driven release navigation uses saved conditions and ordering', async () => {
   const layout = await read('components/layout/app-layout.tsx')
   const sidebar = await read('components/layout/sidebar.tsx')

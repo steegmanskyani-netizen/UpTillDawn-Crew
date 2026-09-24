@@ -14,6 +14,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_role_modes: {
+        Row: {
+          active_role: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active_role: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active_role?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       break_sessions: {
         Row: {
           created_at: string
@@ -1898,6 +1916,9 @@ export type Database = {
         }
         Returns: string
       }
+      upt_current_effective_role: { Args: never; Returns: string }
+      upt_effective_role: { Args: { uid?: string }; Returns: string }
+      upt_set_admin_role_mode: { Args: { p_role: string }; Returns: string }
       upt_feature_allowed: {
         Args: { p_event?: string; p_feature: string; p_workplace?: string }
         Returns: boolean

@@ -22,7 +22,7 @@ const emptyContext:RoleUiContext={assignedEvent:false,assignedWorkplaceRole:fals
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname=usePathname()
-  const {user,profile,isAdmin,testMode,testRole}=useAuth()
+  const {user,profile,roles,isAdmin,realIsAdmin,testMode}=useAuth()
   const supabase=useMemo(()=>createClient(),[])
   const [chatMissed,setChatMissed]=useState(0)
   const [incidentMissed,setIncidentMissed]=useState(0)
@@ -30,9 +30,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const [context,setContext]=useState<RoleUiContext>(emptyContext)
   const [rules,setRules]=useState<RoleUiRule[]>([])
 
-  const roleKey=testMode
-    ? testRole==="responsible_lead"?"responsible_lead":testRole==="admin"?"admin":"staff"
-    : profile?.role==="responsible_lead"?"responsible_lead":profile?.role==="staff"?"staff":profile?.role==="admin"?"admin":null
+  const activeUiRole=roles[0]
+  const roleKey=activeUiRole==="responsible_lead"?"responsible_lead":activeUiRole==="admin"?"admin":activeUiRole==="employee"?"staff":null
 
   const loadRules=useCallback(async()=>{
     if(!roleKey){setRules([]);return}
@@ -43,7 +42,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   useEffect(()=>{const first=window.setTimeout(()=>void loadRules(),0);const fn=()=>void loadRules();window.addEventListener("uptilldawn-role-rules-updated",fn);return()=>{window.clearTimeout(first);window.removeEventListener("uptilldawn-role-rules-updated",fn)}},[loadRules])
 
   const ruleMap=useMemo(()=>new Map(rules.map(rule=>[rule.feature_key,rule])),[rules])
-  const previewAll=Boolean(isAdmin&&testMode)
+  const previewAll=Boolean(realIsAdmin&&testMode)
   const feature=(key:string,fallback:boolean)=>{
     const rule=ruleMap.get(key)
     return rule?ruleMatches(rule,context,previewAll):fallback

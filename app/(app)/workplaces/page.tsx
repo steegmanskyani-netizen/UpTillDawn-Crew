@@ -3,18 +3,19 @@ import { addWorkplace,assignResponsible,updateWorkplace } from '@/lib/actions/up
 import { AdminOnly } from '@/components/auth/admin-only'
 import { ManagerOnly } from '@/components/auth/manager-only'
 import { redirect } from 'next/navigation'
+import { getCurrentUser } from '@/lib/actions/auth'
 
 export const dynamic='force-dynamic'
 
 export default async function Page(){
   const s=await createClient()
-  const {data:{user}}=await s.auth.getUser()
-  if(!user)return null
+  const current=await getCurrentUser()
+  if(!current)return null
+  const user={id:current.id}
 
-  const {data:profile}=await s.from('profiles').select('role').eq('id',user.id).single()
-  const isAdmin=profile?.role==='admin'
-  const isResponsible=profile?.role==='responsible_lead'
-  const isStaff=profile?.role==='staff'
+  const isAdmin=current.role==='admin'
+  const isResponsible=current.role==='responsible_lead'
+  const isStaff=current.role==='staff'
   if(!isAdmin&&!isResponsible&&!isStaff)redirect('/')
 
   let events:Array<{id:string;name:string}>=[]
@@ -27,12 +28,12 @@ export default async function Page(){
     const [{data:eventRows},{data:workplaceRows},{data:leadMemberships}]=await Promise.all([
       s.from('events').select('id,name').neq('status','archived').order('start_at'),
       s.from('workplaces').select('id,event_id,name,description,sort_order,is_active,events(name)').order('sort_order'),
-      s.from('event_members').select('event_id,user_id,profiles(full_name,approved,role)').eq('event_role','responsible_lead'),
+      s.from('event_members').select('event_id,user_id,profiles(full_name,approved,role)').in('event_role',['responsible_lead','admin']),
     ])
     events=eventRows||[]
     workplaces=workplaceRows||[]
     leads=(leadMemberships||[])
-      .filter(row=>row.profiles?.approved&&row.profiles?.role==='responsible_lead')
+      .filter(row=>row.profiles?.approved&&['responsible_lead','admin'].includes(row.profiles?.role||''))
       .map(row=>({id:row.user_id,full_name:row.profiles?.full_name||null,event_id:row.event_id}))
   }else{
     const [{data:ownShifts},{data:ownResponsible}]=await Promise.all([

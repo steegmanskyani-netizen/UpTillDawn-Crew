@@ -127,7 +127,7 @@ export default async function Page() {
       .from('event_members')
       .select('event_id')
       .eq('user_id', user.id)
-      .eq('event_role', 'responsible_lead')
+      .in('event_role', ['responsible_lead','admin'])
 
     const eventIds = [...new Set((responsibleMemberships || []).map(row => row.event_id))]
     if (eventIds.length) {

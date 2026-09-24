@@ -3,6 +3,7 @@ import { CalendarDays, Clock3, MapPin, AlertTriangle, ArrowRight } from 'lucide-
 import { createClient } from '@/lib/supabase/crew-server'
 import { ManagerOnly } from '@/components/auth/manager-only'
 import { AssignedEventOnly } from '@/components/auth/assigned-event-only'
+import { getCurrentUser } from '@/lib/actions/auth'
 
 export const dynamic = 'force-dynamic'
 
@@ -16,8 +17,9 @@ function Card({ href, icon: Icon, title, value }: { href: string; icon: typeof C
 
 export default async function Dashboard() {
   const s = await createClient()
-  const { data: { user } } = await s.auth.getUser()
-  if (!user) return null
+  const current = await getCurrentUser()
+  if (!current) return null
+  const user = { id: current.id }
 
   const now = new Date().toISOString()
   const [profileResult, eventsResult, shiftsResult, incidentsResult, membershipsResult, activeEventsResult, openEventsResult] = await Promise.all([
@@ -41,9 +43,10 @@ export default async function Dashboard() {
   const activeEventIds = new Set((activeEventsResult.data || []).map(event => event.id))
   const openEventIds = new Set((openEventsResult.data || []).map(event => event.id))
   const hasEventAssignment = memberships.some(member => openEventIds.has(member.event_id))
-  const hasActiveIncidentContext = profile?.role === 'admin'
+  const hasActiveIncidentContext = current.role === 'admin'
     ? activeEventIds.size > 0
-    : memberships.some(member => member.event_role === 'responsible_lead' && activeEventIds.has(member.event_id))
+    : current.role === 'responsible_lead'
+      && memberships.some(member => ['responsible_lead','admin'].includes(member.event_role) && activeEventIds.has(member.event_id))
   const activeIncidentCount = (incidentsResult.data || []).filter(incident =>
     Boolean(incident.event_id && activeEventIds.has(incident.event_id))
   ).length

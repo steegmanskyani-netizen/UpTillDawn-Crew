@@ -11,7 +11,9 @@ async function adminClient(){
  const {data:{user}}=await s.auth.getUser()
  if(!user) throw new Error('Aanmelden vereist.')
  const {data:p}=await s.from('profiles').select('approved,role').eq('id',user.id).single()
- if(!p?.approved||p.role!=='admin') throw new Error('Geen toegang.')
+ if(!p?.approved) throw new Error('Geen toegang.')
+ const {data:effectiveRole}=await s.rpc('upt_current_effective_role')
+ if(effectiveRole!=='admin') throw new Error('Geen toegang.')
  return {s,user}
 }
 async function approvedClient(){
@@ -20,7 +22,8 @@ async function approvedClient(){
  if(!user) throw new Error('Aanmelden vereist.')
  const {data:profile}=await s.from('profiles').select('approved,role').eq('id',user.id).single()
  if(!profile?.approved) throw new Error('ACCOUNT NOG NIET GOEDGEKEURD')
- return {s,user,profile}
+ const {data:effectiveRole}=await s.rpc('upt_current_effective_role')
+ return {s,user,profile:{...profile,role:effectiveRole||profile.role}}
 }
 function check(error:{code?:string}|null){if(error){console.error('[Crew mutation]',{code:error.code});throw new Error('Opslaan mislukt. Controleer je invoer en probeer opnieuw.')}}
 function requireManager(role:string){if(!['admin','responsible_lead'].includes(role))throw new Error('Geen toegang.')}
@@ -36,7 +39,7 @@ async function requireEventManager(
   .select('event_id')
   .eq('event_id',eventId)
   .eq('user_id',userId)
-  .eq('event_role','responsible_lead')
+  .in('event_role',['responsible_lead','admin'])
   .maybeSingle()
  check(error)
  if(!data)throw new Error('Je bent niet als verantwoordelijke aan dit evenement toegewezen.')
@@ -270,12 +273,12 @@ export async function assignResponsible(fd:FormData){
   s.from('workplaces').select('event_id').eq('id',workplace_id).single(),
  ])
  check(wError);if(!w)throw new Error('Werkplek niet gevonden.')
- if(!p?.approved||p.role!=='responsible_lead')throw new Error('Selecteer een goedgekeurde verantwoordelijke.')
+ if(!p?.approved||!['responsible_lead','admin'].includes(p.role))throw new Error('Selecteer een goedgekeurde verantwoordelijke of beheerder.')
  const {data:membership,error:membershipError}=await s.from('event_members')
   .select('user_id')
   .eq('event_id',w.event_id)
   .eq('user_id',user_id)
-  .eq('event_role','responsible_lead')
+  .in('event_role',['responsible_lead','admin'])
   .maybeSingle()
  check(membershipError)
  if(!membership)throw new Error('Deze verantwoordelijke is nog niet aan het evenement toegewezen.')

@@ -3,6 +3,7 @@ import { IncidentForm } from '@/components/crew/incident-form'
 import { IncidentControls } from '@/components/crew/incident-controls'
 import { nlStatus } from '@/lib/ui-nl'
 import { redirect } from 'next/navigation'
+import { getCurrentUser } from '@/lib/actions/auth'
 
 export const dynamic='force-dynamic'
 
@@ -12,27 +13,26 @@ function isVideo(path:string|null){
 
 export default async function Page(){
   const s=await createClient()
-  const {data:{user}}=await s.auth.getUser()
-  if(!user)return null
+  const current=await getCurrentUser()
+  if(!current)return null
+  const user={id:current.id}
   const now=new Date().toISOString()
 
   const [
     {data:events},
-    {data:profile},
     {data:incidents,error},
     {data:shifts},
     {data:activeSession},
   ]=await Promise.all([
     s.from('events').select('id,name').lte('start_at',now).gte('end_at',now).neq('status','archived'),
-    s.from('profiles').select('role').eq('id',user.id).single(),
     s.from('incidents').select('id,user_id,reporter_id,message,status,created_at,acknowledged_at,resolved_at,event_id,workplace_id,photo_path').order('created_at',{ascending:false}).limit(100),
     s.from('shifts').select('id,event_id,workplace_id,scheduled_start,scheduled_end,events(name),workplaces(name)')
       .eq('user_id',user.id).neq('status','cancelled').lte('scheduled_start',now).gte('scheduled_end',now).order('scheduled_start'),
     s.from('work_sessions').select('event_id,shift_id').eq('user_id',user.id).is('ended_at',null).maybeSingle(),
   ])
 
-  const isAdmin=profile?.role==='admin'
-  const manager=isAdmin||profile?.role==='responsible_lead'
+  const isAdmin=current.role==='admin'
+  const manager=isAdmin||current.role==='responsible_lead'
   const activeEventIds=new Set((events||[]).map(event=>event.id))
   const activeShifts=(shifts||[]).filter(shift=>activeEventIds.has(shift.event_id))
 

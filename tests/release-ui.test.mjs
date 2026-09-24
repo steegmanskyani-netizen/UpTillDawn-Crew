@@ -368,3 +368,28 @@ test('maker account keeps permanent admin privilege independent of visible statu
   assert.match(migration, /before update or delete on upt_private\.app_owners/)
   assert.match(migration, /Owner identity is environment data and is intentionally not hard-coded here\./)
 })
+
+
+test('edit mode contains role tabs, exit control and owner-only ChatGPT app editor', async () => {
+  const editor = await read('components/layout/edit-mode-editor.tsx')
+  const route = await read('app/api/edit-assistant/route.ts')
+  const env = await read('.env.example')
+
+  assert.match(editor, /aria-label="Edit rol"/)
+  assert.match(editor, /Admin/)
+  assert.match(editor, /Personeel/)
+  assert.match(editor, /Verantwoordelijke/)
+  assert.match(editor, /setEditRole/)
+  assert.match(editor, /EDIT MODE AFSLUITEN/)
+  assert.match(editor, /setEditMode\(false\)/)
+  assert.match(editor, /ChatGPT app-editor/)
+  assert.match(editor, /isOwner&&/)
+  assert.match(editor, /WIJZIGING/)
+  assert.match(route, /upt_current_is_owner/)
+  assert.match(route, /process\.env\.OPENAI_API_KEY/)
+  assert.match(route, /https:\/\/api\.openai\.com\/v1\/responses/)
+  assert.match(route, /json_schema/)
+  assert.match(route, /gpt-6-astra/)
+  assert.match(env, /OPENAI_API_KEY=/)
+  assert.doesNotMatch(editor, /OPENAI_API_KEY/)
+})

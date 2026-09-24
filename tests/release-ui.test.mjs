@@ -310,7 +310,7 @@ test('admin help navigation and help calls are accessible and consistently named
   const incidents = await read('app/(app)/incidents/page.tsx')
 
   assert.match(layout, /showIncidents=feature\("incidents",isAdmin\?true:context\.shiftActive\)/)
-  assert.match(sidebar, /i\.key==="incidents"&&isAdmin\?"Help":i\.label/)
+  assert.match(sidebar, /getDefaultRoleUiLabel\(roleKey,i\.key,i\.label\)/)
   assert.match(admin, /<Stat href="\/incidents" label="Open help oproepen"/)
   assert.match(admin, /<h2 className="text-xl font-bold">Open help oproepen<\/h2>/)
   assert.match(incidents, /manager\?'Help':'Urgent melden'/)

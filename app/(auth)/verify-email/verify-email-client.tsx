@@ -38,7 +38,7 @@ export default function VerifyEmailClient() {
   return (
     <Card className="w-full max-w-md rounded-2xl border-border shadow-lg">
       <CardHeader className="items-center space-y-4 pb-2">
-        <Image src="/uptilldawn-logo.jpeg" alt="Uptilldawn" width={220} height={80} className="h-10 w-auto object-contain" />
+        <Image src="/up-till-dawn-mark.webp" alt="UP TILL DAWN" width={48} height={48} className="h-12 w-12 rounded-xl object-cover" />
         <div className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-gold/10">
           <Mail className="h-8 w-8 text-brand-gold" />
         </div>

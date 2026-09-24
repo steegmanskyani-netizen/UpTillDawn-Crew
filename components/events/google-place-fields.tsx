@@ -52,11 +52,11 @@ export function GooglePlaceFields({
   useEffect(()=>{
     if(!ready||!apiKey||!venueHost.current||!addressHost.current)return
     let cancelled=false
-    const googleObj=(window as GoogleMapsWindow).google
-    if(!googleObj)return
+    const googleMaps=(window as GoogleMapsWindow).google?.maps
+    if(!googleMaps)return
 
     async function initialize(){
-      const library=await googleObj.maps.importLibrary("places")
+      const library=await googleMaps.importLibrary("places")
       if(cancelled)return
       const Autocomplete=library.PlaceAutocompleteElement
 

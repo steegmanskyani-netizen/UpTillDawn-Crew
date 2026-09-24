@@ -1,5 +1,7 @@
 "use client"
 
+import type { Json } from "@/types/crew-database"
+
 export type RoleRuleRole = "staff" | "responsible_lead"
 export type RoleCondition =
   | "always"
@@ -18,7 +20,7 @@ export type RoleUiRule = {
   enabled: boolean
   condition_key: RoleCondition
   sort_order: number
-  settings?: Record<string, unknown> | null
+  settings?: Json | null
 }
 
 export type RoleUiContext = {

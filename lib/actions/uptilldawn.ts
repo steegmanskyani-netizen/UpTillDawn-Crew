@@ -50,8 +50,8 @@ async function requireFeature(
  if(role==='admin')return
  const {data,error}=await s.rpc('upt_feature_allowed',{
   p_feature:feature,
-  p_event:eventId,
-  p_workplace:workplaceId,
+  p_event:eventId ?? undefined,
+  p_workplace:workplaceId ?? undefined,
  })
  if(error||!data)throw new Error('Deze functie is voor jouw rol op dit moment niet beschikbaar.')
 }

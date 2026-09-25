@@ -98,7 +98,7 @@ export const ROLE_UI_DEFAULTS: Record<RoleRuleRole, RoleUiRule[]> = {
   ],
   responsible_lead: [
     navRule("responsible_lead","overview","Overzicht",10),
-    navRule("responsible_lead","operations","Mijn werkuren",20,"event_active"),
+    navRule("responsible_lead","operations","Mijn werkuren",20,"shift_active"),
     navRule("responsible_lead","events","Evenementen",30),
     navRule("responsible_lead","shifts","Shift's",40,"assigned_event"),
     navRule("responsible_lead","tasks","Taken",50,"shift_active"),

@@ -2138,6 +2138,7 @@ export type Database = {
         Args: { p_assignment: string; p_status: string }
         Returns: string
       }
+      upt_verify_admin_edit_code: { Args: { p_code: string }; Returns: boolean }
       upt_work_session_time_summary: {
         Args: { p_work_session: string }
         Returns: {

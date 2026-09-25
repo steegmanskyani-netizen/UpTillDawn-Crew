@@ -2,9 +2,9 @@
 
 ## Production
 
-- Cloudflare Worker: `uptilldawn-crew`
-- Primary production origin: `https://crew-uptilldawn.be`
-- Worker fallback origin: `https://uptilldawn-crew.steegmans-kyani.workers.dev`
+- Internal Cloudflare Worker: `uptilldawn-crew` (no public `workers.dev` route)
+- Public Cloudflare Worker alias: `crew`
+- Primary production origin: `https://crew.uptilldawn.workers.dev`
 - Deployment source: GitHub `main`
 - Runtime: Next.js 16 through OpenNext on Cloudflare Workers
 - Supabase project: `eakoavcieossazqzplke`
@@ -17,7 +17,7 @@ The Git-connected Cloudflare build is the production deployment path. CI separat
 | --- | --- |
 | `NEXT_PUBLIC_SUPABASE_URL` | Production Supabase URL |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Browser-safe publishable key |
-| `NEXT_PUBLIC_APP_URL` | Exact production HTTPS origin |
+| `NEXT_PUBLIC_APP_URL` | Exact production HTTPS origin (`https://crew.uptilldawn.workers.dev`) |
 | `GEOAPIFY_API_KEY` | Server-only event address/geocoding key |
 
 The Cloudflare Worker must never receive a Supabase service-role key in a public variable.
@@ -51,7 +51,7 @@ npm run build:cloudflare
 npx wrangler deploy --dry-run
 ```
 
-After deployment, verify the public login/auth surface, manifest, service worker and production Worker version. Authenticated role/device E2E remains a real-device regression activity.
+After deployment, verify the public login/auth surface, manifest, service worker, public `crew` alias and internal production Worker version. Authenticated role/device E2E remains a real-device regression activity.
 
 ## Database
 

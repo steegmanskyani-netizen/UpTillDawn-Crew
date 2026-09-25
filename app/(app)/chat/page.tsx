@@ -34,7 +34,7 @@ export default async function Page(){
     if(signed?.signedUrl)profilePhotoUrls[member.id]=signed.signedUrl
   }))
 
-  const now=Date.now()
+  const now=new Date().getTime()
   const memberEventIds=new Set((memberships||[]).map(row=>row.event_id))
   const workplaceIds=new Set([
     ...(ownShifts||[]).map(row=>row.workplace_id),

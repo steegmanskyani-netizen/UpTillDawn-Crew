@@ -441,11 +441,84 @@ export const UI_TRANSLATIONS: Record<string, Translation> = {
   "Je kunt instructies voorbereiden voor evenementen waaraan je als verantwoordelijke bent toegewezen.": { fr: "Vous pouvez préparer des instructions pour les événements auxquels vous êtes affecté en tant que responsable.", en: "You can prepare instructions for events you are assigned to as responsible." },
   "Werkgegevens konden niet worden geladen. Probeer opnieuw.": { fr: "Les données de travail n’ont pas pu être chargées. Réessayez.", en: "Work data could not be loaded. Try again." },
   "Geheel evenement": { fr: "Événement entier", en: "Entire event" },
-  "Je kunt taken voorbereiden voor evenementen waaraan je als verantwoordelijke bent toegewezen.": { fr: "Vous pouvez préparer des tâches pour les événements auxquels vous êtes affecté en tant que responsable.", en: "You can prepare tasks for events you are assigned to as responsible." },
+  "Je kunt taken voorbereiden voor evenementen waaraan je als verantwoordelijke bent toegewezen.": { fr: "Vous pouvez préparer des tâches pour les événements auxquels vous êtes affecté en tant que responsable.", en: "You can prepare tasks for events you are assigned to as responsible." },  "Facebook-evenement importeren": { fr: "Importer un événement Facebook", en: "Import Facebook event" },
+  "Alleen openbare Facebook-evenementen kunnen automatisch worden uitgelezen. Handmatige velden blijven als fallback beschikbaar.": { fr: "Seuls les événements Facebook publics peuvent être lus automatiquement. Les champs manuels restent disponibles en solution de secours.", en: "Only public Facebook events can be read automatically. Manual fields remain available as a fallback." },
+  "IMPORTEREN": { fr: "IMPORTER", en: "IMPORT" },
+  "Import gelukt. Naam, adres en uren worden automatisch gebruikt.": { fr: "Import réussi. Le nom, l’adresse et les horaires seront utilisés automatiquement.", en: "Import successful. Name, address and times will be used automatically." },
+  "Handmatige gegevens / fallback": { fr: "Données manuelles / secours", en: "Manual details / fallback" },
+  "Bij een openbare Facebook-link worden gevonden naam, locatie en evenementuren automatisch gebruikt. Ontbrekende gegevens worden uit de handmatige velden genomen.": { fr: "Avec un lien Facebook public, le nom, le lieu et les horaires trouvés sont utilisés automatiquement. Les données manquantes sont reprises des champs manuels.", en: "With a public Facebook link, the detected name, location and event times are used automatically. Missing details are taken from the manual fields." },
+  "Shift-type": { fr: "Type de service", en: "Shift type" },
+  "Evenement": { fr: "Événement", en: "Event" },
+  "Opbouw": { fr: "Montage", en: "Setup" },
+  "Afbouw": { fr: "Démontage", en: "Breakdown" },
+  "Opbouw — max. 3 dagen vooraf": { fr: "Montage — max. 3 jours avant", en: "Setup — max. 3 days before" },
+  "Afbouw — max. 3 dagen nadien": { fr: "Démontage — max. 3 jours après", en: "Breakdown — max. 3 days after" },
+  "Begin straat, nummer of gemeente te typen": { fr: "Commencez à saisir la rue, le numéro ou la commune", en: "Start typing street, number or city" },
+  "Adressen zoeken…": { fr: "Recherche d’adresses…", en: "Searching addresses…" },
+  "Geen adressen gevonden.": { fr: "Aucune adresse trouvée.", en: "No addresses found." },
+  "Adressen konden niet worden opgezocht.": { fr: "Les adresses n’ont pas pu être recherchées.", en: "Addresses could not be looked up." },
+  "Up Till Dawn toevoegen aan uw toestel": { fr: "Ajouter Up Till Dawn à votre appareil", en: "Add Up Till Dawn to your device" },
+  "Voor makkelijk gebruik, een vlotte workflow en realtime meldingen te ontvangen wordt bij bevestiging de Up Till Dawn app toegevoegd aan uw toestel.": { fr: "Pour une utilisation simple, un flux de travail fluide et des notifications en temps réel, l’application Up Till Dawn sera ajoutée à votre appareil après confirmation.", en: "For easy use, a smooth workflow and real-time notifications, confirming will add the Up Till Dawn app to your device." },
+  "Installatie weigeren": { fr: "Refuser l’installation", en: "Decline installation" },
+  "BEVESTIGEN": { fr: "CONFIRMER", en: "CONFIRM" },
+  "INSTALLATIE STARTEN…": { fr: "DÉMARRAGE DE L’INSTALLATION…", en: "STARTING INSTALLATION…" },
+  "Safari vereist één handmatige bevestiging om een webapp op het beginscherm te zetten.": { fr: "Safari exige une confirmation manuelle pour ajouter une webapp à l’écran d’accueil.", en: "Safari requires one manual confirmation to add a web app to the Home Screen." },
+  "Tik in Safari op Deel en kies daarna “Zet op beginscherm”. Open vervolgens de nieuwe Up Till Dawn app.": { fr: "Dans Safari, touchez Partager puis « Sur l’écran d’accueil ». Ouvrez ensuite la nouvelle app Up Till Dawn.", en: "In Safari, tap Share and then “Add to Home Screen”. Then open the new Up Till Dawn app." },
+  "App-installatie bevestigd. Open Up Till Dawn via het nieuwe app-icoon zodra je browser de installatie heeft afgerond.": { fr: "Installation confirmée. Ouvrez Up Till Dawn via la nouvelle icône dès que votre navigateur a terminé l’installation.", en: "Installation confirmed. Open Up Till Dawn from the new app icon once your browser finishes installing it." },
+  "Open het browsermenu en kies ‘App installeren’ of ‘Toevoegen aan startscherm’. Automatische installatie is door deze browser niet toegestaan.": { fr: "Ouvrez le menu du navigateur et choisissez « Installer l’app » ou « Ajouter à l’écran d’accueil ». Ce navigateur n’autorise pas l’installation automatique.", en: "Open the browser menu and choose “Install app” or “Add to Home Screen”. This browser does not allow automatic installation." },
+  "God Mode": { fr: "Mode Dieu", en: "God Mode" },
+  "App editor": { fr: "Éditeur d’application", en: "App editor" },
+  "Website openen": { fr: "Ouvrir le site", en: "Open website" },
+  "God login wijzigen": { fr: "Modifier la connexion God", en: "Change God login" },
+  "God Mode afsluiten": { fr: "Fermer le Mode Dieu", en: "Exit God Mode" },
+  "AI app-editor": { fr: "Éditeur d’application IA", en: "AI app editor" },
+  "Layout & rolrechten": { fr: "Mise en page et droits de rôle", en: "Layout & role permissions" },
+  "Standaard laden": { fr: "Charger les valeurs par défaut", en: "Load defaults" },
+  "Rolregels laden…": { fr: "Chargement des règles de rôle…", en: "Loading role rules…" },
+  "Zichtbaar": { fr: "Visible", en: "Visible" },
+  "Bruikbaar": { fr: "Utilisable", en: "Usable" },
+  "Wanneer": { fr: "Quand", en: "When" },
+  "Altijd": { fr: "Toujours", en: "Always" },
+  "Na evenementtoewijzing": { fr: "Après attribution à l’événement", en: "After event assignment" },
+  "Na werkplek/roltoewijzing": { fr: "Après attribution du poste/rôle", en: "After workplace/role assignment" },
+  "Tijdens evenement": { fr: "Pendant l’événement", en: "During event" },
+  "Tijdens actieve shift": { fr: "Pendant le service actif", en: "During active shift" },
+  "Nooit": { fr: "Jamais", en: "Never" },
+  "GOD MODE WIJZIGINGEN OPSLAAN": { fr: "ENREGISTRER LES MODIFICATIONS GOD MODE", en: "SAVE GOD MODE CHANGES" },
+  "God Mode wijzigingen opgeslagen.": { fr: "Modifications God Mode enregistrées.", en: "God Mode changes saved." },
+  "Eenmalige code aanvaard. Controleer info@uptilldawn.be en kies via de beveiligde link een nieuw wachtwoord.": { fr: "Code à usage unique accepté. Consultez info@uptilldawn.be et choisissez un nouveau mot de passe via le lien sécurisé.", en: "One-time code accepted. Check info@uptilldawn.be and choose a new password using the secure link." },
+  "De eenmalige bootstrapcode is niet meer actief.": { fr: "Le code d’amorçage à usage unique n’est plus actif.", en: "The one-time bootstrap code is no longer active." },
+  "Er is momenteel geen actieve evenement-, opbouw- of afbouwshift.": { fr: "Il n’y a actuellement aucun service d’événement, de montage ou de démontage actif.", en: "There is currently no active event, setup or breakdown shift." },
+  "Werkplek": { fr: "Poste de travail", en: "Workplace" },
+  "Start": { fr: "Début", en: "Start" },
+  "Locatie:": { fr: "Lieu :", en: "Location:" },
+  "Naam:": { fr: "Nom :", en: "Name:" },
+  "Start:": { fr: "Début :", en: "Start:" },
+  "Einde:": { fr: "Fin :", en: "End:" },
+
 }
 
 export function translateUiText(value: string, locale: UiLocale) {
   if (locale === "nl") return value
-  const translation = UI_TRANSLATIONS[value]
-  return translation ? translation[locale] : value
+  const exact = UI_TRANSLATIONS[value]
+  if (exact) return exact[locale]
+
+  const separators = /(\s+(?:·|→|—)\s+|:\s+)/
+  const parts = value.split(separators)
+  if (parts.length > 1) {
+    let changed = false
+    const translated = parts.map(part => {
+      if (separators.test(part)) return part
+      const trimmed = part.trim()
+      const hit = UI_TRANSLATIONS[trimmed]
+      if (!hit) return part
+      changed = true
+      const leading = part.match(/^\s*/)?.[0] || ""
+      const trailing = part.match(/\s*$/)?.[0] || ""
+      return leading + hit[locale] + trailing
+    }).join("")
+    if (changed) return translated
+  }
+
+  return value
 }

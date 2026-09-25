@@ -1,8 +1,27 @@
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/crew-server"
 
+function safePushEndpoint(value:string){
+  try{
+    const url=new URL(value)
+    if(url.protocol!=="https:"||url.username||url.password)return false
+    const host=url.hostname.replace(/^\[|\]$/g,"").toLowerCase()
+    if(!host||host==="localhost"||host.endsWith(".localhost")||host.endsWith(".local")||host.endsWith(".internal"))return false
+    if(/^\d{1,3}(?:\.\d{1,3}){3}$/.test(host)){
+      const parts=host.split(".").map(Number)
+      if(parts.some(part=>part<0||part>255))return false
+      const [a,b]=parts
+      if(a===0||a===10||a===127||a>=224||(a===169&&b===254)||(a===172&&b>=16&&b<=31)||(a===192&&b===168))return false
+    }
+    if(host.includes(":")){
+      if(host==="::"||host==="::1"||/^f[cd]/.test(host)||/^fe[89ab]/.test(host))return false
+    }
+    return true
+  }catch{return false}
+}
+
 const subscriptionSchema=z.object({
-  endpoint:z.string().url().max(4096),
+  endpoint:z.string().url().max(4096).refine(safePushEndpoint),
   keys:z.object({
     p256dh:z.string().min(20).max(512),
     auth:z.string().min(8).max(256),

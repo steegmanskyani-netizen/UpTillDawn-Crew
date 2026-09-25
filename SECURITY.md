@@ -24,6 +24,10 @@ The browser and Cloudflare app runtime do **not** contain a Supabase service-rol
 
 The `push-notification` Supabase Edge Function uses Supabase's built-in server-side service-role environment to read the target notification/subscriptions and clean expired push endpoints. That credential remains server-side inside Supabase and is never committed or returned to the client.
 
+## Push endpoint safety
+
+Push registrations require HTTPS. The app and delivery Edge Function reject localhost and private/link-local literal network targets so Web Push cannot be repurposed as a basic outbound-request primitive.
+
 ## Push secrets
 
 The VAPID private key and internal push-webhook secret are private server configuration. Only the VAPID public key is exposed to authenticated clients for Push API subscription.

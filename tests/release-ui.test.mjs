@@ -639,3 +639,17 @@ test('expired or missing auth also drops the local push endpoint', async () => {
   assert.match(push, /pushManager\.getSubscription\(\)/)
   assert.match(push, /subscription\.unsubscribe\(\)/)
 })
+
+
+test('push endpoints are HTTPS-only and private-network targets are rejected', async () => {
+  const subscriptionRoute = await read('app/api/push/subscription/route.ts')
+  const edge = await read('supabase/functions/push-notification/index.ts')
+  const migration = await read('supabase/migrations/20260925080357_uptilldawn_push_endpoint_hardening.sql')
+
+  assert.match(subscriptionRoute, /safePushEndpoint/)
+  assert.match(subscriptionRoute, /url\.protocol!=="https:"/)
+  assert.match(subscriptionRoute, /192&&b===168/)
+  assert.match(edge, /safePushEndpoint\(sub\.endpoint\)/)
+  assert.match(edge, /remove unsafe endpoint/)
+  assert.match(migration, /not like 'https:\/\/%'/)
+})

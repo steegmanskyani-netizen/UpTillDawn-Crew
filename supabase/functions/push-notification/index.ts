@@ -20,6 +20,25 @@ const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{
   headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"},
 })
 
+function safePushEndpoint(value:string){
+  try{
+    const url=new URL(value)
+    if(url.protocol!=="https:"||url.username||url.password)return false
+    const host=url.hostname.replace(/^\[|\]$/g,"").toLowerCase()
+    if(!host||host==="localhost"||host.endsWith(".localhost")||host.endsWith(".local")||host.endsWith(".internal"))return false
+    if(/^\d{1,3}(?:\.\d{1,3}){3}$/.test(host)){
+      const parts=host.split(".").map(Number)
+      if(parts.some(part=>part<0||part>255))return false
+      const [a,b]=parts
+      if(a===0||a===10||a===127||a>=224||(a===169&&b===254)||(a===172&&b>=16&&b<=31)||(a===192&&b===168))return false
+    }
+    if(host.includes(":")){
+      if(host==="::"||host==="::1"||/^f[cd]/.test(host)||/^fe[89ab]/.test(host))return false
+    }
+    return true
+  }catch{return false}
+}
+
 Deno.serve(async(req)=>{
   if(req.method!=="POST")return json({error:"Method not allowed"},405)
 
@@ -85,6 +104,12 @@ Deno.serve(async(req)=>{
   let removed=0
   let failed=0
   for(const sub of subscriptions as PushSubscriptionRow[]){
+    if(!safePushEndpoint(sub.endpoint)){
+      const {error:deleteError}=await admin.from("push_subscriptions").delete().eq("id",sub.id)
+      if(deleteError){failed++;console.error("[push] remove unsafe endpoint",deleteError.message)}
+      else removed++
+      continue
+    }
     try{
       await webpush.sendNotification({
         endpoint:sub.endpoint,

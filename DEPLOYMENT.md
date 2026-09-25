@@ -30,6 +30,7 @@ Web Push delivery is intentionally separated from the Cloudflare app runtime:
 3. A new `crew_notifications` row triggers an asynchronous `pg_net` POST.
 4. Supabase Edge Function `push-notification` loads the target notification/subscriptions using the built-in server-side service role and sends Web Push.
 5. VAPID private key and webhook secret remain in private server-side configuration, never GitHub or frontend code.
+6. Push endpoints must use HTTPS; localhost/private/link-local literal targets are rejected in the app/Edge path.
 
 ## PWA update behavior
 
@@ -52,4 +53,4 @@ After deployment, verify the public login/auth surface, manifest, service worker
 
 ## Database
 
-Production has 105 migration-history entries matching 105 migration files in the repository at this baseline. Do not reset production or replay the chain there. Use an isolated project for from-zero migration verification.
+Production has 106 migration-history entries matching 106 migration files in the repository at this baseline. Do not reset production or replay the chain there. Use an isolated project for from-zero migration verification.

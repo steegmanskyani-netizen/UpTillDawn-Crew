@@ -24,7 +24,7 @@ The current desktop/web view and installed mobile PWA view are the canonical def
 - Web Push subscriptions are per authenticated user/device and require user permission.
 - New `crew_notifications` rows enqueue delivery through `pg_net` to the `push-notification` Supabase Edge Function; the dispatch timeout is 10 seconds to tolerate cold starts without false timeout records.
 - VAPID private material and webhook secret are kept outside the public repository.
-- Invalid/expired push subscriptions are cleaned automatically on 404/410 delivery responses.
+- Invalid/expired push subscriptions are cleaned automatically on 404/410 delivery responses; non-HTTPS and local/private-network push targets are rejected before delivery.
 - Notification clicks open the linked in-app destination.
 
 The Edit-mode access code is no longer present in source code. Only a SHA-256 hash is stored in the private database schema and verification is server-authorized.
@@ -72,7 +72,7 @@ Known remaining advisor findings are reviewed rather than blindly removed:
 These are not regressions in the current web/mobile baseline:
 
 1. Define an explicit overtime/pay-period policy before presenting overtime as payroll truth.
-2. Replay all 105 migrations from zero on an isolated project before claiming a fresh-install proof.
+2. Replay all 106 migrations from zero on an isolated project before claiming a fresh-install proof.
 3. Expand offline browsing beyond the operational workflows if full offline parity is ever required.
 4. Continue physical-device regression testing after major browser/OS updates.
 5. Enable Supabase leaked-password protection when the project setting is approved.

@@ -22,7 +22,7 @@ The current web/mobile/PWA experience is the production baseline.
 ## Ongoing / optional work
 
 1. Define overtime/pay-period policy before payroll-style overtime output is enabled.
-2. Complete a from-zero replay of all 102 migrations on an isolated Supabase project.
+2. Complete a from-zero replay of all 108 migrations on an isolated Supabase project.
 3. Broaden offline browsing if full offline parity becomes a requirement.
 4. Continue cross-device regression testing after material iOS/Android/Windows/browser changes.
 5. Enable Supabase leaked-password protection in project Auth settings.

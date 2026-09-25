@@ -4,7 +4,7 @@ BEGIN;
 
 CREATE TEMP TABLE upt_storage_ids(name text primary key, id uuid default gen_random_uuid());
 INSERT INTO upt_storage_ids(name) VALUES
-('admin'),('staff'),('other'),('lead'),('outsider'),('event'),('bar'),('channel'),('message'),('checkin'),('incident');
+('admin'),('staff'),('other'),('lead'),('outsider'),('event'),('bar'),('message'),('checkin'),('incident');
 GRANT SELECT ON upt_storage_ids TO authenticated;
 
 INSERT INTO auth.users(id,email)
@@ -76,17 +76,18 @@ VALUES(
  (SELECT id::text FROM upt_storage_ids WHERE name='staff')||'/incident.jpg'
 );
 
-INSERT INTO public.chat_channels(id,kind,name)
-VALUES((SELECT id FROM upt_storage_ids WHERE name='channel'),'private','rollback');
-INSERT INTO public.chat_members(channel_id,user_id)
-SELECT (SELECT id FROM upt_storage_ids WHERE name='channel'),id
-FROM upt_storage_ids WHERE name IN ('staff','other');
 INSERT INTO public.messages(id,user_id,sender_id,channel_id,body,content)
 VALUES(
  (SELECT id FROM upt_storage_ids WHERE name='message'),
  (SELECT id FROM upt_storage_ids WHERE name='staff'),
  (SELECT id FROM upt_storage_ids WHERE name='staff'),
- (SELECT id FROM upt_storage_ids WHERE name='channel'),
+ (
+  SELECT id
+  FROM public.chat_channels
+  WHERE kind='workplace'
+    AND workplace_id=(SELECT id FROM upt_storage_ids WHERE name='bar')
+  LIMIT 1
+ ),
  'rollback','rollback'
 );
 INSERT INTO public.message_attachments(message_id,file_url,storage_path,mime_type)
@@ -105,7 +106,7 @@ VALUES
 ('chat-attachments',(SELECT id::text FROM upt_storage_ids WHERE name='staff')||'/chat.jpg',(SELECT id FROM upt_storage_ids WHERE name='staff'),(SELECT id::text FROM upt_storage_ids WHERE name='staff'),'{"mimetype":"image/jpeg"}');
 
 -- Approved ordinary crew: another approved permanent profile photo is intentionally directory-visible,
--- but operational private media must remain hidden unless linked authorization exists.
+-- but operational private media, including workplace-chat attachments, requires linked authorization.
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_storage_ids WHERE name='other'),true);
 SET LOCAL ROLE authenticated;
 DO $$
@@ -116,13 +117,13 @@ BEGIN
  THEN RAISE EXCEPTION 'FAIL unrelated check-in selfie isolation'; END IF;
  IF (SELECT count(*) FROM storage.objects WHERE bucket_id='incident-photos' AND split_part(name,'/',1)=(SELECT id::text FROM upt_storage_ids WHERE name='staff')) <> 0
  THEN RAISE EXCEPTION 'FAIL unrelated incident photo isolation'; END IF;
- IF (SELECT count(*) FROM storage.objects WHERE bucket_id='chat-attachments' AND split_part(name,'/',1)=(SELECT id::text FROM upt_storage_ids WHERE name='staff')) <> 1
- THEN RAISE EXCEPTION 'FAIL private-chat attachment membership read'; END IF;
+ IF (SELECT count(*) FROM storage.objects WHERE bucket_id='chat-attachments' AND split_part(name,'/',1)=(SELECT id::text FROM upt_storage_ids WHERE name='staff')) <> 0
+ THEN RAISE EXCEPTION 'FAIL unrelated workplace-chat attachment isolation'; END IF;
 END $$;
 RESET ROLE;
 
--- Responsible lead assigned to the workplace may read linked check-in/incident evidence,
--- but is not a member of the private 1:1 chat.
+-- Responsible lead assigned to the workplace may read linked check-in/incident evidence
+-- and the same workplace's chat attachment.
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_storage_ids WHERE name='lead'),true);
 SET LOCAL ROLE authenticated;
 DO $$
@@ -131,8 +132,8 @@ BEGIN
  THEN RAISE EXCEPTION 'FAIL responsible selfie access'; END IF;
  IF (SELECT count(*) FROM storage.objects WHERE bucket_id='incident-photos' AND split_part(name,'/',1)=(SELECT id::text FROM upt_storage_ids WHERE name='staff')) <> 1
  THEN RAISE EXCEPTION 'FAIL responsible incident-photo access'; END IF;
- IF (SELECT count(*) FROM storage.objects WHERE bucket_id='chat-attachments' AND split_part(name,'/',1)=(SELECT id::text FROM upt_storage_ids WHERE name='staff')) <> 0
- THEN RAISE EXCEPTION 'FAIL responsible private-chat isolation'; END IF;
+ IF (SELECT count(*) FROM storage.objects WHERE bucket_id='chat-attachments' AND split_part(name,'/',1)=(SELECT id::text FROM upt_storage_ids WHERE name='staff')) <> 1
+ THEN RAISE EXCEPTION 'FAIL responsible workplace-chat attachment access'; END IF;
 END $$;
 RESET ROLE;
 
@@ -182,5 +183,5 @@ BEGIN
 END $$;
 RESET ROLE;
 
-SELECT 'PASS: storage owner/admin access, unapproved denial, workplace evidence scoping and private-chat attachment isolation' AS result;
+SELECT 'PASS: storage owner/admin access, unapproved denial and workplace-scoped evidence/chat attachments' AS result;
 ROLLBACK;

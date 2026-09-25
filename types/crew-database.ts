@@ -273,12 +273,14 @@ export type Database = {
           remote: boolean
           requested_at: string
           requested_role: string | null
+          reviewer_kind: string | null
           selfie_path: string | null
           selfie_url: string | null
           shift_id: string | null
           status: string
           type: string
           user_id: string
+          work_session_id: string | null
           workplace_id: string
         }
         Insert: {
@@ -301,12 +303,14 @@ export type Database = {
           remote?: boolean
           requested_at?: string
           requested_role?: string | null
+          reviewer_kind?: string | null
           selfie_path?: string | null
           selfie_url?: string | null
           shift_id?: string | null
           status?: string
           type: string
           user_id: string
+          work_session_id?: string | null
           workplace_id: string
         }
         Update: {
@@ -329,12 +333,14 @@ export type Database = {
           remote?: boolean
           requested_at?: string
           requested_role?: string | null
+          reviewer_kind?: string | null
           selfie_path?: string | null
           selfie_url?: string | null
           shift_id?: string | null
           status?: string
           type?: string
           user_id?: string
+          work_session_id?: string | null
           workplace_id?: string
         }
         Relationships: [
@@ -374,6 +380,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "check_ins_work_session_id_fkey"
+            columns: ["work_session_id"]
+            isOneToOne: false
+            referencedRelation: "work_sessions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "check_ins_workplace_id_fkey"
             columns: ["workplace_id"]
             isOneToOne: false
@@ -393,9 +406,11 @@ export type Database = {
           notes: string | null
           remote: boolean
           requested_at: string
+          reviewer_kind: string | null
           shift_id: string | null
           status: string
           user_id: string
+          work_session_id: string | null
           workplace_id: string | null
         }
         Insert: {
@@ -408,9 +423,11 @@ export type Database = {
           notes?: string | null
           remote?: boolean
           requested_at?: string
+          reviewer_kind?: string | null
           shift_id?: string | null
           status?: string
           user_id: string
+          work_session_id?: string | null
           workplace_id?: string | null
         }
         Update: {
@@ -423,9 +440,11 @@ export type Database = {
           notes?: string | null
           remote?: boolean
           requested_at?: string
+          reviewer_kind?: string | null
           shift_id?: string | null
           status?: string
           user_id?: string
+          work_session_id?: string | null
           workplace_id?: string | null
         }
         Relationships: [
@@ -455,6 +474,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "check_outs_work_session_id_fkey"
+            columns: ["work_session_id"]
+            isOneToOne: false
+            referencedRelation: "work_sessions"
             referencedColumns: ["id"]
           },
           {
@@ -1577,6 +1603,90 @@ export type Database = {
           },
         ]
       }
+      time_review_requests: {
+        Row: {
+          adjusted_start: string | null
+          check_in_id: string
+          created_at: string
+          id: string
+          reason: string
+          requested_start: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          scheduled_start: string
+          shift_id: string
+          status: string
+          user_id: string
+          work_session_id: string
+        }
+        Insert: {
+          adjusted_start?: string | null
+          check_in_id: string
+          created_at?: string
+          id?: string
+          reason: string
+          requested_start: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          scheduled_start: string
+          shift_id: string
+          status?: string
+          user_id: string
+          work_session_id: string
+        }
+        Update: {
+          adjusted_start?: string | null
+          check_in_id?: string
+          created_at?: string
+          id?: string
+          reason?: string
+          requested_start?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          scheduled_start?: string
+          shift_id?: string
+          status?: string
+          user_id?: string
+          work_session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_review_requests_check_in_id_fkey"
+            columns: ["check_in_id"]
+            isOneToOne: true
+            referencedRelation: "check_ins"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_review_requests_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_review_requests_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_review_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_review_requests_work_session_id_fkey"
+            columns: ["work_session_id"]
+            isOneToOne: false
+            referencedRelation: "work_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       upt_audit_logs: {
         Row: {
           action: string
@@ -1916,6 +2026,10 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      upt_admin_review_early_start: {
+        Args: { p_review: string; p_start?: string }
+        Returns: string
+      }
       upt_admin_set_account: {
         Args: { p_approved: boolean; p_role: string; p_user: string }
         Returns: undefined
@@ -1948,6 +2062,10 @@ export type Database = {
         Returns: undefined
       }
       upt_confirm_shift: { Args: { p_shift: string }; Returns: undefined }
+      upt_confirm_task_assignment: {
+        Args: { p_assignment: string }
+        Returns: string
+      }
       upt_confirm_workplace_transition: {
         Args: { p_to_workplace: string; p_work_session: string }
         Returns: string

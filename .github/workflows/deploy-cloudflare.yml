@@ -2,6 +2,8 @@ name: Deploy Cloudflare
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
 
 concurrency:
   group: uptilldawn-production

@@ -257,10 +257,13 @@ export type Database = {
           accuracy_m: number | null
           approved_at: string | null
           approved_by: string | null
+          contact_confirmed: boolean | null
           created_at: string
           decided_at: string | null
           decided_by: string | null
           distance_m: number | null
+          early_reason: string | null
+          effective_start_at: string | null
           event_id: string
           gps_status: string
           id: string
@@ -272,6 +275,7 @@ export type Database = {
           requested_role: string | null
           selfie_path: string | null
           selfie_url: string | null
+          shift_id: string | null
           status: string
           type: string
           user_id: string
@@ -281,10 +285,13 @@ export type Database = {
           accuracy_m?: number | null
           approved_at?: string | null
           approved_by?: string | null
+          contact_confirmed?: boolean | null
           created_at?: string
           decided_at?: string | null
           decided_by?: string | null
           distance_m?: number | null
+          early_reason?: string | null
+          effective_start_at?: string | null
           event_id: string
           gps_status?: string
           id?: string
@@ -296,6 +303,7 @@ export type Database = {
           requested_role?: string | null
           selfie_path?: string | null
           selfie_url?: string | null
+          shift_id?: string | null
           status?: string
           type: string
           user_id: string
@@ -305,10 +313,13 @@ export type Database = {
           accuracy_m?: number | null
           approved_at?: string | null
           approved_by?: string | null
+          contact_confirmed?: boolean | null
           created_at?: string
           decided_at?: string | null
           decided_by?: string | null
           distance_m?: number | null
+          early_reason?: string | null
+          effective_start_at?: string | null
           event_id?: string
           gps_status?: string
           id?: string
@@ -320,6 +331,7 @@ export type Database = {
           requested_role?: string | null
           selfie_path?: string | null
           selfie_url?: string | null
+          shift_id?: string | null
           status?: string
           type?: string
           user_id?: string
@@ -348,6 +360,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "check_ins_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "check_ins_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -365,34 +384,46 @@ export type Database = {
       }
       check_outs: {
         Row: {
+          contact_confirmed: boolean | null
           decided_at: string | null
           decided_by: string | null
+          effective_end_at: string | null
           event_id: string
           id: string
           notes: string | null
+          remote: boolean
           requested_at: string
+          shift_id: string | null
           status: string
           user_id: string
           workplace_id: string | null
         }
         Insert: {
+          contact_confirmed?: boolean | null
           decided_at?: string | null
           decided_by?: string | null
+          effective_end_at?: string | null
           event_id: string
           id?: string
           notes?: string | null
+          remote?: boolean
           requested_at?: string
+          shift_id?: string | null
           status?: string
           user_id: string
           workplace_id?: string | null
         }
         Update: {
+          contact_confirmed?: boolean | null
           decided_at?: string | null
           decided_by?: string | null
+          effective_end_at?: string | null
           event_id?: string
           id?: string
           notes?: string | null
+          remote?: boolean
           requested_at?: string
+          shift_id?: string | null
           status?: string
           user_id?: string
           workplace_id?: string | null
@@ -410,6 +441,13 @@ export type Database = {
             columns: ["event_id"]
             isOneToOne: false
             referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "check_outs_shift_id_fkey"
+            columns: ["shift_id"]
+            isOneToOne: false
+            referencedRelation: "shifts"
             referencedColumns: ["id"]
           },
           {
@@ -471,23 +509,29 @@ export type Database = {
       }
       event_availability: {
         Row: {
+          breakdown_available: boolean | null
           event_id: string
           responded_at: string
           response: string
+          setup_available: boolean | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          breakdown_available?: boolean | null
           event_id: string
           responded_at?: string
           response: string
+          setup_available?: boolean | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          breakdown_available?: boolean | null
           event_id?: string
           responded_at?: string
           response?: string
+          setup_available?: boolean | null
           updated_at?: string
           user_id?: string
         }
@@ -1236,6 +1280,8 @@ export type Database = {
       }
       shifts: {
         Row: {
+          confirmation_revision: string | null
+          confirmed_at: string | null
           created_at: string
           end_time: string
           event_id: string
@@ -1255,6 +1301,8 @@ export type Database = {
           workplace_id: string
         }
         Insert: {
+          confirmation_revision?: string | null
+          confirmed_at?: string | null
           created_at?: string
           end_time: string
           event_id: string
@@ -1274,6 +1322,8 @@ export type Database = {
           workplace_id: string
         }
         Update: {
+          confirmation_revision?: string | null
+          confirmed_at?: string | null
           created_at?: string
           end_time?: string
           event_id?: string
@@ -1805,17 +1855,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      upt_god_database_secret: { Args: {p_token: string}; Returns: string | null }
-      upt_god_database_connect: { Args: {p_token: string; p_secret: string}; Returns: undefined }
-      upt_god_database_disconnect: { Args: {p_token: string}; Returns: undefined }
-
-      upt_god_repository_secret: { Args: {p_token: string}; Returns: string | null }
-      upt_god_repository_connect: { Args: {p_token: string; p_secret: string}; Returns: undefined }
-      upt_god_repository_disconnect: { Args: {p_token: string}; Returns: undefined }
-      upt_god_data_catalog: { Args: {p_token: string}; Returns: Json }
-      upt_god_data_rows: { Args: {p_token: string; p_table: string; p_offset: number}; Returns: Json }
-      upt_god_data_mutate: { Args: {p_token: string; p_table: string; p_operation: string; p_key: Json; p_before: Json; p_values: Json}; Returns: Json }
-
       upt_acknowledge_briefing: {
         Args: { p_briefing: string }
         Returns: undefined
@@ -1908,6 +1947,7 @@ export type Database = {
         Args: { p_reason?: string; p_shift: string }
         Returns: undefined
       }
+      upt_confirm_shift: { Args: { p_shift: string }; Returns: undefined }
       upt_confirm_workplace_transition: {
         Args: { p_to_workplace: string; p_work_session: string }
         Returns: string
@@ -1984,12 +2024,46 @@ export type Database = {
         Args: { p_event?: string; p_feature: string; p_workplace?: string }
         Returns: boolean
       }
+      upt_god_data_catalog: { Args: { p_token: string }; Returns: Json }
+      upt_god_data_mutate: {
+        Args: {
+          p_before: Json
+          p_key: Json
+          p_operation: string
+          p_table: string
+          p_token: string
+          p_values: Json
+        }
+        Returns: Json
+      }
+      upt_god_data_rows: {
+        Args: { p_offset?: number; p_table: string; p_token: string }
+        Returns: Json
+      }
+      upt_god_database_connect: {
+        Args: { p_secret: string; p_token: string }
+        Returns: undefined
+      }
+      upt_god_database_disconnect: {
+        Args: { p_token: string }
+        Returns: undefined
+      }
+      upt_god_database_secret: { Args: { p_token: string }; Returns: string }
       upt_god_is_configured: { Args: never; Returns: boolean }
       upt_god_login: {
         Args: { p_login: string; p_password: string }
         Returns: string
       }
       upt_god_logout: { Args: { p_token: string }; Returns: undefined }
+      upt_god_repository_connect: {
+        Args: { p_secret: string; p_token: string }
+        Returns: undefined
+      }
+      upt_god_repository_disconnect: {
+        Args: { p_token: string }
+        Returns: undefined
+      }
+      upt_god_repository_secret: { Args: { p_token: string }; Returns: string }
       upt_god_role_rules: {
         Args: { p_role: string; p_token: string }
         Returns: {
@@ -2073,6 +2147,14 @@ export type Database = {
         }[]
       }
       upt_push_public_key: { Args: never; Returns: string }
+      upt_qr_request: {
+        Args: {
+          p_contact_confirmed?: boolean
+          p_early_reason?: string
+          p_remote?: boolean
+        }
+        Returns: Json
+      }
       upt_remove_push_subscription: {
         Args: { p_endpoint: string }
         Returns: undefined
@@ -2140,6 +2222,15 @@ export type Database = {
         Returns: string
       }
       upt_set_admin_role_mode: { Args: { p_role: string }; Returns: string }
+      upt_set_event_availability_extended: {
+        Args: {
+          p_breakdown: boolean
+          p_event: string
+          p_response: string
+          p_setup: boolean
+        }
+        Returns: undefined
+      }
       upt_staff_workplace_live_status: {
         Args: never
         Returns: {

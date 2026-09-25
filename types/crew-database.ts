@@ -1097,6 +1097,42 @@ export type Database = {
         }
         Relationships: []
       }
+      push_subscriptions: {
+        Row: {
+          auth_key: string
+          created_at: string
+          enabled: boolean
+          endpoint: string
+          id: string
+          p256dh: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          auth_key: string
+          created_at?: string
+          enabled?: boolean
+          endpoint: string
+          id?: string
+          p256dh: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          auth_key?: string
+          created_at?: string
+          enabled?: boolean
+          endpoint?: string
+          id?: string
+          p256dh?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       responsible_assignments: {
         Row: {
           assigned_by: string | null
@@ -1978,6 +2014,19 @@ export type Database = {
           user_id: string
         }[]
       }
+      upt_push_delivery_config: {
+        Args: never
+        Returns: {
+          vapid_private_key: string
+          vapid_public_key: string
+          webhook_secret: string
+        }[]
+      }
+      upt_push_public_key: { Args: never; Returns: string }
+      upt_remove_push_subscription: {
+        Args: { p_endpoint: string }
+        Returns: undefined
+      }
       upt_remove_task_assignment: {
         Args: { p_assignment: string }
         Returns: undefined
@@ -2017,6 +2066,15 @@ export type Database = {
           phone_number: string
           profile_photo_url: string
         }[]
+      }
+      upt_save_push_subscription: {
+        Args: {
+          p_auth: string
+          p_endpoint: string
+          p_p256dh: string
+          p_user_agent?: string
+        }
+        Returns: string
       }
       upt_send_message: {
         Args: { p_attachment_path?: string; p_body?: string; p_channel: string }

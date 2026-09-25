@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/crew-server'
 import { markNotificationRead } from '@/lib/actions/uptilldawn'
 import { nlStatus } from '@/lib/ui-nl'
+import { PushNotificationSettings } from '@/components/push-notification-settings'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +19,7 @@ export default async function Page() {
 
   return <main className="space-y-4 p-4 md:p-8">
     <h1 className="text-3xl font-black">Meldingen</h1>
+    <PushNotificationSettings/>
     {error ? <p>Meldingen konden niet worden geladen.</p> : !data?.length ? <p>Geen meldingen.</p> : data.map(n =>
       <article key={n.id} className={`rounded-xl border p-4 ${n.read_at ? '' : 'border-violet-500'}`}>
         <div className="flex flex-wrap items-start justify-between gap-3">

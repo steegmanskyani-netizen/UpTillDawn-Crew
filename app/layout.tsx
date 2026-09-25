@@ -1,4 +1,5 @@
 import { PwaRegister } from '@/components/pwa-register'
+import { PushPermissionPrompt } from '@/components/push-permission-prompt'
 import { LocaleSync } from '@/components/locale-sync'
 import type { Metadata, Viewport } from 'next'
 import { ThemeProvider } from '@/components/theme-provider'
@@ -37,7 +38,7 @@ export default function RootLayout({
       <body className="font-sans antialiased" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            <LocaleSync /><PwaRegister />{children}
+            <LocaleSync /><PwaRegister /><PushPermissionPrompt />{children}
             <Toaster richColors position="top-right" />
           </AuthProvider>
         </ThemeProvider>

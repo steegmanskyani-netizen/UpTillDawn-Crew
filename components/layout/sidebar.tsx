@@ -5,24 +5,9 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useAuth } from "@/lib/providers"
 import { cn } from "@/lib/utils"
-import { LayoutDashboard, CalendarDays, MapPin, Clock3, AlertTriangle, Users, Shield, Settings, ScrollText } from "lucide-react"
+import { Shield } from "lucide-react"
+import { NAV_ITEMS } from "@/components/layout/navigation-items"
 import { getDefaultRoleUiLabel, type RoleRuleRole } from "@/lib/role-ui"
-
-const items = [
-  { key:"overview", href: "/", label: "Overzicht", icon: LayoutDashboard, roles: ["employee","responsible_lead","admin"] },
-  { key:"operations", href: "/operations", label: "Mijn werkuren", icon: Clock3, roles: ["employee","responsible_lead","admin"] },
-  { key:"events", href: "/events", label: "Evenementen", icon: CalendarDays, roles: ["employee","responsible_lead","admin"] },
-  { key:"workplaces", href: "/workplaces", label: "Werkplekken", icon: MapPin, roles: ["employee","responsible_lead","admin"] },
-  { key:"shifts", href: "/shifts", label: "Diensten", icon: Clock3, roles: ["employee","responsible_lead","admin"] },
-  { key:"briefings", href: "/briefings", label: "Instructies", icon: ScrollText, roles: ["employee","responsible_lead","admin"] },
-  { key:"tasks", href: "/tasks", label: "Taken", icon: ScrollText, roles: ["employee","responsible_lead","admin"] },
-  { key:"chat", href: "/chat", label: "Gesprekken", icon: Users, roles: ["employee","responsible_lead","admin"] },
-  { key:"crew", href: "/crew", label: "Personeel", icon: Users, roles: ["employee","responsible_lead","admin"] },
-  { key:"incidents", href: "/incidents", label: "Incidenten", icon: AlertTriangle, roles: ["employee","responsible_lead","admin"] },
-  { key:"exports", href: "/exports", label: "Excel", icon: ScrollText, roles: ["admin"] },
-  { key:"personnel", href: "/personnel", label: "Personeel & goedkeuringen", icon: Users, roles: ["admin"] },
-  { key:"settings", href: "/settings", label: "Instellingen", icon: Settings, roles: ["employee","responsible_lead","admin"] },
-]
 
 export function AppSidebar({
   chatMissed=0,incidentMissed=0,taskMissed=0,
@@ -37,7 +22,7 @@ export function AppSidebar({
  const {roles,isAdmin,editMode}=useAuth()
  const roleKey:RoleRuleRole=roles.includes("admin")?"admin":roles.includes("responsible_lead")?"responsible_lead":"staff"
  const order=new Map(featureOrder.map((key,index)=>[key,index]))
- const visible=items.filter(i=>{
+ const visible=NAV_ITEMS.filter(i=>{
    if(!roles.some(r=>i.roles.includes(r))) return false
    if(Object.prototype.hasOwnProperty.call(featureVisibility,i.key)&&!featureVisibility[i.key]) return false
    if(i.key==="operations") return showOperations

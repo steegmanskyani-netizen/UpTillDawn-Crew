@@ -157,7 +157,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </>}
         </main>
       </div>
-      <div className="print:hidden"><MobileBottomNav taskMissed={taskMissed} operationalMode={operationalMode} showOperations={showOperations} showEvents={showEvents} showTasks={showTasks} showBriefings={showBriefings} showShifts={showShifts} featureOrder={order} featureLabels={labels} featureVisibility={featureVisibility}/></div>
+      <div className="print:hidden"><MobileBottomNav chatMissed={chatMissed} incidentMissed={incidentMissed} taskMissed={taskMissed} featureOrder={order} featureLabels={labels} featureVisibility={featureVisibility}/></div>
     </div>
     {!pathname.startsWith("/chat")&&<>
       {showUrgent&&<Link href="/incidents" className="fixed bottom-20 left-4 z-50 rounded-full bg-red-600 px-5 py-4 font-black text-white print:hidden md:hidden">URGENT<CountBadge count={incidentMissed}/></Link>}

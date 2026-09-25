@@ -401,3 +401,45 @@ test('edit mode contains role tabs, exit control and owner-only free AI app edit
   assert.doesNotMatch(env, /OPENAI_API_KEY/)
   assert.doesNotMatch(editor, /OPENAI_API_KEY/)
 })
+
+
+test('mobile navigation uses the desktop navigation source and horizontal swipe bar', async () => {
+  const navigation = await read('components/layout/navigation-items.ts')
+  const sidebar = await read('components/layout/sidebar.tsx')
+  const mobile = await read('components/layout/mobile-nav.tsx')
+  const topbar = await read('components/layout/topbar.tsx')
+  const layout = await read('components/layout/app-layout.tsx')
+
+  assert.match(sidebar, /NAV_ITEMS/)
+  assert.match(mobile, /NAV_ITEMS/)
+  assert.match(mobile, /overflow-x-auto/)
+  assert.match(mobile, /snap-x snap-mandatory/)
+  assert.match(mobile, /touch-pan-x/)
+  assert.match(mobile, /scrollIntoView/)
+  assert.match(topbar, /up-till-dawn-mark\.webp/)
+  assert.match(topbar, /md:hidden/)
+  assert.match(layout, /chatMissed=\{chatMissed\}/)
+  assert.match(layout, /incidentMissed=\{incidentMissed\}/)
+
+  const expectedOrder = [
+    '"overview"',
+    '"operations"',
+    '"events"',
+    '"workplaces"',
+    '"shifts"',
+    '"briefings"',
+    '"tasks"',
+    '"chat"',
+    '"crew"',
+    '"incidents"',
+    '"exports"',
+    '"personnel"',
+    '"settings"',
+  ]
+  let last = -1
+  for (const key of expectedOrder) {
+    const index = navigation.indexOf(`key:${key}`)
+    assert.ok(index > last, `${key} must preserve desktop navigation order`)
+    last = index
+  }
+})

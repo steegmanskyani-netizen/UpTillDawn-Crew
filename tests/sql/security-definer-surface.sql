@@ -87,37 +87,39 @@ BEGIN
 END
 $surface$;
 
-DO $edit_gate$
-DECLARE
-  v_policy_count integer;
+DO $god_gate$
 BEGIN
-  IF has_table_privilege('authenticated','upt_private.admin_edit_unlocks','SELECT')
-     OR has_table_privilege('authenticated','upt_private.admin_edit_attempts','SELECT') THEN
-    RAISE EXCEPTION 'FAIL: authenticated can read private Edit-mode gate state';
+  IF has_table_privilege('authenticated','upt_private.god_mode_config','SELECT')
+     OR has_table_privilege('authenticated','upt_private.god_mode_sessions','SELECT')
+     OR has_table_privilege('authenticated','upt_private.god_mode_attempts','SELECT')
+     OR has_table_privilege('anon','upt_private.god_mode_config','SELECT')
+     OR has_table_privilege('anon','upt_private.god_mode_sessions','SELECT')
+     OR has_table_privilege('anon','upt_private.god_mode_attempts','SELECT') THEN
+    RAISE EXCEPTION 'FAIL: browser roles can read private God Mode state';
   END IF;
 
-  IF has_function_privilege('anon','public.upt_has_admin_edit_unlock()','EXECUTE')
-     OR has_function_privilege('anon','public.upt_revoke_admin_edit_unlock()','EXECUTE')
-     OR has_function_privilege('anon','public.upt_verify_admin_edit_code(text)','EXECUTE') THEN
-    RAISE EXCEPTION 'FAIL: anonymous caller can access Edit-mode gate RPC';
+  IF has_function_privilege('anon','public.upt_god_is_configured()','EXECUTE')
+     OR has_function_privilege('anon','public.upt_god_set_credentials(text,text)','EXECUTE') THEN
+    RAISE EXCEPTION 'FAIL: anonymous caller can access owner-only God Mode setup RPC';
   END IF;
 
-  SELECT count(*) INTO v_policy_count
-  FROM pg_policies
-  WHERE schemaname='public'
-    AND tablename='role_ui_rules'
-    AND policyname IN (
-      'role_ui_rules_admin_insert',
-      'role_ui_rules_admin_update',
-      'role_ui_rules_admin_delete'
-    )
-    AND coalesce(qual,'')||' '||coalesce(with_check,'') LIKE '%upt_has_admin_edit_unlock%';
+  IF NOT has_function_privilege('authenticated','public.upt_god_is_configured()','EXECUTE')
+     OR NOT has_function_privilege('authenticated','public.upt_god_set_credentials(text,text)','EXECUTE') THEN
+    RAISE EXCEPTION 'FAIL: owner configuration RPC is unavailable to authenticated owner sessions';
+  END IF;
 
-  IF v_policy_count <> 3 THEN
-    RAISE EXCEPTION 'FAIL: Edit-mode unlock is not enforced on all role_ui_rules write policies';
+  IF position(
+       'is_app_owner'
+       in pg_get_functiondef('public.upt_god_is_configured()'::regprocedure)
+     )=0
+     OR position(
+       'is_app_owner'
+       in pg_get_functiondef('public.upt_god_set_credentials(text,text)'::regprocedure)
+     )=0 THEN
+    RAISE EXCEPTION 'FAIL: God Mode configuration RPC lacks immutable owner guard';
   END IF;
 END
-$edit_gate$;
+$god_gate$;
 
-SELECT 'PASS: SECURITY DEFINER surface, Edit-mode gate and private state are locked down' AS result;
+SELECT 'PASS: SECURITY DEFINER surface, token-gated God Mode and owner-only private setup are locked down' AS result;
 ROLLBACK;

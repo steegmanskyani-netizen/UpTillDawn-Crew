@@ -29,7 +29,7 @@ The current desktop/web view and installed mobile PWA view are the canonical def
 - Private Storage writes require an approved account in addition to user-owned folder scoping.
 - Notification clicks open the linked in-app destination.
 
-The Edit-mode access code is no longer present in source code. Only a SHA-256 hash is stored in the private database schema and verification is server-authorized.
+God Mode credentials and sessions are stored only in private server-side state. Configuration status and credential changes are guarded by the immutable app-owner check; browser roles cannot read the underlying private tables.
 
 ## Verified application areas
 
@@ -47,7 +47,7 @@ The Edit-mode access code is no longer present in source code. Only a SHA-256 ha
 
 ## Cleanup / regression verification
 
-The current cleanup reran all 13 SQL regression files in `tests/sql/` against the target Supabase project using rollback fixtures. During that run, several tests were found to encode obsolete product behavior and were corrected to the current baseline:
+The current cleanup reran all 15 SQL regression files in `tests/sql/` against the target Supabase project using rollback fixtures. During that run, several tests were found to encode obsolete product behavior and were corrected to the current baseline:
 
 - Responsible scope is workplace-assignment based rather than broad event-wide workplace access.
 - Staff may see their assigned future workplace/shift according to current role UI rules.
@@ -64,13 +64,13 @@ Repository CI is expected to remain the release gate for lint, TypeScript, Node 
 A full option/function audit was run against the current production baseline. Coverage included all role views, auth portals, event/workplace/shift flows, work and break timing, task/instruction acknowledgement, chat/media, incidents/help, profile/settings, notifications, export/audit, offline sync, PWA/Web Push, Edit mode and server API routes.
 
 The audit also checked the database attack surface rather than only the visible UI:
-- all 13 SQL regression suites pass against production using rollback fixtures;
+- all 15 SQL regression suites pass against production using rollback fixtures;
 - every public application table has RLS enabled;
 - anonymous table CRUD grants are absent;
-- anonymous/PUBLIC execute access to `upt_*` RPCs is absent;
+- anonymous table access is absent; anonymous RPC access is limited to the explicit token-gated God Mode surface and the read-only bootstrap-status probe;
 - retired private-chat creation/peer discovery remains revoked;
 - generated Supabase TypeScript types exactly match the production schema;
-- repository and production migration histories match 108/108.
+- repository and production migration histories match 120/120.
 
 Issues found and corrected during this audit:
 - permanent-admin server routes now use the central admin privilege check;
@@ -81,13 +81,14 @@ Issues found and corrected during this audit:
 - private Storage writes require approved-account/user-folder scope;
 - Responsible/Staff preview data is restricted to the effective role for chat, operations, shifts, tasks, workplaces, incidents, badges, events and overview;
 - Edit-mode code is no longer in source and database writes require a temporary verified unlock with failed-attempt rate limiting;
-- AI Edit-assistant POSTs reject cross-site origins.
+- AI Edit-assistant POSTs reject cross-site origins;
+- QR attendance is the only supported start/stop entry path: direct clock RPCs and the retired pre-QR check-in/check-out RPCs are revoked, while old offline direct-clock queue items are quarantined instead of replayed.
 
 ## Supabase advisor state
 
 Known remaining advisor findings are reviewed rather than blindly removed:
 
-- `admin_role_modes`, `push_subscriptions` and the private `app_owners` / Edit-code / Edit-unlock / Edit-attempt tables have RLS with no browser policies intentionally; browser table grants are not the access path.
+- `admin_role_modes`, `push_subscriptions` and private owner/God Mode state use restricted access intentionally; browser table grants are not the access path.
 - Authenticated SECURITY DEFINER RPC warnings correspond to explicit application RPC boundaries and remain covered by the security regression suite.
 - `pg_net` is reported as installed in `public`; the installed extension is non-relocatable and creates/uses its own `net` schema.
 - Leaked-password protection remains a Supabase Auth project setting to enable.
@@ -98,7 +99,7 @@ Known remaining advisor findings are reviewed rather than blindly removed:
 These are not regressions in the current web/mobile baseline:
 
 1. Define an explicit overtime/pay-period policy before presenting overtime as payroll truth.
-2. Replay all 108 migrations from zero on an isolated project before claiming a fresh-install proof.
+2. Replay all 120 migrations from zero on an isolated project before claiming a fresh-install proof.
 3. Expand offline browsing beyond the operational workflows if full offline parity is ever required.
 4. Continue physical-device regression testing after major browser/OS updates.
 5. Enable Supabase leaked-password protection when the project setting is approved.

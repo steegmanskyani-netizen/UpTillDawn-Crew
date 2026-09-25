@@ -70,4 +70,13 @@ Subscriptions are user/device scoped. Database notification inserts asynchronous
 
 ## Database history
 
-The repository contains 108 ordered migration files matching the current production migration-history count at this baseline.
+The repository contains 120 ordered migration files matching the current production migration-history count at this baseline.
+
+
+## QR attendance boundary
+
+Start and stop work are owned by the QR request/approval workflow. Direct `upt_start_work` / `upt_stop_work` execution and the retired pre-QR `upt_request_check_in` / `upt_request_check_out` entry points are revoked from browser roles. Offline sync remains available for pause, workplace transition, incident and chat/media operations that are still valid offline.
+
+## God Mode boundary
+
+God Mode uses a separate expiring random session token stored as an HttpOnly cookie. Public God Mode data/source RPCs are callable only with a valid server-issued token; private configuration state is not readable by browser roles, and setup/configuration checks are owner-gated.

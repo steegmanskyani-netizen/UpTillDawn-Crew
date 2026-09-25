@@ -42,8 +42,21 @@ DO $$ DECLARE a record; b record; BEGIN
  PERFORM public.upt_decide_check_in((SELECT id FROM upt_test_ids WHERE name='checkin'),true,null);
  RAISE EXCEPTION 'FAIL staff approved check-in';
  EXCEPTION WHEN raise_exception THEN IF SQLERRM='FAIL staff approved check-in' THEN RAISE; END IF; END;
- IF has_function_privilege('authenticated','public.upt_start_work(uuid,uuid)','EXECUTE') THEN
-   RAISE EXCEPTION 'FAIL direct work-start RPC still executable';
+ IF has_function_privilege('authenticated','public.upt_start_work(uuid,uuid)','EXECUTE')
+    OR has_function_privilege('authenticated','public.upt_stop_work(uuid)','EXECUTE') THEN
+   RAISE EXCEPTION 'FAIL direct work clock RPC still executable';
+ END IF;
+ IF has_function_privilege(
+      'authenticated',
+      'public.upt_request_check_in(uuid,uuid,boolean,text,numeric,numeric,numeric,text)',
+      'EXECUTE'
+    )
+    OR has_function_privilege(
+      'authenticated',
+      'public.upt_request_check_out(uuid,text)',
+      'EXECUTE'
+    ) THEN
+   RAISE EXCEPTION 'FAIL retired pre-QR attendance RPC still executable';
  END IF;
 END $$;
 DO $$ DECLARE operation uuid:=gen_random_uuid(); payload jsonb; first_result jsonb; second_result jsonb; BEGIN
@@ -106,25 +119,22 @@ RESET ROLE;
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_test_ids WHERE name='admin'),true);
 SET LOCAL ROLE authenticated;
 SELECT public.upt_decide_check_in(current_setting('upt.test.checkin')::uuid,true,null);
-DO $$ DECLARE copy_id uuid; BEGIN
+SELECT set_config(
+ 'upt.test.live_session',
+ (SELECT work_session_id::text
+  FROM public.check_ins
+  WHERE id=current_setting('upt.test.checkin')::uuid),
+ true
+);
+DO $ DECLARE copy_id uuid; BEGIN
  copy_id:=public.upt_duplicate_event((SELECT id FROM upt_test_ids WHERE name='event'),'Configuration copy',now()+interval '2 days',now()+interval '3 days');
  IF EXISTS(SELECT 1 FROM public.work_sessions WHERE event_id=copy_id) OR EXISTS(SELECT 1 FROM public.check_ins WHERE event_id=copy_id) OR EXISTS(SELECT 1 FROM public.incidents WHERE event_id=copy_id) THEN RAISE EXCEPTION 'FAIL historical data copied'; END IF;
  IF NOT EXISTS(SELECT 1 FROM public.briefings WHERE event_id=copy_id) THEN RAISE EXCEPTION 'FAIL briefing configuration not copied'; END IF;
 END $$;
 RESET ROLE;
-INSERT INTO public.work_sessions(id,event_id,user_id,shift_id,start_time,started_at,status)
-VALUES(
- (SELECT id FROM upt_test_ids WHERE name='live_session'),
- (SELECT id FROM upt_test_ids WHERE name='event'),
- (SELECT id FROM upt_test_ids WHERE name='staff'),
- (SELECT id FROM upt_test_ids WHERE name='shift'),
- now()-interval '5 minutes',
- now()-interval '5 minutes',
- 'active'
-);
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_test_ids WHERE name='staff'),true);
 SET LOCAL ROLE authenticated;
-DO $ DECLARE operation uuid:=gen_random_uuid(); pause_id uuid; BEGIN
+DO $clock$ DECLARE operation uuid:=gen_random_uuid(); pause_id uuid; BEGIN
  BEGIN
    PERFORM public.upt_sync_operation(
      operation,
@@ -139,7 +149,7 @@ DO $ DECLARE operation uuid:=gen_random_uuid(); pause_id uuid; BEGIN
  pause_id:=(public.upt_sync_operation(
    gen_random_uuid(),
    'start_break',
-   jsonb_build_object('session_id',(SELECT id FROM upt_test_ids WHERE name='live_session'))
+   jsonb_build_object('session_id',current_setting('upt.test.live_session')::uuid)
  )->>'id')::uuid;
  PERFORM public.upt_sync_operation(gen_random_uuid(),'stop_break',jsonb_build_object('break_id',pause_id));
  IF NOT EXISTS(SELECT 1 FROM public.break_sessions WHERE id=pause_id AND ended_at IS NOT NULL) THEN
@@ -156,7 +166,8 @@ DO $ DECLARE operation uuid:=gen_random_uuid(); pause_id uuid; BEGIN
    IF SQLERRM='FAIL offline stop bypass' THEN RAISE; END IF;
    IF SQLERRM NOT LIKE 'Direct werk stoppen is uitgeschakeld.%' THEN RAISE; END IF;
  END;
-END $$;
+END
+$clock$;
 RESET ROLE;
 SELECT set_config('request.jwt.claim.sub','',true);
 UPDATE public.work_sessions SET started_at=now()-interval '80 minutes',start_time=now()-interval '80 minutes' WHERE id=(SELECT id FROM upt_test_ids WHERE name='ticket_session');

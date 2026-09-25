@@ -76,6 +76,19 @@ BEGIN
     RAISE EXCEPTION 'FAIL directly executable trigger functions: %', v_executable_triggers;
   END IF;
 
+  IF has_function_privilege(
+       'authenticated',
+       'public.upt_request_check_in(uuid,uuid,boolean,text,numeric,numeric,numeric,text)',
+       'EXECUTE'
+     )
+     OR has_function_privilege(
+       'authenticated',
+       'public.upt_request_check_out(uuid,text)',
+       'EXECUTE'
+     ) THEN
+    RAISE EXCEPTION 'FAIL retired pre-QR attendance RPC remains executable';
+  END IF;
+
   IF EXISTS (
     SELECT 1
     FROM information_schema.role_table_grants

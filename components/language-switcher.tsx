@@ -12,21 +12,25 @@ export function LanguageSwitcher({ dark = false }: { dark?: boolean }) {
   const [language, setLanguage] = useState("nl")
 
   useEffect(() => {
+    let cancelled = false
     const stored = window.localStorage.getItem("uptilldawn-language")
-    if (stored === "nl" || stored === "fr" || stored === "en") {
-      setLanguage(stored)
-      return
-    }
-    const candidates = window.navigator.languages?.length
-      ? window.navigator.languages
-      : [window.navigator.language]
-    for (const candidate of candidates) {
-      const locale = candidate.trim().toLowerCase().split(/[-_]/)[0]
-      if (locale === "nl" || locale === "fr" || locale === "en") {
-        setLanguage(locale)
-        return
+    let next = stored === "nl" || stored === "fr" || stored === "en" ? stored : "nl"
+    if (next === "nl" && stored !== "nl") {
+      const candidates = window.navigator.languages?.length
+        ? window.navigator.languages
+        : [window.navigator.language]
+      for (const candidate of candidates) {
+        const locale = candidate.trim().toLowerCase().split(/[-_]/)[0]
+        if (locale === "nl" || locale === "fr" || locale === "en") {
+          next = locale
+          break
+        }
       }
     }
+    queueMicrotask(() => {
+      if (!cancelled) setLanguage(next)
+    })
+    return () => { cancelled = true }
   }, [])
 
   return <label className={`flex items-center justify-between gap-3 text-sm ${dark ? "text-zinc-300" : "text-muted-foreground"}`}>

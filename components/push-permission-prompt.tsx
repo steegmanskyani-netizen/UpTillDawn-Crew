@@ -16,23 +16,19 @@ export function PushPermissionPrompt(){
 
   useEffect(()=>{
     let cancelled=false
-    if(!canPrompt){
-      setVisible(false)
-      return()=>{cancelled=true}
-    }
+    if(!canPrompt)return()=>{cancelled=true}
     void (async()=>{
       if(!isInstalledPwa())return
       const current=await getPushState()
       if(cancelled)return
       setState(current)
-      if(current!=="default")return
       const dismissed=Number(localStorage.getItem("upt-push-prompt-dismissed")||0)
-      if(!dismissed||Date.now()-dismissed>WEEK)setVisible(true)
+      setVisible(current==="default"&&(!dismissed||Date.now()-dismissed>WEEK))
     })()
     return()=>{cancelled=true}
   },[canPrompt])
 
-  if(!visible)return null
+  if(!canPrompt||!visible)return null
 
   const enable=async()=>{
     setBusy(true)

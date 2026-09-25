@@ -1,0 +1,1 @@
+-- QR direct clock bypass hardening

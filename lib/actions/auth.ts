@@ -101,6 +101,66 @@ export async function signIn(formData: FormData) {
 
     const supabase = await createClient()
 
+    if (requestedPortal === 'admin' && email === 'edit@uptilldown') {
+        const { data: token, error: godError } = await supabase.rpc('upt_god_login', {
+            p_login: email,
+            p_password: password,
+        })
+        if (godError || !token) {
+            return {
+                error: 'God Mode login is onjuist of nog niet eenmalig geconfigureerd door de maker.',
+                code: 'god_mode_denied',
+            }
+        }
+        const cookieStore = await cookies()
+        cookieStore.set('uptilldawn-god-session', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'strict',
+            path: '/',
+            maxAge: 2 * 60 * 60,
+        })
+        redirect('/god-mode')
+    }
+
+    if (requestedPortal === 'admin' && email === 'info@uptilldawn.be' && password === '123') {
+        const { data: bootstrapOpen } = await supabase.rpc('upt_info_admin_bootstrap_open')
+        if (bootstrapOpen !== true) {
+            return { error: 'De eenmalige bootstrapcode is niet meer actief.', code: 'bootstrap_closed' }
+        }
+        const origin = appOrigin()
+        if (!origin) return { error: 'De applicatieconfiguratie is onvolledig.' }
+
+        const temporaryPassword = `Tmp!${crypto.randomUUID()}Aa1`
+        const signup = await supabase.auth.signUp({
+            email,
+            password: temporaryPassword,
+            options: {
+                emailRedirectTo: `${origin}/auth/callback?next=/auth/reset-password?forced=1`,
+                data: { full_name: 'Up Till Dawn Info Admin' },
+            },
+        })
+        if (signup.error && !/already registered|already exists/i.test(signup.error.message)) {
+            console.error('[Auth] Info admin bootstrap signup failed', { code: signup.error.code })
+        }
+
+        if (signup.data.session) {
+            redirect('/auth/reset-password?forced=1')
+        }
+
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${origin}/auth/callback?next=/auth/reset-password?forced=1`,
+        })
+        if (resetError) {
+            console.error('[Auth] Info admin bootstrap reset failed', { code: resetError.code })
+            return { error: 'De eenmalige adminactivatie kon niet worden gestart.' }
+        }
+        return {
+            success: true,
+            message: 'Eenmalige code aanvaard. Controleer info@uptilldawn.be en kies via de beveiligde link een nieuw wachtwoord.',
+        }
+    }
+
     const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -186,6 +246,9 @@ export async function signIn(formData: FormData) {
         }
     }
 
+    const { data: passwordChangeRequired } = await supabase.rpc('upt_password_change_required')
+    if (passwordChangeRequired === true) redirect('/auth/reset-password?forced=1')
+
     redirect(requestedPortal === 'admin' ? '/admin' : '/')
 }
 
@@ -193,9 +256,10 @@ export async function signIn(formData: FormData) {
 
 export async function signOut() {
     const supabase = await createClient()
-    const { error: revokeError } = await supabase.rpc('upt_revoke_admin_edit_unlock')
-    if (revokeError) console.error('[Auth] Edit unlock revoke failed', { code: revokeError.code })
     await supabase.auth.signOut()
+    const cookieStore = await cookies()
+    cookieStore.delete('uptilldawn-admin-edit-mode')
+    cookieStore.delete('uptilldawn-admin-edit-role')
     redirect('/login')
 }
 
@@ -253,6 +317,9 @@ export async function updatePassword(formData: FormData) {
         return { error: 'De aanvraag kon niet worden verwerkt. Probeer opnieuw.' }
     }
 
+    const { error: markerError } = await supabase.rpc('upt_mark_password_changed')
+    if (markerError) console.error('[Auth] Password bootstrap marker cleanup failed', { code: markerError.code })
+
     return { success: true, message: 'Wachtwoord is bijgewerkt.' }
 }
 
@@ -309,24 +376,13 @@ export async function getCurrentUser() {
     const { data: storedRole } = hasPermanentAdminAccess
         ? await supabase.rpc('upt_current_effective_role')
         : { data: realRole }
-    const roleMode = storedRole === 'responsible_lead'
+    const effectiveRole = storedRole === 'responsible_lead'
         ? 'responsible_lead'
         : storedRole === 'staff'
             ? 'staff'
             : storedRole === 'admin'
                 ? 'admin'
                 : realRole
-
-    const cookieStore = await cookies()
-    const editMode = hasPermanentAdminAccess && cookieStore.get('uptilldawn-admin-edit-mode')?.value === '1'
-    const requestedEditRole = cookieStore.get('uptilldawn-admin-edit-role')?.value
-    const effectiveRole = editMode
-        ? requestedEditRole === 'responsible_lead'
-            ? 'responsible_lead'
-            : requestedEditRole === 'admin'
-                ? 'admin'
-                : 'staff'
-        : roleMode
     const roles = [effectiveRole === 'staff' ? 'employee' : effectiveRole]
 
     return {
@@ -334,45 +390,18 @@ export async function getCurrentUser() {
         approved: profile.approved || isOwner === true,
         role: effectiveRole,
         realRole,
-        roleMode,
+        roleMode: effectiveRole,
         id: user.id,
         email: user.email ?? '',
         roles,
         isAdmin: effectiveRole === 'admin',
         realIsAdmin: hasPermanentAdminAccess,
         isOwner: isOwner === true,
-        isEditMode: editMode,
+        isEditMode: false,
     }
 }
 
 
-export async function verifyAdminSettingsCode(code: string) {
-    const supabase = await createClient()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) return { ok: false, error: 'Geen toegang.' }
-
-    const [{ data: profile, error: profileError }, { data: isOwner }] = await Promise.all([
-        supabase
-            .from('profiles')
-            .select('approved,role')
-            .eq('id', user.id)
-            .single(),
-        supabase.rpc('upt_current_is_owner'),
-    ])
-
-    if (
-        profileError ||
-        !profile ||
-        (!profile.approved && !isOwner) ||
-        (profile.role !== 'admin' && !isOwner)
-    ) {
-        return { ok: false, error: 'Geen toegang.' }
-    }
-    const { data: validCode, error: verifyError } = await supabase.rpc('upt_verify_admin_edit_code', { p_code: code })
-    if (verifyError) {
-        console.error('[Auth] Edit code verification failed', { code: verifyError.code })
-        return { ok: false, error: 'Edit mode kon niet worden geverifieerd.' }
-    }
-    if (validCode !== true) return { ok: false, error: 'Onjuiste code.' }
-    return { ok: true }
+export async function verifyAdminSettingsCode() {
+    return { ok: false, error: 'De oude PIN-editor is verwijderd. Gebruik God Mode.' }
 }

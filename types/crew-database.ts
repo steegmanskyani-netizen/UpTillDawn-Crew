@@ -2012,6 +2012,7 @@ export type Database = {
         }
         Returns: Json
       }
+      upt_info_admin_bootstrap_open: { Args: never; Returns: boolean }
       upt_is_admin: { Args: { uid?: string }; Returns: boolean }
       upt_is_approved: { Args: never; Returns: boolean }
       upt_is_responsible: {

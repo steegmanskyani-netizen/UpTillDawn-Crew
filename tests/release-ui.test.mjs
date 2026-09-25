@@ -487,3 +487,21 @@ test('responsible overview shows live workplace personnel timers', async () => {
   assert.match(live, /Werktimer/)
   assert.match(live, /router\.refresh\(\)/)
 })
+
+
+test('staff overview shows workplace personnel status without timers', async () => {
+  const dashboard = await read('app/(app)/page.tsx')
+  const status = await read('components/crew/staff-workplace-personnel.tsx')
+  const migration = await read('supabase/migrations/20260925060751_uptilldawn_staff_workplace_live_status.sql')
+
+  assert.match(dashboard, /upt_staff_workplace_live_status/)
+  assert.match(dashboard, /StaffWorkplacePersonnel/)
+  assert.match(dashboard, /current\.role==='staff'/)
+  assert.match(status, /WERKT/)
+  assert.match(status, /PAUZE/)
+  assert.match(status, /router\.refresh\(\)/)
+  assert.doesNotMatch(status, /Werktimer|Pauzetimer|formatDigital|setInterval\([^)]*1000/)
+  assert.match(migration, /public\.upt_effective_role\(auth\.uid\(\)\)='staff'/)
+  assert.match(migration, /revoke all on function public\.upt_staff_workplace_live_status\(\) from anon/)
+  assert.match(migration, /grant execute on function public\.upt_staff_workplace_live_status\(\) to authenticated/)
+})

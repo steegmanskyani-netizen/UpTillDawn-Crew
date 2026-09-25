@@ -2032,6 +2032,17 @@ export type Database = {
         Returns: string
       }
       upt_set_admin_role_mode: { Args: { p_role: string }; Returns: string }
+      upt_staff_workplace_live_status: {
+        Args: never
+        Returns: {
+          full_name: string
+          session_id: string
+          status: string
+          user_id: string
+          workplace_id: string
+          workplace_name: string
+        }[]
+      }
       upt_start_break: { Args: { p_work_session: string }; Returns: string }
       upt_start_work: {
         Args: { p_event: string; p_shift?: string }

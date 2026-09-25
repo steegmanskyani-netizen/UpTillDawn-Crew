@@ -6,6 +6,7 @@ import { ManagerOnly } from '@/components/auth/manager-only'
 import { AssignedEventOnly } from '@/components/auth/assigned-event-only'
 import { getCurrentUser } from '@/lib/actions/auth'
 import { ResponsibleLivePersonnel, type ResponsibleLivePerson } from '@/components/responsible/responsible-live-personnel'
+import { StaffWorkplacePersonnel, type StaffWorkplacePerson } from '@/components/crew/staff-workplace-personnel'
 
 export const dynamic = 'force-dynamic'
 
@@ -56,6 +57,8 @@ export default async function Dashboard() {
 
   let responsibleLivePeople:ResponsibleLivePerson[]=[]
   let responsibleLiveError=false
+  let staffLivePeople:StaffWorkplacePerson[]=[]
+  let staffLiveError=false
 
   if(current.role==='responsible_lead'){
     const assignmentsResult=await s.from('responsible_assignments')
@@ -135,10 +138,22 @@ export default async function Dashboard() {
     }
   }
 
+  if(current.role==='staff'){
+    const staffStatusResult=await s.rpc('upt_staff_workplace_live_status')
+    staffLiveError=Boolean(staffStatusResult.error)
+    staffLivePeople=(staffStatusResult.data||[]).map(person=>({
+      sessionId:person.session_id,
+      name:person.full_name||'Personeelslid',
+      workplaceId:person.workplace_id,
+      workplaceName:person.workplace_name||'Werkplek',
+      status:person.status==='PAUZE'?'PAUZE':'WERKT',
+    }))
+  }
+
   const hasLoadError = Boolean(
     profileResult.error || eventsResult.error || shiftsResult.error || incidentsResult.error
     || membershipsResult.error || activeEventsResult.error || openEventsResult.error
-    || responsibleLiveError
+    || responsibleLiveError || staffLiveError
   )
 
   return <main className="space-y-7 p-4 md:p-8">
@@ -153,6 +168,16 @@ export default async function Dashboard() {
       <AssignedEventOnly available={hasEventAssignment}><Card href="/shifts" icon={Clock3} title="Mijn diensten" value={shifts.length}/></AssignedEventOnly>
       {hasActiveIncidentContext && <ManagerOnly><Card href="/incidents" icon={AlertTriangle} title="Open incidenten" value={activeIncidentCount}/></ManagerOnly>}
     </section>
+    {current.role==='staff'&&<section className="space-y-3 rounded-2xl border bg-card p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-lg font-bold">Personeel van mijn werkplek</h2>
+          <p className="text-sm text-muted-foreground">Live status van personeel op jouw werkplek.</p>
+        </div>
+        <span className="text-sm text-muted-foreground">{staffLivePeople.length} actief</span>
+      </div>
+      <StaffWorkplacePersonnel people={staffLivePeople}/>
+    </section>}
     {current.role==='responsible_lead'&&<section className="space-y-3 rounded-2xl border bg-card p-4">
       <div className="flex items-center justify-between gap-3">
         <div>

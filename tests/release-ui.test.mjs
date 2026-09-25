@@ -68,16 +68,21 @@ test('staff cannot see manager creation controls', async () => {
   assert.match(dashboard, /<ManagerOnly><Card href="\/incidents"/)
 })
 
-test('future event availability and batch assignment are present', async () => {
+test('future event availability includes event setup and breakdown choices', async () => {
   const events = await read('app/(app)/events/page.tsx')
   const actions = await read('lib/actions/uptilldawn.ts')
 
-  assert.ok(events.includes('>IK KAN</button>'))
-  assert.ok(events.includes('>IK KAN NIET</button>'))
-  assert.match(events, /Mensen die kunnen/)
+  assert.match(events, /name="response" value="can"/)
+  assert.match(events, /name="response" value="cannot"/)
+  assert.match(events, /name="setup_available" value="yes"/)
+  assert.match(events, /name="setup_available" value="no"/)
+  assert.match(events, /name="breakdown_available" value="yes"/)
+  assert.match(events, /name="breakdown_available" value="no"/)
+  assert.match(events, /Beschikbare mensen/)
   assert.match(events, /action=\{assignAvailableCrewShift\}/)
-  assert.match(actions, /export async function setEventAvailability/)
-  assert.match(actions, /export async function assignAvailableCrewShift/)
+  assert.match(actions, /upt_set_event_availability_extended/)
+  assert.match(actions, /shiftKind==='setup'/)
+  assert.match(actions, /availability\?\.breakdown_available===true/)
 })
 
 test('task assignment supports multiple selected staff members and starts with shift', async () => {
@@ -176,16 +181,17 @@ test('post-event app tools redirect back to events for non-admin roles', async (
 })
 
 
-test('work and pause follows active event setup or breakdown shifts', async () => {
+test('work and pause follows the QR start window and setup or breakdown shifts', async () => {
   const layout = await read('components/layout/app-layout.tsx')
   const operations = await read('app/(app)/operations/page.tsx')
   const roleUi = await read('lib/role-ui.ts')
   const migration = await read('supabase/migrations/20260925105232_god_mode_event_import_shift_windows.sql')
 
   assert.match(layout, /showOperations=feature\("operations",isAdmin\?true:context\.shiftActive\)/)
+  assert.match(operations, /startWindowEnd/)
   assert.match(operations, /windowStart/)
   assert.match(operations, /windowEnd/)
-  assert.match(operations, /\.lte\('scheduled_start',now\)/)
+  assert.match(operations, /\.lte\('scheduled_start',startWindowEnd\)/)
   assert.match(operations, /\.gte\('scheduled_end',now\)/)
   assert.match(roleUi, /navRule\("responsible_lead","operations","Mijn werkuren",20,"shift_active"\)/)
   assert.match(migration, /shift_kind in \('event','setup','breakdown'\)/)
@@ -209,28 +215,28 @@ test('chat includes organization, event and authorized workplace channels with b
 })
 
 
-test('responsible workplace access is read-only and own start approval requires admin', async () => {
+test('responsible workplace access is read-only and QR requests enforce routed approvals', async () => {
   const workplaces = await read('app/(app)/workplaces/page.tsx')
   const actions = await read('lib/actions/uptilldawn.ts')
   const operations = await read('app/(app)/operations/operations-client.tsx')
-  const migration = await read('supabase/migrations/20260924211724_uptilldawn_responsible_workplace_readonly_and_admin_time_approval.sql')
+  const qr = await read('components/crew/qr-shift-request.tsx')
+  const migration = await read('supabase/migrations/20260925180617_qr_workflow_completion.sql')
 
   assert.match(workplaces, /isAdmin&&<AdminOnly>[\s\S]*action=\{addWorkplace\}/)
   assert.doesNotMatch(workplaces, /\(isAdmin\|\|isResponsible\).*action=\{addWorkplace\}/)
   assert.match(workplaces, /Alleen-lezen: bekijk per werkplek wie er ingepland is en wie verantwoordelijk is/)
   assert.match(workplaces, /Personeel op deze werkplek/)
   assert.match(actions, /export async function addWorkplace\(fd:FormData\)\{\s*const \{s\}=await adminClient\(\)/)
-  const approvedStart = await read('supabase/migrations/20260924212325_uptilldawn_responsible_admin_approved_start.sql')
-  assert.match(operations, /p\.isAdmin\|\|c\.user_id!==p\.userId/)
-  assert.match(operations, /UREN STARTEN AANVRAGEN/)
-  assert.match(operations, /automatisch vanaf de aanvraagtijd/)
-  assert.match(migration, /v_requester_role='responsible_lead'/)
-  assert.match(migration, /Een verantwoordelijke kan zijn eigen starturen niet goedkeuren/)
-  const roleSnapshot = await read('supabase/migrations/20260924212645_uptilldawn_checkin_role_snapshot.sql')
-  assert.match(approvedStart, /RESPONSIBLE_WORK_START_APPROVED/)
-  assert.match(approvedStart, /insert into public\.work_sessions/)
-  assert.match(roleSnapshot, /requested_role/)
-  assert.match(roleSnapshot, /coalesce\(v_check_in\.requested_role,public\.upt_effective_role\(v_check_in\.user_id\)\)/)
+  assert.match(operations, /row\.user_id!==p\.userId/)
+  assert.match(operations, /STARTUREN AANVRAGEN/)
+  assert.match(operations, /Reden bij afwijzing \(verplicht\)/)
+  assert.match(qr, /Wend je tot de verantwoordelijke/)
+  assert.match(qr, /REMOTE AANVRAAG/)
+  assert.match(migration, /reviewer_kind/)
+  assert.match(migration, /Reden voor afwijzing is verplicht/)
+  assert.match(migration, /insert into public\.work_sessions/)
+  assert.match(migration, /time_review_requests/)
+  assert.match(migration, /upt_admin_review_early_start/)
 })
 
 

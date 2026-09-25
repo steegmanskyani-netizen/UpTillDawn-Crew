@@ -92,8 +92,17 @@ export default async function Page() {
     instruction.user_id === user.id
     && assignedEventIds.has(instruction.event_id)
     && readableEventIds.has(instruction.event_id)
-  const hasStaffInstruction = (briefs || []).some(staffCanReadBriefing)
-    || (personal || []).some(staffCanReadInstruction)
+  const visibleBriefs = isAdmin
+    ? (briefs || [])
+    : isResponsible
+      ? (briefs || []).filter(briefing => assignedEventIds.has(briefing.event_id) && readableEventIds.has(briefing.event_id))
+      : (briefs || []).filter(staffCanReadBriefing)
+  const visiblePersonal = isAdmin
+    ? (personal || [])
+    : isResponsible
+      ? (personal || []).filter(instruction => assignedEventIds.has(instruction.event_id) && readableEventIds.has(instruction.event_id))
+      : (personal || []).filter(staffCanReadInstruction)
+  const hasStaffInstruction = visibleBriefs.length > 0 || visiblePersonal.length > 0
 
   let events: AssignmentEvent[] = []
   let workplaces: AssignmentWorkplace[] = []
@@ -172,8 +181,8 @@ export default async function Page() {
   }
 
   const attachments: Tables<'work_attachments'>[] = []
-  const briefingIds = (briefs || []).map(item => item.id)
-  const personalIds = (personal || []).map(item => item.id)
+  const briefingIds = visibleBriefs.map(item => item.id)
+  const personalIds = visiblePersonal.map(item => item.id)
 
   if (briefingIds.length) {
     const { data } = await s.from('work_attachments').select('*').in('briefing_id', briefingIds).order('created_at')
@@ -242,7 +251,7 @@ export default async function Page() {
     {error && <p>Instructies konden niet worden geladen.</p>}
     {!manager && assignedEventIds.size > 0 && !hasStaffInstruction && <p className="rounded-xl border p-4 text-muted-foreground">Nog geen instructies voor jouw evenement.</p>}
 
-    {briefs?.map(briefing => <StaffAvailability key={briefing.id} available={staffCanReadBriefing(briefing)}><article className="space-y-3 rounded-xl border p-4">
+    {visibleBriefs.map(briefing => <StaffAvailability key={briefing.id} available={staffCanReadBriefing(briefing)}><article className="space-y-3 rounded-xl border p-4">
       <h2 className="text-xl font-bold">{briefing.title} · v{briefing.version}</h2>
       <p className="whitespace-pre-wrap">{briefing.body}</p>
       <PhotoGallery rows={briefingPhotos(briefing.id)} urls={photoUrls}/>
@@ -263,7 +272,7 @@ export default async function Page() {
             </form>}
     </article></StaffAvailability>)}
 
-    {personal?.map(instruction => <StaffAvailability key={instruction.id} available={staffCanReadInstruction(instruction)}><article className="space-y-3 rounded-xl border border-violet-500 p-4">
+    {visiblePersonal.map(instruction => <StaffAvailability key={instruction.id} available={staffCanReadInstruction(instruction)}><article className="space-y-3 rounded-xl border border-violet-500 p-4">
       <h2 className="text-xl font-bold">Persoonlijk: {instruction.title} · v{instruction.version}</h2>
       <p className="whitespace-pre-wrap">{instruction.body}</p>
       <PhotoGallery rows={instructionPhotos(instruction.id)} urls={photoUrls}/>

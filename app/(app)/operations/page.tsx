@@ -48,6 +48,27 @@ export default async function Page(){
     return <main className="p-8">Werkgegevens konden niet worden geladen. Probeer opnieuw.</main>
   }
 
+  const responsibleScope=!isAdmin&&manager
+    ? (await s.from('responsible_assignments').select('event_id,workplace_id').eq('user_id',current.id).in('event_id',activeEventIds)).data||[]
+    : []
+  const scopedWorkplaceIds=new Set([
+    ...(shifts.data||[]).map(shift=>shift.workplace_id),
+    ...responsibleScope.map(row=>row.workplace_id),
+  ])
+  const scopedWorkplaces=isAdmin
+    ? (workplaces.data||[])
+    : (workplaces.data||[]).filter(workplace=>scopedWorkplaceIds.has(workplace.id))
+  const scopedCheckins=isAdmin
+    ? (checkins.data||[])
+    : manager
+      ? (checkins.data||[]).filter(row=>row.user_id===current.id||scopedWorkplaceIds.has(row.workplace_id))
+      : (checkins.data||[]).filter(row=>row.user_id===current.id)
+  const scopedCheckouts=isAdmin
+    ? (checkouts.data||[])
+    : manager
+      ? (checkouts.data||[]).filter(row=>row.user_id===current.id||Boolean(row.workplace_id&&scopedWorkplaceIds.has(row.workplace_id)))
+      : (checkouts.data||[]).filter(row=>row.user_id===current.id)
+
   const personalWork=!isAdmin&&Boolean(shifts.data?.length)
   if(!manager&&!personalWork&&!current.isEditMode){
     return <main className="p-8">Werk &amp; pauze is zichtbaar vanaf de start van het evenement, maar acties worden bruikbaar vanaf de start van je toegewezen shift.</main>
@@ -63,21 +84,24 @@ export default async function Page(){
   let crewDirectory:Array<{id:string;full_name:string|null;phone_number:string|null;profile_photo_url:string|null}>=[]
 
   if(manager){
-    const [sessionsResult,breaksResult,assignmentsResult,liveShiftsResult]=await Promise.all([
+    const [sessionsResult,breaksResult,liveShiftsResult]=await Promise.all([
       s.from('work_sessions').select('*').in('event_id',activeEventIds).is('ended_at',null).order('started_at'),
       s.from('break_sessions').select('*').is('ended_at',null).order('started_at'),
-      s.from('responsible_assignments').select('event_id,workplace_id').eq('user_id',current.id).in('event_id',activeEventIds),
       s.from('shifts').select('*').in('event_id',activeEventIds).neq('status','cancelled'),
     ])
-    liveSessions=sessionsResult.data||[]
-    liveBreaks=breaksResult.data||[]
-    liveShifts=liveShiftsResult.data||[]
+    liveShifts=isAdmin
+      ? (liveShiftsResult.data||[])
+      : (liveShiftsResult.data||[]).filter(shift=>scopedWorkplaceIds.has(shift.workplace_id))
+    const liveShiftIds=new Set(liveShifts.map(shift=>shift.id))
+    liveSessions=(sessionsResult.data||[]).filter(ws=>Boolean(ws.shift_id&&liveShiftIds.has(ws.shift_id)))
+    const liveSessionIds=new Set(liveSessions.map(ws=>ws.id))
+    liveBreaks=(breaksResult.data||[]).filter(row=>liveSessionIds.has(row.work_session_id))
 
     if(isAdmin){
       const {data}=await s.from('profiles').select('id,full_name,phone_number,profile_photo_url').eq('approved',true)
       crewDirectory=data||[]
     }else{
-      const rows=await Promise.all((assignmentsResult.data||[]).map(assignment=>
+      const rows=await Promise.all(responsibleScope.map(assignment=>
         s.rpc('upt_responsible_crew_directory',{event_uuid:assignment.event_id,workplace_uuid:assignment.workplace_id})
       ))
       const unique=new Map<string,(typeof crewDirectory)[number]>()
@@ -90,11 +114,11 @@ export default async function Page(){
     userId={current.id}
     shifts={shifts.data||[]}
     events={activeEvents||[]}
-    workplaces={workplaces.data||[]}
+    workplaces={scopedWorkplaces}
     activeSession={personalWork?session.data:null}
     activeBreak={personalWork?pause.data:null}
-    checkins={checkins.data||[]}
-    checkouts={checkouts.data||[]}
+    checkins={scopedCheckins}
+    checkouts={scopedCheckouts}
     manager={manager}
     isAdmin={isAdmin}
     personalWork={personalWork}

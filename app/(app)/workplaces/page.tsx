@@ -66,34 +66,36 @@ export default async function Page(){
       }]
     })
   }else{
-    const [{data:ownShifts},{data:ownResponsible},{data:ownMemberships}]=await Promise.all([
+    const [{data:ownShifts},{data:ownResponsible}]=await Promise.all([
       s.from('shifts').select('event_id,workplace_id').eq('user_id',user.id).neq('status','cancelled'),
       s.from('responsible_assignments').select('event_id,workplace_id').eq('user_id',user.id),
-      s.from('event_members').select('event_id,event_role').eq('user_id',user.id),
     ])
+    const workplaceIds=[...new Set([
+      ...(ownShifts||[]).map(row=>row.workplace_id),
+      ...(ownResponsible||[]).map(row=>row.workplace_id),
+    ])]
     const eventIds=[...new Set([
       ...(ownShifts||[]).map(row=>row.event_id),
       ...(ownResponsible||[]).map(row=>row.event_id),
-      ...(ownMemberships||[])
-        .filter(row=>isResponsible&&['responsible_lead','admin'].includes(row.event_role))
-        .map(row=>row.event_id),
     ])]
-    if(!eventIds.length)redirect('/events')
+    if(!eventIds.length||!workplaceIds.length)redirect('/events')
 
     const [{data:eventRows},{data:workplaceRows}]=await Promise.all([
       s.from('events').select('id,name').in('id',eventIds).neq('status','archived').gte('end_at','now').order('start_at'),
-      s.from('workplaces').select('id,event_id,name,description,sort_order,is_active,events(name)').in('event_id',eventIds).order('sort_order'),
+      s.from('workplaces').select('id,event_id,name,description,sort_order,is_active,events(name)').in('id',workplaceIds).order('sort_order'),
     ])
     events=eventRows||[]
     workplaces=workplaceRows||[]
     if(!events.length||!workplaces.length)redirect('/events')
 
     if(isResponsible){
-      const [{data:shiftRows},{data:responsibleRows},...memberResults]=await Promise.all([
-        s.from('shifts').select('event_id,workplace_id,user_id,role_name,status').in('event_id',eventIds).neq('status','cancelled').order('scheduled_start'),
-        s.from('responsible_assignments').select('event_id,workplace_id,user_id').in('event_id',eventIds),
-        ...eventIds.map(eventId=>s.rpc('upt_responsible_event_members',{p_event:eventId,p_workplace:null as unknown as string})),
+      const [{data:shiftRows},{data:responsibleRows}]=await Promise.all([
+        s.from('shifts').select('event_id,workplace_id,user_id,role_name,status').in('workplace_id',workplaceIds).neq('status','cancelled').order('scheduled_start'),
+        s.from('responsible_assignments').select('event_id,workplace_id,user_id').in('workplace_id',workplaceIds),
       ])
+      const memberResults=await Promise.all(workplaces.map(workplace=>
+        s.rpc('upt_responsible_event_members',{p_event:workplace.event_id,p_workplace:workplace.id})
+      ))
       const people=new Map<string,Person>()
       for(const result of memberResults){
         for(const person of result.data||[])people.set(person.id,{id:person.id,full_name:person.full_name,role:null})

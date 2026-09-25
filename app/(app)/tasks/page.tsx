@@ -54,6 +54,7 @@ export default async function Page() {
 
   const activeEventIds = new Set((activeEvents || []).map(event => event.id))
   const openEventIds = new Set((openEvents || []).map(event => event.id))
+  const activeShiftWorkplaceIds = new Set((ownActiveShifts || []).map(shift => shift.workplace_id))
   const hasOpenAssignedEvent = (ownMemberships || []).some(member => openEventIds.has(member.event_id))
   if (!manager && !hasOpenAssignedEvent) redirect('/events')
   if (!isAdmin && !hasActiveShift) {
@@ -63,9 +64,29 @@ export default async function Page() {
     </main>
   }
 
+  const responsibleAssignmentsForRole = isResponsible
+    ? (await s.from('responsible_assignments').select('event_id,workplace_id').eq('user_id', user.id)).data || []
+    : []
+  const activeResponsibleWorkplaceIds = new Set(
+    responsibleAssignmentsForRole
+      .filter(row => activeShiftWorkplaceIds.has(row.workplace_id))
+      .map(row => row.workplace_id),
+  )
+
   let visibleAssignments = data || []
-  if (!manager) {
-    visibleAssignments = visibleAssignments.filter(item => item.tasks && activeEventIds.has(item.tasks.event_id))
+  if (!isAdmin && isResponsible) {
+    visibleAssignments = visibleAssignments.filter(item => {
+      const task = item.tasks
+      if (!task) return false
+      if (item.user_id === user.id && activeShiftEventIds.has(task.event_id)) return true
+      return Boolean(task.workplace_id && activeResponsibleWorkplaceIds.has(task.workplace_id))
+    })
+  } else if (!isAdmin) {
+    visibleAssignments = visibleAssignments.filter(item =>
+      item.user_id === user.id
+      && Boolean(item.tasks)
+      && activeShiftEventIds.has(item.tasks!.event_id),
+    )
   }
   const hasActiveAssignedEvent = (ownMemberships || []).some(member => activeEventIds.has(member.event_id))
 
@@ -101,12 +122,9 @@ export default async function Page() {
       ...(shiftRows || []).map(row => ({ event_id: row.event_id, workplace_id: row.workplace_id, user_id: row.user_id })),
     ]
   } else if (isResponsible) {
-    const { data: responsibleAssignments } = await s
-      .from('responsible_assignments')
-      .select('event_id,workplace_id')
-      .eq('user_id', user.id)
-
-    const activeAssignments = (responsibleAssignments || []).filter(row => activeShiftEventIds.has(row.event_id))
+    const activeAssignments = responsibleAssignmentsForRole.filter(row =>
+      activeShiftWorkplaceIds.has(row.workplace_id),
+    )
     const eventIds = [...new Set(activeAssignments.map(row => row.event_id))]
     const workplaceIds = [...new Set(activeAssignments.map(row => row.workplace_id))]
 

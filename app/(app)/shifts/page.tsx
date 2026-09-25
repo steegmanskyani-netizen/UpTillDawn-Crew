@@ -17,15 +17,32 @@ export default async function Page() {
   if (!current) return null
   const user = { id: current.id }
 
-  const [{ data: shifts, error: shiftsError }, { data: memberships }, { data: openEvents }] = await Promise.all([
+  const [
+    { data: shifts, error: shiftsError },
+    { data: memberships },
+    { data: openEvents },
+    { data: responsibleAssignments },
+  ] = await Promise.all([
     s.from('shifts').select('*,workplaces(name),events(name)').order('scheduled_start'),
     s.from('event_members').select('event_id').eq('user_id', user.id),
     s.from('events').select('id').gte('end_at', 'now'),
+    s.from('responsible_assignments').select('event_id,workplace_id').eq('user_id', user.id),
   ])
 
   const isAdmin = current.role === 'admin'
+  const isResponsible = current.role === 'responsible_lead'
   const openEventIds = new Set((openEvents || []).map(event => event.id))
-  const hasOpenAssignedEvent = (memberships || []).some(member => openEventIds.has(member.event_id))
+  const assignedEventIds = new Set([
+    ...(memberships || []).map(member => member.event_id),
+    ...(shifts || []).filter(shift => shift.user_id === user.id).map(shift => shift.event_id),
+    ...(responsibleAssignments || []).map(row => row.event_id),
+  ])
+  const hasOpenAssignedEvent = [...assignedEventIds].some(eventId => openEventIds.has(eventId))
+  const visibleShifts = isAdmin
+    ? (shifts || [])
+    : isResponsible
+      ? (shifts || []).filter(shift => assignedEventIds.has(shift.event_id))
+      : (shifts || []).filter(shift => shift.user_id === user.id)
   if (!isAdmin && !hasOpenAssignedEvent) redirect('/events')
   let workplaces: Array<{ id: string; name: string; event_id: string; events: { name: string } | null }> = []
   let people: CrewOption[] = []
@@ -68,10 +85,10 @@ export default async function Page() {
     <StaffUnavailableMessage available={hasOpenAssignedEvent}>
       <p className="rounded-xl border p-4 text-muted-foreground">Diensten worden zichtbaar zodra je aan een evenement bent toegewezen.</p>
     </StaffUnavailableMessage>
-    {!isAdmin && hasOpenAssignedEvent && !shifts?.some(shift => shift.user_id === user.id) && <p className="rounded-xl border p-4 text-muted-foreground">Geen toegewezen diensten.</p>}
+    {!isAdmin && hasOpenAssignedEvent && !visibleShifts.some(shift => shift.user_id === user.id) && <p className="rounded-xl border p-4 text-muted-foreground">Geen toegewezen diensten.</p>}
 
     <div className="grid gap-3">
-      {shifts?.map(x => {
+      {visibleShifts.map(x => {
         const canManage = isAdmin && managedWorkplaces.has(x.workplace_id)
         return <StaffAvailability key={x.id} available={x.user_id === user.id}><article className="rounded-xl border p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">

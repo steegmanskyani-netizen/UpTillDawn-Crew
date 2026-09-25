@@ -626,3 +626,16 @@ test('language switcher hydrates safely before applying stored or device locale'
   assert.match(switcher, /useEffect\(\(\) =>/)
   assert.match(switcher, /navigator\.languages/)
 })
+
+
+test('expired or missing auth also drops the local push endpoint', async () => {
+  const register = await read('components/pwa-register.tsx')
+  const push = await read('lib/push-client.ts')
+
+  assert.match(register, /loading/)
+  assert.match(register, /!loading&&!canUsePush/)
+  assert.match(register, /clearLocalPushSubscription/)
+  assert.match(push, /export async function clearLocalPushSubscription/)
+  assert.match(push, /pushManager\.getSubscription\(\)/)
+  assert.match(push, /subscription\.unsubscribe\(\)/)
+})

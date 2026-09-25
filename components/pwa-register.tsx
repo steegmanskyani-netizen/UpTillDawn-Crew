@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { enablePushNotifications,refreshPushBadge,supportsWebPush } from "@/lib/push-client"
+import { clearLocalPushSubscription,enablePushNotifications,refreshPushBadge,supportsWebPush } from "@/lib/push-client"
 import { useAuth } from "@/lib/providers"
 
 type PeriodicSyncManagerLike={
@@ -12,11 +12,12 @@ type PeriodicSyncManagerLike={
 
 export function PwaRegister(){
   const router=useRouter()
-  const {user,profile}=useAuth()
-  const canUsePush=Boolean(user&&profile?.approved)
+  const {user,profile,loading}=useAuth()
+  const canUsePush=!loading&&Boolean(user&&profile?.approved)
 
   useEffect(()=>{
     if(!("serviceWorker" in navigator))return
+    if(!loading&&!canUsePush)void clearLocalPushSubscription()
 
     let disposed=false
     let reloading=false
@@ -86,7 +87,7 @@ export function PwaRegister(){
       window.removeEventListener("online",onOnline)
       document.removeEventListener("visibilitychange",onVisibility)
     }
-  },[canUsePush,router])
+  },[canUsePush,loading,router])
 
   return null
 }

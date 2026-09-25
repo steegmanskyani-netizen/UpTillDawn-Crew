@@ -107,6 +107,19 @@ export async function enablePushNotifications({requestPermission=true}:{requestP
   }
 }
 
+export async function clearLocalPushSubscription():Promise<void>{
+  if(!supportsWebPush())return
+  try{
+    const registration=await navigator.serviceWorker.ready
+    const subscription=await registration.pushManager.getSubscription()
+    if(subscription)await subscription.unsubscribe()
+    const badgeNavigator=navigator as Navigator&{clearAppBadge?:()=>Promise<void>}
+    await badgeNavigator.clearAppBadge?.().catch(()=>{})
+  }catch(error){
+    console.error("[Push] local cleanup failed",error)
+  }
+}
+
 export async function disablePushNotifications():Promise<PushState>{
   if(!supportsWebPush())return "unsupported"
   try{

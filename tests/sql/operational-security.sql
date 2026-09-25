@@ -10,7 +10,7 @@ INSERT INTO public.events(id,name,start_date,end_date,start_at,end_at) SELECT id
 INSERT INTO public.workplaces(id,event_id,name) SELECT id,(SELECT id FROM upt_test_ids WHERE name='event'),name FROM upt_test_ids WHERE name IN ('bar','ticket');
 INSERT INTO public.event_members(event_id,user_id) SELECT (SELECT id FROM upt_test_ids WHERE name='event'),id FROM upt_test_ids WHERE name IN ('staff','lead','other','pending');
 INSERT INTO public.responsible_assignments(event_id,workplace_id,user_id) SELECT e.id,w.id,u.id FROM upt_test_ids e,upt_test_ids w,upt_test_ids u WHERE e.name='event' AND w.name='bar' AND u.name='lead';
-INSERT INTO public.shifts(id,event_id,workplace_id,user_id,start_time,end_time,scheduled_start,scheduled_end) SELECT s.id,e.id,w.id,u.id,now()-interval '12 hours',now()+interval '12 hours',now()-interval '12 hours',now()+interval '12 hours' FROM upt_test_ids s,upt_test_ids e,upt_test_ids w,upt_test_ids u WHERE s.name='shift' AND e.name='event' AND w.name='bar' AND u.name='staff';
+INSERT INTO public.shifts(id,event_id,workplace_id,user_id,start_time,end_time,scheduled_start,scheduled_end,confirmed_at) SELECT s.id,e.id,w.id,u.id,now()-interval '12 hours',now()+interval '12 hours',now()-interval '12 hours',now()+interval '12 hours',now() FROM upt_test_ids s,upt_test_ids e,upt_test_ids w,upt_test_ids u WHERE s.name='shift' AND e.name='event' AND w.name='bar' AND u.name='staff';
 INSERT INTO public.work_sessions(id,event_id,user_id,shift_id,start_time,started_at,end_time,ended_at,status)
 SELECT s.id,e.id,u.id,sh.id,now()-interval '12 hours',now()-interval '12 hours',now()-interval '7 hours',now()-interval '7 hours','completed'
 FROM upt_test_ids s,upt_test_ids e,upt_test_ids u,upt_test_ids sh WHERE s.name='session1' AND e.name='event' AND u.name='staff' AND sh.name='shift';
@@ -97,7 +97,11 @@ END $$;
 RESET ROLE;
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_test_ids WHERE name='staff'),true);
 SET LOCAL ROLE authenticated;
-SELECT set_config('upt.test.checkin',public.upt_request_check_in((SELECT id FROM upt_test_ids WHERE name='event'),(SELECT id FROM upt_test_ids WHERE name='bar'),false)::text,true);
+SELECT set_config(
+ 'upt.test.checkin',
+ (public.upt_qr_request(false,true,null)->>'request_id'),
+ true
+);
 RESET ROLE;
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_test_ids WHERE name='admin'),true);
 SET LOCAL ROLE authenticated;

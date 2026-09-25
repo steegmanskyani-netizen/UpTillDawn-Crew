@@ -65,6 +65,7 @@ export async function signUp(formData: FormData) {
             emailRedirectTo: `${origin}/auth/callback`,
             data: {
                 full_name: fullName,
+                pwa_install_prompt_pending: true,
             },
         },
     })

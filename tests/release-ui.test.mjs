@@ -406,7 +406,7 @@ test('edit mode contains role tabs, exit control and owner-only free AI app edit
 })
 
 
-test('mobile navigation uses the desktop navigation source and horizontal swipe bar', async () => {
+test('mobile navigation uses a maximum-three compact view with expandable drawer', async () => {
   const navigation = await read('components/layout/navigation-items.ts')
   const sidebar = await read('components/layout/sidebar.tsx')
   const mobile = await read('components/layout/mobile-nav.tsx')
@@ -415,10 +415,16 @@ test('mobile navigation uses the desktop navigation source and horizontal swipe 
 
   assert.match(sidebar, /NAV_ITEMS/)
   assert.match(mobile, /NAV_ITEMS/)
-  assert.match(mobile, /overflow-x-auto/)
-  assert.match(mobile, /snap-x snap-mandatory/)
-  assert.match(mobile, /touch-pan-x/)
-  assert.match(mobile, /scrollIntoView/)
+  assert.match(mobile, /compactItems/)
+  assert.match(mobile, /items\.slice\(0,3\)/)
+  assert.match(mobile, /items\.slice\(-3\)/)
+  assert.match(mobile, /items\.slice\(activeIndex-1,activeIndex\+2\)/)
+  assert.match(mobile, /ChevronUp/)
+  assert.match(mobile, /ChevronDown/)
+  assert.match(mobile, /aria-expanded=\{expanded\}/)
+  assert.match(mobile, /bottom-full/)
+  assert.match(mobile, /max-h-\[60dvh\]/)
+  assert.doesNotMatch(mobile, /overflow-x-auto|snap-x|touch-pan-x|scrollIntoView/)
   assert.match(topbar, /up-till-dawn-mark\.webp/)
   assert.match(topbar, /md:hidden/)
   assert.match(layout, /chatMissed=\{chatMissed\}/)

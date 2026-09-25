@@ -1,6 +1,6 @@
 -- Release-critical role/event lifecycle regression.
--- Covers future availability, event-level Responsible setup, staff visibility,
--- admin-only shifts and active-event incidents. Synthetic fixtures are rolled back.
+-- Covers future availability, workplace-scoped Responsible setup, staff pre-event visibility,
+-- admin-only workplace/shift mutation and active-event incidents. Synthetic fixtures are rolled back.
 BEGIN;
 
 CREATE TEMP TABLE rr_ids(name text primary key,id uuid default gen_random_uuid());
@@ -41,7 +41,37 @@ INSERT INTO public.event_members(event_id,user_id,event_role) VALUES
 INSERT INTO public.briefings(event_id,title,body,created_by)
 VALUES((SELECT id FROM rr_ids WHERE name='ended'),'Ended briefing','hidden after end',(SELECT id FROM rr_ids WHERE name='admin'));
 
--- Event-level Responsible can prepare future-event setup, but cannot manage shifts.
+-- Admin establishes the valid future assignment baseline:
+-- both crew members have a future shift and the lead is assigned to that workplace.
+SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM rr_ids WHERE name='admin'),true);
+SET LOCAL ROLE authenticated;
+SELECT public.upt_create_shift(
+  (SELECT id FROM rr_ids WHERE name='future_wp'),
+  (SELECT id FROM rr_ids WHERE name='lead'),
+  'Verantwoordelijke',
+  now()+interval '1 hour',
+  now()+interval '3 hours',
+  false
+);
+SELECT public.upt_create_shift(
+  (SELECT id FROM rr_ids WHERE name='future_wp'),
+  (SELECT id FROM rr_ids WHERE name='staff'),
+  'Personeel',
+  now()+interval '1 hour',
+  now()+interval '3 hours',
+  false
+);
+INSERT INTO public.responsible_assignments(event_id,workplace_id,user_id,assigned_by)
+VALUES(
+  (SELECT id FROM rr_ids WHERE name='future'),
+  (SELECT id FROM rr_ids WHERE name='future_wp'),
+  (SELECT id FROM rr_ids WHERE name='lead'),
+  auth.uid()
+);
+RESET ROLE;
+
+-- Workplace Responsible can prepare briefing/task content for the assigned workplace,
+-- can read the workplace, but cannot create workplaces or manage shifts.
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM rr_ids WHERE name='lead'),true);
 SET LOCAL ROLE authenticated;
 
@@ -58,8 +88,13 @@ BEGIN
     RAISE EXCEPTION 'FAIL lead future workplace read';
   END IF;
 
-  INSERT INTO public.workplaces(event_id,name)
-  VALUES((SELECT id FROM rr_ids WHERE name='future'),'Lead-created WP');
+  BEGIN
+    INSERT INTO public.workplaces(event_id,name)
+    VALUES((SELECT id FROM rr_ids WHERE name='future'),'Lead-created WP');
+    RAISE EXCEPTION 'FAIL lead created workplace';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM='FAIL lead created workplace' THEN RAISE; END IF;
+  END;
 
   INSERT INTO public.briefings(event_id,title,body,created_by)
   VALUES((SELECT id FROM rr_ids WHERE name='future'),'Future briefing','Readable before start',auth.uid());
@@ -69,7 +104,7 @@ BEGIN
 
   v_task := public.upt_create_assigned_task(
     (SELECT id FROM rr_ids WHERE name='future'),
-    NULL,
+    (SELECT id FROM rr_ids WHERE name='future_wp'),
     (SELECT id FROM rr_ids WHERE name='staff'),
     'Future task',
     'Hidden until start'
@@ -92,7 +127,8 @@ BEGIN
 END $$;
 RESET ROLE;
 
--- Staff can read future instructions after event selection, but no operational content yet.
+-- Staff can read future briefing/personal instructions plus their assigned workplace/shift
+-- after event selection. Shift-active tasks remain hidden until the shift starts.
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM rr_ids WHERE name='staff'),true);
 SET LOCAL ROLE authenticated;
 
@@ -107,11 +143,11 @@ BEGIN
   IF (SELECT count(*) FROM public.tasks WHERE event_id=(SELECT id FROM rr_ids WHERE name='future')) <> 0 THEN
     RAISE EXCEPTION 'FAIL future task visible to staff';
   END IF;
-  IF (SELECT count(*) FROM public.workplaces WHERE event_id=(SELECT id FROM rr_ids WHERE name='future')) <> 0 THEN
-    RAISE EXCEPTION 'FAIL future workplace visible to staff';
+  IF (SELECT count(*) FROM public.workplaces WHERE event_id=(SELECT id FROM rr_ids WHERE name='future')) <> 1 THEN
+    RAISE EXCEPTION 'FAIL future assigned workplace hidden from staff';
   END IF;
-  IF (SELECT count(*) FROM public.shifts WHERE event_id=(SELECT id FROM rr_ids WHERE name='future')) <> 0 THEN
-    RAISE EXCEPTION 'FAIL future shift visible to staff';
+  IF (SELECT count(*) FROM public.shifts WHERE event_id=(SELECT id FROM rr_ids WHERE name='future')) <> 1 THEN
+    RAISE EXCEPTION 'FAIL future assigned shift hidden from staff';
   END IF;
 
   BEGIN

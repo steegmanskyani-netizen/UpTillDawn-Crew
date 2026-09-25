@@ -65,6 +65,24 @@ export default function OperationsClient(p:Props){
 }
 
 
+function EarlyReviewControls({review,name}:{review:Tables<'time_review_requests'>;name:string}){
+ const router=useRouter()
+ const s=useMemo(()=>createClient(),[])
+ const [busy,setBusy]=useState(false),[message,setMessage]=useState(''),[adjusted,setAdjusted]=useState('')
+ async function submit(value?:string){
+  if(busy)return
+  setBusy(true);setMessage('')
+  const parsed=value?new Date(value):null
+  if(value&&(!parsed||Number.isNaN(parsed.getTime()))){setMessage('Kies een geldige starttijd.');setBusy(false);return}
+  const {error}=await s.rpc('upt_admin_review_early_start',{p_review:review.id,p_start:parsed?.toISOString()})
+  if(error)setMessage(error.message)
+  else{setMessage('Vroegstart verwerkt.');router.refresh()}
+  setBusy(false)
+ }
+ return <article className="space-y-3 rounded-xl border border-amber-500/40 p-4"><div><p className="font-bold">{name}</p><p className="text-sm text-muted-foreground">Aangevraagd: {new Date(review.requested_start).toLocaleString('nl-BE')} · gepland: {new Date(review.scheduled_start).toLocaleString('nl-BE')}</p><p className="mt-2 text-sm">Reden: {review.reason}</p></div><div className="grid gap-2 md:grid-cols-[1fr_auto_auto]"><input type="datetime-local" value={adjusted} onChange={event=>setAdjusted(event.target.value)} className="rounded-lg border bg-background p-3"/><button disabled={busy} className="rounded-lg border p-3 font-bold" onClick={()=>submit()}>GOEDKEUREN</button><button disabled={busy||!adjusted} className="rounded-lg bg-violet-600 p-3 font-bold text-white disabled:opacity-50" onClick={()=>submit(adjusted)}>TIJD AANPASSEN</button></div>{message&&<p role="status" className="text-sm">{message}</p>}</article>
+}
+
+
 function formatDigital(totalSeconds:number){
  const seconds=Math.max(0,Math.floor(totalSeconds))
  const hours=Math.floor(seconds/3600)

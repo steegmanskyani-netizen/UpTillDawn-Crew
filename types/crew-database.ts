@@ -588,6 +588,7 @@ export type Database = {
           description: string | null
           end_at: string
           end_date: string
+          facebook_event_url: string | null
           gps_coordinates: unknown
           id: string
           image_url: string | null
@@ -610,6 +611,7 @@ export type Database = {
           description?: string | null
           end_at: string
           end_date: string
+          facebook_event_url?: string | null
           gps_coordinates?: unknown
           id?: string
           image_url?: string | null
@@ -632,6 +634,7 @@ export type Database = {
           description?: string | null
           end_at?: string
           end_date?: string
+          facebook_event_url?: string | null
           gps_coordinates?: unknown
           id?: string
           image_url?: string | null
@@ -1244,6 +1247,7 @@ export type Database = {
           role_name: string
           scheduled_end: string
           scheduled_start: string
+          shift_kind: string
           start_time: string
           status: string
           updated_at: string
@@ -1262,6 +1266,7 @@ export type Database = {
           role_name?: string
           scheduled_end: string
           scheduled_start: string
+          shift_kind?: string
           start_time: string
           status?: string
           updated_at?: string
@@ -1280,6 +1285,7 @@ export type Database = {
           role_name?: string
           scheduled_end?: string
           scheduled_start?: string
+          shift_kind?: string
           start_time?: string
           status?: string
           updated_at?: string
@@ -1923,6 +1929,7 @@ export type Database = {
           p_end: string
           p_overlap_allowed?: boolean
           p_role_name: string
+          p_shift_kind?: string
           p_start: string
           p_user: string
           p_workplace: string
@@ -1966,6 +1973,35 @@ export type Database = {
         Args: { p_event?: string; p_feature: string; p_workplace?: string }
         Returns: boolean
       }
+      upt_god_is_configured: { Args: never; Returns: boolean }
+      upt_god_login: {
+        Args: { p_login: string; p_password: string }
+        Returns: string
+      }
+      upt_god_logout: { Args: { p_token: string }; Returns: undefined }
+      upt_god_role_rules: {
+        Args: { p_role: string; p_token: string }
+        Returns: {
+          condition_key: string
+          enabled: boolean
+          feature_key: string
+          group_key: string
+          label: string
+          role: string
+          settings: Json
+          sort_order: number
+          visible: boolean
+        }[]
+      }
+      upt_god_save_role_rules: {
+        Args: { p_role: string; p_rules: Json; p_token: string }
+        Returns: undefined
+      }
+      upt_god_session_valid: { Args: { p_token: string }; Returns: boolean }
+      upt_god_set_credentials: {
+        Args: { p_login: string; p_password: string }
+        Returns: undefined
+      }
       upt_gps_assessment: {
         Args: {
           p_accuracy: number
@@ -1976,7 +2012,6 @@ export type Database = {
         }
         Returns: Json
       }
-      upt_has_admin_edit_unlock: { Args: never; Returns: boolean }
       upt_is_admin: { Args: { uid?: string }; Returns: boolean }
       upt_is_approved: { Args: never; Returns: boolean }
       upt_is_responsible: {
@@ -1987,6 +2022,7 @@ export type Database = {
         Args: { p_notification: string }
         Returns: undefined
       }
+      upt_mark_password_changed: { Args: never; Returns: undefined }
       upt_moderate_message: {
         Args: { p_message: string; p_reason: string }
         Returns: undefined
@@ -2005,6 +2041,7 @@ export type Database = {
           profile_photo_url: string
         }[]
       }
+      upt_password_change_required: { Args: never; Returns: boolean }
       upt_private_chat_peers: {
         Args: never
         Returns: {
@@ -2068,7 +2105,6 @@ export type Database = {
           profile_photo_url: string
         }[]
       }
-      upt_revoke_admin_edit_unlock: { Args: never; Returns: undefined }
       upt_save_push_subscription: {
         Args: {
           p_auth: string
@@ -2132,6 +2168,7 @@ export type Database = {
           p_overlap_allowed?: boolean
           p_role_name: string
           p_shift: string
+          p_shift_kind?: string
           p_start: string
         }
         Returns: undefined
@@ -2140,7 +2177,6 @@ export type Database = {
         Args: { p_assignment: string; p_status: string }
         Returns: string
       }
-      upt_verify_admin_edit_code: { Args: { p_code: string }; Returns: boolean }
       upt_work_session_time_summary: {
         Args: { p_work_session: string }
         Returns: {

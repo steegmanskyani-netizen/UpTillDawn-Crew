@@ -1,17 +1,17 @@
 'use client'
+import Link from 'next/link'
 import { useEffect,useMemo,useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/crew-client'
 import { enqueue } from '@/lib/crew-queue'
-import { captureLocation } from '@/lib/crew-gps'
 import { saveOperationsSnapshot } from '@/lib/crew-offline-snapshot'
 import { nlStatus } from '@/lib/ui-nl'
 import type { Tables,Database } from '@/types/crew-database'
 type Summary=Database['public']['Functions']['upt_work_session_time_summary']['Returns'][number]
 type CrewMember={id:string;full_name:string|null;phone_number:string|null;profile_photo_url:string|null}
-type Props={userId:string;shifts:Tables<'shifts'>[];events:Tables<'events'>[];workplaces:Tables<'workplaces'>[];activeSession:Tables<'work_sessions'>|null;activeBreak:Tables<'break_sessions'>|null;checkins:Tables<'check_ins'>[];checkouts:Tables<'check_outs'>[];manager:boolean;isAdmin:boolean;personalWork:boolean;summary:Summary|null;summaryAsOf:number;liveSessions:Tables<'work_sessions'>[];liveBreaks:Tables<'break_sessions'>[];liveShifts:Tables<'shifts'>[];crewDirectory:CrewMember[]}
+type Props={userId:string;shifts:Tables<'shifts'>[];events:Tables<'events'>[];workplaces:Tables<'workplaces'>[];activeSession:Tables<'work_sessions'>|null;activeBreak:Tables<'break_sessions'>|null;checkins:Tables<'check_ins'>[];checkouts:Tables<'check_outs'>[];manager:boolean;isAdmin:boolean;personalWork:boolean;summary:Summary|null;summaryAsOf:number;liveSessions:Tables<'work_sessions'>[];liveBreaks:Tables<'break_sessions'>[];liveShifts:Tables<'shifts'>[];crewDirectory:CrewMember[];timeReviews:Tables<'time_review_requests'>[]}
 export default function OperationsClient(p:Props){
- const router=useRouter();const [busy,setBusy]=useState(false),[msg,setMsg]=useState(''),[remote,setRemote]=useState(false),[file,setFile]=useState<File|null>(null)
+ const router=useRouter();const [busy,setBusy]=useState(false),[msg,setMsg]=useState(''),[rejectionReasons,setRejectionReasons]=useState<Record<string,string>>({})
  const s=useMemo(()=>createClient(),[])
  useEffect(()=>{const timer=setInterval(()=>{if(navigator.onLine)router.refresh()},15000);return()=>clearInterval(timer)},[router])
  useEffect(()=>{void saveOperationsSnapshot({
@@ -26,7 +26,7 @@ export default function OperationsClient(p:Props){
   checkins:p.checkins.filter(x=>x.user_id===p.userId).map(x=>({event_id:x.event_id,workplace_id:x.workplace_id,status:x.status})),
 }).catch(()=>{})},[p.userId,p.events,p.workplaces,p.shifts,p.activeSession,p.activeBreak,p.checkins])
  async function run(action:()=>Promise<void>){if(busy)return;setBusy(true);setMsg('');try{await action();router.refresh()}catch{setMsg('Actie niet bevestigd. Controleer je verbinding en huidige status.')}finally{setBusy(false)}}
- async function work(type:string,payload:Record<string,string>){const gps=(type==='start_work'||type==='stop_work')?await captureLocation():{};await enqueue(p.userId,type,{...payload,...gps});setMsg('Actie bewaard. Alleen de bevestigde serverstatus geldt.')}
+ async function work(type:string,payload:Record<string,string>){await enqueue(p.userId,type,payload);setMsg('Actie bewaard. Alleen de bevestigde serverstatus geldt.')}
  async function requestCheckin(shift:Tables<'shifts'>){
  let path:string|null=null
  if(remote){

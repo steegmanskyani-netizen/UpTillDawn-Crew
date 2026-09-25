@@ -1,0 +1,4167 @@
+[
+  {
+    "file": "app/(app)/admin/page.tsx",
+    "line": 11,
+    "kind": "Link",
+    "label": "{label} {value} {detail&& {detail} }",
+    "handler": "href={href}"
+  },
+  {
+    "file": "app/(app)/admin/page.tsx",
+    "line": 14,
+    "kind": "functie",
+    "label": "Page",
+    "handler": "Page"
+  },
+  {
+    "file": "app/(app)/admin/page.tsx",
+    "line": 38,
+    "kind": "h1",
+    "label": "Beheeroverzicht",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/admin/page.tsx",
+    "line": 45,
+    "kind": "h1",
+    "label": "Beheeroverzicht",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/admin/page.tsx",
+    "line": 97,
+    "kind": "h1",
+    "label": "Operationeel overzicht",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/admin/page.tsx",
+    "line": 97,
+    "kind": "Link",
+    "label": "Tijdcorrecties",
+    "handler": "href=\"/admin/time-records\""
+  },
+  {
+    "file": "app/(app)/admin/page.tsx",
+    "line": 111,
+    "kind": "h2",
+    "label": "Actief personeel",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/admin/page.tsx",
+    "line": 115,
+    "kind": "h2",
+    "label": "Actie vereist",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/admin/page.tsx",
+    "line": 115,
+    "kind": "Link",
+    "label": "Goedkeuringen openen",
+    "handler": "href=\"/operations\""
+  },
+  {
+    "file": "app/(app)/admin/page.tsx",
+    "line": 124,
+    "kind": "h2",
+    "label": "Open help oproepen",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/admin/page.tsx",
+    "line": 124,
+    "kind": "Link",
+    "label": "Alles bekijken",
+    "handler": "href=\"/incidents\""
+  },
+  {
+    "file": "app/(app)/admin/page.tsx",
+    "line": 126,
+    "kind": "h2",
+    "label": "Lopende diensten & pauzes",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/admin/time-records/page.tsx",
+    "line": 8,
+    "kind": "functie",
+    "label": "Page",
+    "handler": "Page"
+  },
+  {
+    "file": "app/(app)/admin/time-records/page.tsx",
+    "line": 56,
+    "kind": "h1",
+    "label": "Tijdcorrecties",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/admin/time-records/page.tsx",
+    "line": 62,
+    "kind": "h2",
+    "label": "{name(session.user_id)} · {eventName(session.event_id)}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/admin/time-records/page.tsx",
+    "line": 73,
+    "kind": "h2",
+    "label": "Recente correctiegeschiedenis",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/audit/page.tsx",
+    "line": 2,
+    "kind": "functie",
+    "label": "Page",
+    "handler": "Page"
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 26,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 51,
+    "kind": "a",
+    "label": "{/* eslint-disable-next-line @next/next/no-img-element */}",
+    "handler": "href={url}"
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 59,
+    "kind": "functie",
+    "label": "Page",
+    "handler": "Page"
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 207,
+    "kind": "h1",
+    "label": "Instructies",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 215,
+    "kind": "form",
+    "label": "Nieuwe algemene instructie Instructie aanmaken",
+    "handler": "action={createBriefing}"
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 216,
+    "kind": "h2",
+    "label": "Nieuwe algemene instructie",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 227,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 228,
+    "kind": "textarea",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 230,
+    "kind": "button",
+    "label": "Instructie aanmaken",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 233,
+    "kind": "form",
+    "label": "Persoonlijke instructie Instructie toewijzen",
+    "handler": "action={createPersonalInstruction}"
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 234,
+    "kind": "h2",
+    "label": "Persoonlijke instructie",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 244,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 245,
+    "kind": "textarea",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 247,
+    "kind": "button",
+    "label": "Instructie toewijzen",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 255,
+    "kind": "h2",
+    "label": "{briefing.title} · v {briefing.version}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 260,
+    "kind": "form",
+    "label": "Wijzig instructie + nieuwe bevestiging",
+    "handler": "action={updateBriefing}"
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 261,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 262,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 263,
+    "kind": "textarea",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 265,
+    "kind": "button",
+    "label": "Wijzig instructie + nieuwe bevestiging",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 269,
+    "kind": "form",
+    "label": "INSTRUCTIE GELEZEN",
+    "handler": "action={acknowledgeBriefing}"
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 270,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 271,
+    "kind": "button",
+    "label": "INSTRUCTIE GELEZEN",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 276,
+    "kind": "h2",
+    "label": "Persoonlijk: {instruction.title} · v {instruction.version}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 281,
+    "kind": "form",
+    "label": "Wijzig instructie + nieuwe bevestiging",
+    "handler": "action={updatePersonalInstruction}"
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 282,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 283,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 284,
+    "kind": "textarea",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 286,
+    "kind": "button",
+    "label": "Wijzig instructie + nieuwe bevestiging",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 290,
+    "kind": "form",
+    "label": "Gelezen bevestigen",
+    "handler": "action={acknowledgeInstruction}"
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 291,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 292,
+    "kind": "button",
+    "label": "Gelezen bevestigen",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/chat/page.tsx",
+    "line": 7,
+    "kind": "functie",
+    "label": "Page",
+    "handler": "Page"
+  },
+  {
+    "file": "app/(app)/crew/page.tsx",
+    "line": 6,
+    "kind": "functie",
+    "label": "Page",
+    "handler": "Page"
+  },
+  {
+    "file": "app/(app)/crew/page.tsx",
+    "line": 14,
+    "kind": "h1",
+    "label": "Personeel",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/crew/page.tsx",
+    "line": 27,
+    "kind": "h1",
+    "label": "Personeel",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/crew/page.tsx",
+    "line": 42,
+    "kind": "h2",
+    "label": "{member.full_name || 'Naam ontbreekt'}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/crew/page.tsx",
+    "line": 44,
+    "kind": "a",
+    "label": "{member.phone_number}",
+    "handler": "href={`tel:${member.phone_number}`}"
+  },
+  {
+    "file": "app/(app)/error.tsx",
+    "line": 2,
+    "kind": "functie",
+    "label": "Error",
+    "handler": "Error"
+  },
+  {
+    "file": "app/(app)/error.tsx",
+    "line": 2,
+    "kind": "h1",
+    "label": "De actie kon niet worden voltooid.",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/error.tsx",
+    "line": 2,
+    "kind": "button",
+    "label": "Opnieuw proberen",
+    "handler": "onClick={reset}"
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 22,
+    "kind": "functie",
+    "label": "Page",
+    "handler": "Page"
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 71,
+    "kind": "h1",
+    "label": "Evenementen",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 73,
+    "kind": "form",
+    "label": "Handmatige gegevens / fallback GPS-radius (m) Bij een openbare Facebook-link worden gevonden naam, locatie en evenementuren automatisch gebruikt. Ontbrekende gegevens worden uit de",
+    "handler": "action={createEvent}"
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 78,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 83,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 88,
+    "kind": "button",
+    "label": "EVENEMENT AANMAKEN",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 105,
+    "kind": "h2",
+    "label": "{event.name}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 118,
+    "kind": "form",
+    "label": "IK KAN",
+    "handler": "action={setEventAvailability}"
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 118,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 118,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 118,
+    "kind": "button",
+    "label": "IK KAN",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 119,
+    "kind": "form",
+    "label": "IK KAN NIET",
+    "handler": "action={setEventAvailability}"
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 119,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 119,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 119,
+    "kind": "button",
+    "label": "IK KAN NIET",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 125,
+    "kind": "Link",
+    "label": "Chats openen",
+    "handler": "href=\"/chat\""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 132,
+    "kind": "h3",
+    "label": "Mensen die kunnen",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 140,
+    "kind": "form",
+    "label": "WERKPLEK TOEVOEGEN",
+    "handler": "action={addWorkplace}"
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 141,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 142,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 143,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 144,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 145,
+    "kind": "button",
+    "label": "WERKPLEK TOEVOEGEN",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 175,
+    "kind": "form",
+    "label": "Werkplek Werkplek kiezen… {eventWorkplaces.map(workplace=> {workplace.name} )} Rol / functie Shift-type Evenement Opbouw — max. 3 dagen vooraf Afbouw — max. 3 dagen nadien Overlapp",
+    "handler": "action={assignAvailableCrewShift}"
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 176,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 177,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 179,
+    "kind": "select",
+    "label": "Werkplek kiezen… {eventWorkplaces.map(workplace=> {workplace.name} )}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 185,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 188,
+    "kind": "select",
+    "label": "Evenement Opbouw — max. 3 dagen vooraf Afbouw — max. 3 dagen nadien",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 197,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 199,
+    "kind": "button",
+    "label": "{alreadyAdded?'DIENST TOEVOEGEN':'TOEWIJZEN + DIENST AANMAKEN'}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 210,
+    "kind": "form",
+    "label": "GPS-radius (m) WIJZIGINGEN OPSLAAN",
+    "handler": "action={updateEvent}"
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 211,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 212,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 217,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 219,
+    "kind": "button",
+    "label": "WIJZIGINGEN OPSLAAN",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 225,
+    "kind": "form",
+    "label": "Configuratie kopiëren",
+    "handler": "action={duplicateEvent}"
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 226,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 227,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 230,
+    "kind": "button",
+    "label": "Configuratie kopiëren",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/exports/page.tsx",
+    "line": 4,
+    "kind": "functie",
+    "label": "Page",
+    "handler": "Page"
+  },
+  {
+    "file": "app/(app)/exports/page.tsx",
+    "line": 6,
+    "kind": "h1",
+    "label": "Excel",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/exports/page.tsx",
+    "line": 6,
+    "kind": "a",
+    "label": "XLSX downloaden",
+    "handler": "href=\"/api/uptilldawn/export\""
+  },
+  {
+    "file": "app/(app)/incidents/page.tsx",
+    "line": 14,
+    "kind": "functie",
+    "label": "Page",
+    "handler": "Page"
+  },
+  {
+    "file": "app/(app)/incidents/page.tsx",
+    "line": 68,
+    "kind": "h1",
+    "label": "{manager?'Help':'Urgent melden'}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/incidents/page.tsx",
+    "line": 77,
+    "kind": "h2",
+    "label": "{manager?'Open help oproepen':'Mijn help oproepen'}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/incidents/page.tsx",
+    "line": 99,
+    "kind": "a",
+    "label": "{/* eslint-disable-next-line @next/next/no-img-element */}",
+    "handler": "href={url}"
+  },
+  {
+    "file": "app/(app)/layout.tsx",
+    "line": 4,
+    "kind": "functie",
+    "label": "AuthenticatedLayout",
+    "handler": "AuthenticatedLayout"
+  },
+  {
+    "file": "app/(app)/loading.tsx",
+    "line": 1,
+    "kind": "functie",
+    "label": "Loading",
+    "handler": "Loading"
+  },
+  {
+    "file": "app/(app)/notifications/page.tsx",
+    "line": 18,
+    "kind": "functie",
+    "label": "Page",
+    "handler": "Page"
+  },
+  {
+    "file": "app/(app)/notifications/page.tsx",
+    "line": 30,
+    "kind": "h1",
+    "label": "Meldingen",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/notifications/page.tsx",
+    "line": 37,
+    "kind": "h2",
+    "label": "{n.title}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/notifications/page.tsx",
+    "line": 44,
+    "kind": "Link",
+    "label": "OPENEN",
+    "handler": "href={safeLink}"
+  },
+  {
+    "file": "app/(app)/notifications/page.tsx",
+    "line": 45,
+    "kind": "form",
+    "label": "Markeer gelezen",
+    "handler": "action={markNotificationRead}"
+  },
+  {
+    "file": "app/(app)/notifications/page.tsx",
+    "line": 46,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/notifications/page.tsx",
+    "line": 47,
+    "kind": "button",
+    "label": "Markeer gelezen",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 13,
+    "kind": "functie",
+    "label": "OperationsClient",
+    "handler": "OperationsClient"
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 44,
+    "kind": "h1",
+    "label": "{p.personalWork?'Werk & pauze':'Operationele status & goedkeuringen'}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 45,
+    "kind": "input",
+    "label": "setRemote(e.target.checked)}/>",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 45,
+    "kind": "input",
+    "label": "setFile(e.target.files?.[0]||null)}/>",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 46,
+    "kind": "h2",
+    "label": "WERK ACTIEF",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 49,
+    "kind": "button",
+    "label": "{p.activeBreak?'PAUZE STOPPEN':'PAUZE STARTEN'}",
+    "handler": "onClick={()=>run(()=>p.activeBreak?work('stop_break',{break_id:p.activeBreak.id}):work('start_break',{session_id:p.activeSession!.id}))}"
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 50,
+    "kind": "button",
+    "label": "WERK STOPPEN",
+    "handler": "onClick={()=>run(()=>work('stop_work',{session_id:p.activeSession!.id}))}"
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 51,
+    "kind": "button",
+    "label": "UITKLOKKEN AANVRAGEN",
+    "handler": "onClick={()=>run(async()=>{const {error}=await s.rpc('upt_request_check_out',{p_event:p.activeSession!.event_id});if(error)throw error;setMsg('Uitklokken aangevraagd. WERK STOPPEN blijft een aparte actie.')})}"
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 53,
+    "kind": "h2",
+    "label": "Mijn diensten",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 53,
+    "kind": "h3",
+    "label": "{p.events.find(e=>e.id===shift.event_id)?.name} · {p.workplaces.find(w=>w.id===shift.workplace_id)?.name}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 54,
+    "kind": "button",
+    "label": "{p.manager&&!p.isAdmin?'UREN STARTEN AANVRAGEN':'INKLOKKEN AANVRAGEN'}",
+    "handler": "onClick={()=>run(()=>requestCheckin(shift))}"
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 56,
+    "kind": "button",
+    "label": "WERK STARTEN",
+    "handler": "onClick={()=>run(()=>work('start_work',{event_id:shift.event_id,shift_id:shift.id}))}"
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 57,
+    "kind": "button",
+    "label": "UITKLOKKEN AANVRAGEN",
+    "handler": "onClick={()=>run(async()=>{const {error}=await s.rpc('upt_request_check_out',{p_event:shift.event_id});if(error)throw error;setMsg('Uitklokken aangevraagd.')})}"
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 58,
+    "kind": "button",
+    "label": "NIEUWE WERKPLEK — OVERGANG BEVESTIGEN",
+    "handler": "onClick={()=>run(()=>work('transition',{session_id:p.activeSession!.id,workplace_id:shift.workplace_id}))}"
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 60,
+    "kind": "h2",
+    "label": "Actuele personeelstatus",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 60,
+    "kind": "a",
+    "label": "{crew.phone_number}",
+    "handler": "href={`tel:${crew.phone_number}`}"
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 61,
+    "kind": "h2",
+    "label": "Goedkeuringen",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 61,
+    "kind": "button",
+    "label": "Selfie bekijken",
+    "handler": "onClick={()=>run(async()=>{const {data,error}=await s.storage.from('checkin-selfies').createSignedUrl(c.selfie_path!,60);if(error)throw error;window.open(data.signedUrl,'_blank','noopener,noreferrer')})}"
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 61,
+    "kind": "button",
+    "label": "Goedkeuren",
+    "handler": "onClick={()=>run(()=>decide(c.kind,c.id,true))}"
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 61,
+    "kind": "button",
+    "label": "Afwijzen",
+    "handler": "onClick={()=>run(()=>decide(c.kind,c.id,false))}"
+  },
+  {
+    "file": "app/(app)/operations/page.tsx",
+    "line": 9,
+    "kind": "functie",
+    "label": "Page",
+    "handler": "Page"
+  },
+  {
+    "file": "app/(app)/page.tsx",
+    "line": 14,
+    "kind": "Link",
+    "label": "{value} {title}",
+    "handler": "href={href}"
+  },
+  {
+    "file": "app/(app)/page.tsx",
+    "line": 21,
+    "kind": "functie",
+    "label": "Dashboard",
+    "handler": "Dashboard"
+  },
+  {
+    "file": "app/(app)/page.tsx",
+    "line": 42,
+    "kind": "h1",
+    "label": "ACCOUNT NOG NIET GOEDGEKEURD",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/page.tsx",
+    "line": 178,
+    "kind": "h1",
+    "label": "Welkom, {profile?.full_name || 'Personeelslid'}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/page.tsx",
+    "line": 190,
+    "kind": "h2",
+    "label": "Personeel van mijn werkplek",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/page.tsx",
+    "line": 200,
+    "kind": "h2",
+    "label": "Personeel van mijn werkplek",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/page.tsx",
+    "line": 208,
+    "kind": "h2",
+    "label": "Komende evenementen",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/page.tsx",
+    "line": 210,
+    "kind": "Link",
+    "label": "{event.name} {event.venue || 'Locatie nog niet ingesteld'}",
+    "handler": "href=\"/events\""
+  },
+  {
+    "file": "app/(app)/personnel/page.tsx",
+    "line": 9,
+    "kind": "functie",
+    "label": "Page",
+    "handler": "Page"
+  },
+  {
+    "file": "app/(app)/personnel/page.tsx",
+    "line": 21,
+    "kind": "h1",
+    "label": "Personeel & goedkeuringen",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/personnel/page.tsx",
+    "line": 26,
+    "kind": "a",
+    "label": "{/* eslint-disable-next-line @next/next/no-img-element */}",
+    "handler": "href={photos.get(p.id)}"
+  },
+  {
+    "file": "app/(app)/personnel/page.tsx",
+    "line": 45,
+    "kind": "form",
+    "label": "In afwachting Goedgekeurd Personeel Verantwoordelijke Beheerder Opslaan",
+    "handler": "action={setAccountStatus}"
+  },
+  {
+    "file": "app/(app)/personnel/page.tsx",
+    "line": 46,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/personnel/page.tsx",
+    "line": 47,
+    "kind": "select",
+    "label": "In afwachting Goedgekeurd",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/personnel/page.tsx",
+    "line": 51,
+    "kind": "select",
+    "label": "Personeel Verantwoordelijke Beheerder",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/personnel/page.tsx",
+    "line": 56,
+    "kind": "button",
+    "label": "Opslaan",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/settings/loading.tsx",
+    "line": 1,
+    "kind": "functie",
+    "label": "Loading",
+    "handler": "Loading"
+  },
+  {
+    "file": "app/(app)/settings/page.tsx",
+    "line": 7,
+    "kind": "functie",
+    "label": "Page",
+    "handler": "Page"
+  },
+  {
+    "file": "app/(app)/settings/page.tsx",
+    "line": 22,
+    "kind": "h1",
+    "label": "Profiel",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 14,
+    "kind": "functie",
+    "label": "Page",
+    "handler": "Page"
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 66,
+    "kind": "h1",
+    "label": "Diensten",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 70,
+    "kind": "form",
+    "label": "Werkplek… {workplaces.map(x => {x.events?.name} — {x.name} )} Personeelslid… {people.map(x => {x.full_name || 'Naam ontbreekt'} )} Evenement Opbouw — max. 3 dagen vooraf Afbouw — m",
+    "handler": "action={createShift}"
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 71,
+    "kind": "select",
+    "label": "Werkplek… {workplaces.map(x => {x.events?.name} — {x.name} )}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 75,
+    "kind": "select",
+    "label": "Personeelslid… {people.map(x => {x.full_name || 'Naam ontbreekt'} )}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 79,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 80,
+    "kind": "select",
+    "label": "Evenement Opbouw — max. 3 dagen vooraf Afbouw — max. 3 dagen nadien",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 87,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 88,
+    "kind": "button",
+    "label": "DIENST AANMAKEN",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 112,
+    "kind": "form",
+    "label": "Rol Shift-type Evenement Opbouw Afbouw Overlap expliciet toestaan WIJZIG DIENST",
+    "handler": "action={updateShift}"
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 113,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 114,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 116,
+    "kind": "select",
+    "label": "Evenement Opbouw Afbouw",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 122,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 125,
+    "kind": "button",
+    "label": "WIJZIG DIENST",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 127,
+    "kind": "form",
+    "label": "ANNULEER DIENST",
+    "handler": "action={cancelShift}"
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 128,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 129,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 130,
+    "kind": "button",
+    "label": "ANNULEER DIENST",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/sync/page.tsx",
+    "line": 3,
+    "kind": "functie",
+    "label": "Page",
+    "handler": "Page"
+  },
+  {
+    "file": "app/(app)/sync/page.tsx",
+    "line": 6,
+    "kind": "h1",
+    "label": "Synchronisatie",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/tasks/page.tsx",
+    "line": 20,
+    "kind": "functie",
+    "label": "Page",
+    "handler": "Page"
+  },
+  {
+    "file": "app/(app)/tasks/page.tsx",
+    "line": 62,
+    "kind": "h1",
+    "label": "Taken",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/tasks/page.tsx",
+    "line": 178,
+    "kind": "h1",
+    "label": "Taken",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/tasks/page.tsx",
+    "line": 185,
+    "kind": "form",
+    "label": "({ id: workplace.id, name: workplace.name, event_id: workplace.event_id }))} people={people} memberships={memberships} isAdmin={isAdmin} showEventSelect workplaceRequired={!isAdmin",
+    "handler": "action={createTask}"
+  },
+  {
+    "file": "app/(app)/tasks/page.tsx",
+    "line": 197,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/tasks/page.tsx",
+    "line": 198,
+    "kind": "textarea",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/tasks/page.tsx",
+    "line": 201,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/tasks/page.tsx",
+    "line": 204,
+    "kind": "button",
+    "label": "TAAK AANMAKEN & TOEWIJZEN",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/tasks/page.tsx",
+    "line": 217,
+    "kind": "h2",
+    "label": "{task?.title}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/tasks/page.tsx",
+    "line": 225,
+    "kind": "a",
+    "label": "{/* eslint-disable-next-line @next/next/no-img-element */}",
+    "handler": "href={url}"
+  },
+  {
+    "file": "app/(app)/tasks/page.tsx",
+    "line": 235,
+    "kind": "form",
+    "label": "Toewijzing verwijderen",
+    "handler": "action={removeTaskAssignment}"
+  },
+  {
+    "file": "app/(app)/tasks/page.tsx",
+    "line": 236,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/tasks/page.tsx",
+    "line": 237,
+    "kind": "button",
+    "label": "Toewijzing verwijderen",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 11,
+    "kind": "functie",
+    "label": "Page",
+    "handler": "Page"
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 126,
+    "kind": "h1",
+    "label": "Werkplekken",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 133,
+    "kind": "form",
+    "label": "Evenement… {events.map(event=> {event.name} )} WERKPLEK TOEVOEGEN",
+    "handler": "action={addWorkplace}"
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 134,
+    "kind": "select",
+    "label": "Evenement… {events.map(event=> {event.name} )}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 138,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 139,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 140,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 141,
+    "kind": "button",
+    "label": "WERKPLEK TOEVOEGEN",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 165,
+    "kind": "form",
+    "label": "Actief WIJZIGINGEN OPSLAAN",
+    "handler": "action={updateWorkplace}"
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 166,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 167,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 168,
+    "kind": "textarea",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 169,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 170,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 171,
+    "kind": "button",
+    "label": "WIJZIGINGEN OPSLAAN",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 186,
+    "kind": "form",
+    "label": "PERSONEEL MAKEN",
+    "handler": "action={demoteResponsibleToStaff}"
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 187,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 188,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 189,
+    "kind": "button",
+    "label": "PERSONEEL MAKEN",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 213,
+    "kind": "form",
+    "label": "Kies toegewezen persoon… {crew.map(person=>{ const responsible=responsibleKeys.has(`${workplace.id}:${person.id}`) return {person.full_name||'Naam ontbreekt'}{person.id===user.id?'",
+    "handler": "action={assignResponsible}"
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 214,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 215,
+    "kind": "select",
+    "label": "Kies toegewezen persoon… {crew.map(person=>{ const responsible=responsibleKeys.has(`${workplace.id}:${person.id}`) return {person.full_name||'Naam ontbreekt'}{person.id===user.id?'",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/workplaces/page.tsx",
+    "line": 224,
+    "kind": "button",
+    "label": "VERANTWOORDELIJKHEID TOEWIJZEN",
+    "handler": ""
+  },
+  {
+    "file": "app/(auth)/disabled/page.tsx",
+    "line": 6,
+    "kind": "functie",
+    "label": "DisabledPage",
+    "handler": "DisabledPage"
+  },
+  {
+    "file": "app/(auth)/disabled/page.tsx",
+    "line": 11,
+    "kind": "h1",
+    "label": "Account niet actief",
+    "handler": ""
+  },
+  {
+    "file": "app/(auth)/disabled/page.tsx",
+    "line": 16,
+    "kind": "Button",
+    "label": "Ander account gebruiken",
+    "handler": ""
+  },
+  {
+    "file": "app/(auth)/disabled/page.tsx",
+    "line": 16,
+    "kind": "Link",
+    "label": "Ander account gebruiken",
+    "handler": "href=\"/login\""
+  },
+  {
+    "file": "app/(auth)/forgot-password/page.tsx",
+    "line": 13,
+    "kind": "functie",
+    "label": "ForgotPasswordPage",
+    "handler": "ForgotPasswordPage"
+  },
+  {
+    "file": "app/(auth)/forgot-password/page.tsx",
+    "line": 41,
+    "kind": "h1",
+    "label": "{sent ? \"Controleer je e-mail\" : \"Wachtwoord herstellen\"}",
+    "handler": ""
+  },
+  {
+    "file": "app/(auth)/forgot-password/page.tsx",
+    "line": 60,
+    "kind": "button",
+    "label": "probeer opnieuw",
+    "handler": "onClick={() => { setSent(false); setError(null) }}"
+  },
+  {
+    "file": "app/(auth)/forgot-password/page.tsx",
+    "line": 67,
+    "kind": "Button",
+    "label": "Terug naar inloggen",
+    "handler": ""
+  },
+  {
+    "file": "app/(auth)/forgot-password/page.tsx",
+    "line": 68,
+    "kind": "Link",
+    "label": "Terug naar inloggen",
+    "handler": "href=\"/login\""
+  },
+  {
+    "file": "app/(auth)/forgot-password/page.tsx",
+    "line": 79,
+    "kind": "form",
+    "label": "E-mail {isPending && } Herstel-link versturen",
+    "handler": "onSubmit={handleSubmit}"
+  },
+  {
+    "file": "app/(auth)/forgot-password/page.tsx",
+    "line": 91,
+    "kind": "Button",
+    "label": "{isPending && } Herstel-link versturen",
+    "handler": ""
+  },
+  {
+    "file": "app/(auth)/forgot-password/page.tsx",
+    "line": 97,
+    "kind": "Link",
+    "label": "Terug naar inloggen",
+    "handler": "href=\"/login\""
+  },
+  {
+    "file": "app/(auth)/layout.tsx",
+    "line": 11,
+    "kind": "functie",
+    "label": "AuthLayout",
+    "handler": "AuthLayout"
+  },
+  {
+    "file": "app/(auth)/login/page.tsx",
+    "line": 19,
+    "kind": "functie",
+    "label": "LoginPage",
+    "handler": "LoginPage"
+  },
+  {
+    "file": "app/(auth)/login/page.tsx",
+    "line": 42,
+    "kind": "button",
+    "label": "{menuOpen ? : }",
+    "handler": "onClick={() => setMenuOpen(v => !v)}"
+  },
+  {
+    "file": "app/(auth)/login/page.tsx",
+    "line": 57,
+    "kind": "Link",
+    "label": "{portals[key].label}",
+    "handler": "href={`/login/${key}`} onClick={() => setMenuOpen(false)}"
+  },
+  {
+    "file": "app/(auth)/login/page.tsx",
+    "line": 80,
+    "kind": "h1",
+    "label": "{portals[portal].label}",
+    "handler": ""
+  },
+  {
+    "file": "app/(auth)/login/page.tsx",
+    "line": 91,
+    "kind": "form",
+    "label": "E-mail Wachtwoord Wachtwoord vergeten? setShowPassword(v => !v)} className=\"absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white\"> {showPassword ? : } {isPendin",
+    "handler": "onSubmit={handleSubmit}"
+  },
+  {
+    "file": "app/(auth)/login/page.tsx",
+    "line": 94,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(auth)/login/page.tsx",
+    "line": 99,
+    "kind": "Link",
+    "label": "Wachtwoord vergeten?",
+    "handler": "href=\"/forgot-password\""
+  },
+  {
+    "file": "app/(auth)/login/page.tsx",
+    "line": 102,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(auth)/login/page.tsx",
+    "line": 103,
+    "kind": "button",
+    "label": "{showPassword ? : }",
+    "handler": "onClick={() => setShowPassword(v => !v)}"
+  },
+  {
+    "file": "app/(auth)/login/page.tsx",
+    "line": 108,
+    "kind": "button",
+    "label": "{isPending ? Inloggen… : Inloggen }",
+    "handler": ""
+  },
+  {
+    "file": "app/(auth)/login/page.tsx",
+    "line": 114,
+    "kind": "Link",
+    "label": "Account aanmaken",
+    "handler": "href=\"/signup\""
+  },
+  {
+    "file": "app/(auth)/signup/page.tsx",
+    "line": 16,
+    "kind": "functie",
+    "label": "SignupPage",
+    "handler": "SignupPage"
+  },
+  {
+    "file": "app/(auth)/signup/page.tsx",
+    "line": 67,
+    "kind": "h1",
+    "label": "Account aanmaken",
+    "handler": ""
+  },
+  {
+    "file": "app/(auth)/signup/page.tsx",
+    "line": 83,
+    "kind": "form",
+    "label": "{/* Full name */} Volledige naam {fieldErrors.full_name && ( {fieldErrors.full_name} )} {/* Email */} E-mail {fieldErrors.email && ( {fieldErrors.email} )} {/* Password */} Wachtwo",
+    "handler": "onSubmit={handleSubmit}"
+  },
+  {
+    "file": "app/(auth)/signup/page.tsx",
+    "line": 127,
+    "kind": "button",
+    "label": "{showPassword ? : }",
+    "handler": "onClick={() => setShowPassword(!showPassword)}"
+  },
+  {
+    "file": "app/(auth)/signup/page.tsx",
+    "line": 157,
+    "kind": "Button",
+    "label": "{isPending && } Account aanmaken",
+    "handler": ""
+  },
+  {
+    "file": "app/(auth)/signup/page.tsx",
+    "line": 165,
+    "kind": "Link",
+    "label": "Inloggen",
+    "handler": "href=\"/login\""
+  },
+  {
+    "file": "app/(auth)/unauthorized/page.tsx",
+    "line": 6,
+    "kind": "functie",
+    "label": "UnauthorizedPage",
+    "handler": "UnauthorizedPage"
+  },
+  {
+    "file": "app/(auth)/unauthorized/page.tsx",
+    "line": 11,
+    "kind": "h1",
+    "label": "Geen toegang",
+    "handler": ""
+  },
+  {
+    "file": "app/(auth)/unauthorized/page.tsx",
+    "line": 16,
+    "kind": "Button",
+    "label": "Terug naar overzicht",
+    "handler": ""
+  },
+  {
+    "file": "app/(auth)/unauthorized/page.tsx",
+    "line": 16,
+    "kind": "Link",
+    "label": "Terug naar overzicht",
+    "handler": "href=\"/\""
+  },
+  {
+    "file": "app/(auth)/verify-email/page.tsx",
+    "line": 6,
+    "kind": "functie",
+    "label": "VerifyEmailPage",
+    "handler": "VerifyEmailPage"
+  },
+  {
+    "file": "app/(auth)/verify-email/verify-email-client.tsx",
+    "line": 14,
+    "kind": "functie",
+    "label": "VerifyEmailClient",
+    "handler": "VerifyEmailClient"
+  },
+  {
+    "file": "app/(auth)/verify-email/verify-email-client.tsx",
+    "line": 46,
+    "kind": "h1",
+    "label": "Verifieer je e-mail",
+    "handler": ""
+  },
+  {
+    "file": "app/(auth)/verify-email/verify-email-client.tsx",
+    "line": 70,
+    "kind": "form",
+    "label": "Je e-mailadres setEmail(e.target.value)} className=\"rounded-xl h-11\" required /> {isPending ? : } Verificatiemail opnieuw versturen",
+    "handler": "onSubmit={handleResend}"
+  },
+  {
+    "file": "app/(auth)/verify-email/verify-email-client.tsx",
+    "line": 84,
+    "kind": "Button",
+    "label": "{isPending ? : } Verificatiemail opnieuw versturen",
+    "handler": ""
+  },
+  {
+    "file": "app/(auth)/verify-email/verify-email-client.tsx",
+    "line": 96,
+    "kind": "Link",
+    "label": "Terug naar inloggen",
+    "handler": "href=\"/login\""
+  },
+  {
+    "file": "app/api/edit-assistant/route.ts",
+    "line": 101,
+    "kind": "functie",
+    "label": "POST",
+    "handler": "POST"
+  },
+  {
+    "file": "app/api/facebook-event/route.ts",
+    "line": 6,
+    "kind": "functie",
+    "label": "GET",
+    "handler": "GET"
+  },
+  {
+    "file": "app/api/geocode/autocomplete/route.ts",
+    "line": 7,
+    "kind": "functie",
+    "label": "GET",
+    "handler": "GET"
+  },
+  {
+    "file": "app/api/god/code-assistant/route.ts",
+    "line": 12,
+    "kind": "functie",
+    "label": "POST",
+    "handler": "POST"
+  },
+  {
+    "file": "app/api/god/connection/route.ts",
+    "line": 5,
+    "kind": "functie",
+    "label": "POST",
+    "handler": "POST"
+  },
+  {
+    "file": "app/api/god/connection/route.ts",
+    "line": 20,
+    "kind": "functie",
+    "label": "DELETE",
+    "handler": "DELETE"
+  },
+  {
+    "file": "app/api/god/data/route.ts",
+    "line": 5,
+    "kind": "functie",
+    "label": "GET",
+    "handler": "GET"
+  },
+  {
+    "file": "app/api/god/data/route.ts",
+    "line": 18,
+    "kind": "functie",
+    "label": "POST",
+    "handler": "POST"
+  },
+  {
+    "file": "app/api/god/rules/route.ts",
+    "line": 24,
+    "kind": "functie",
+    "label": "GET",
+    "handler": "GET"
+  },
+  {
+    "file": "app/api/god/rules/route.ts",
+    "line": 35,
+    "kind": "functie",
+    "label": "POST",
+    "handler": "POST"
+  },
+  {
+    "file": "app/api/god/source/route.ts",
+    "line": 15,
+    "kind": "functie",
+    "label": "GET",
+    "handler": "GET"
+  },
+  {
+    "file": "app/api/god/source/route.ts",
+    "line": 60,
+    "kind": "functie",
+    "label": "POST",
+    "handler": "POST"
+  },
+  {
+    "file": "app/api/god/sql/route.ts",
+    "line": 16,
+    "kind": "functie",
+    "label": "GET",
+    "handler": "GET"
+  },
+  {
+    "file": "app/api/god/sql/route.ts",
+    "line": 25,
+    "kind": "functie",
+    "label": "POST",
+    "handler": "POST"
+  },
+  {
+    "file": "app/api/push/config/route.ts",
+    "line": 5,
+    "kind": "functie",
+    "label": "GET",
+    "handler": "GET"
+  },
+  {
+    "file": "app/api/push/subscription/route.ts",
+    "line": 39,
+    "kind": "functie",
+    "label": "POST",
+    "handler": "POST"
+  },
+  {
+    "file": "app/api/push/subscription/route.ts",
+    "line": 61,
+    "kind": "functie",
+    "label": "DELETE",
+    "handler": "DELETE"
+  },
+  {
+    "file": "app/api/uptilldawn/export/route.ts",
+    "line": 24,
+    "kind": "functie",
+    "label": "GET",
+    "handler": "GET"
+  },
+  {
+    "file": "app/auth/callback/route.ts",
+    "line": 3,
+    "kind": "functie",
+    "label": "GET",
+    "handler": "GET"
+  },
+  {
+    "file": "app/auth/reset-password/page.tsx",
+    "line": 14,
+    "kind": "functie",
+    "label": "ResetPasswordPage",
+    "handler": "ResetPasswordPage"
+  },
+  {
+    "file": "app/auth/reset-password/page.tsx",
+    "line": 38,
+    "kind": "h1",
+    "label": "Nieuw wachtwoord",
+    "handler": ""
+  },
+  {
+    "file": "app/auth/reset-password/page.tsx",
+    "line": 43,
+    "kind": "form",
+    "label": "Nieuw wachtwoord setShow(v=>!v)} className=\"absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground\"> {show? : } Bevestig wachtwoord {pending&& }Wachtwoord opslaan",
+    "handler": "onSubmit={submit}"
+  },
+  {
+    "file": "app/auth/reset-password/page.tsx",
+    "line": 48,
+    "kind": "button",
+    "label": "{show? : }",
+    "handler": "onClick={()=>setShow(v=>!v)}"
+  },
+  {
+    "file": "app/auth/reset-password/page.tsx",
+    "line": 57,
+    "kind": "Button",
+    "label": "{pending&& } Wachtwoord opslaan",
+    "handler": ""
+  },
+  {
+    "file": "app/auth/reset-password/page.tsx",
+    "line": 61,
+    "kind": "Link",
+    "label": "Terug naar inloggen",
+    "handler": "href=\"/login\""
+  },
+  {
+    "file": "app/god-mode/login/page.tsx",
+    "line": 8,
+    "kind": "functie",
+    "label": "GodModeLoginPage",
+    "handler": "GodModeLoginPage"
+  },
+  {
+    "file": "app/god-mode/login/page.tsx",
+    "line": 20,
+    "kind": "h1",
+    "label": "Beveiligde toegang",
+    "handler": ""
+  },
+  {
+    "file": "app/god-mode/login/page.tsx",
+    "line": 21,
+    "kind": "form",
+    "label": "Login Wachtwoord {params.error? Toegang geweigerd. :null} AANMELDEN",
+    "handler": "action={signInGodMode}"
+  },
+  {
+    "file": "app/god-mode/login/page.tsx",
+    "line": 23,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/god-mode/login/page.tsx",
+    "line": 26,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/god-mode/login/page.tsx",
+    "line": 29,
+    "kind": "button",
+    "label": "AANMELDEN",
+    "handler": ""
+  },
+  {
+    "file": "app/god-mode/page.tsx",
+    "line": 10,
+    "kind": "functie",
+    "label": "GodModePage",
+    "handler": "GodModePage"
+  },
+  {
+    "file": "app/god-mode/page.tsx",
+    "line": 21,
+    "kind": "h1",
+    "label": "App Studio",
+    "handler": ""
+  },
+  {
+    "file": "app/god-mode/page.tsx",
+    "line": 23,
+    "kind": "Link",
+    "label": "Website openen",
+    "handler": "href=\"/\""
+  },
+  {
+    "file": "app/god-mode/page.tsx",
+    "line": 23,
+    "kind": "form",
+    "label": "God Mode afsluiten",
+    "handler": "action={godModeLogout}"
+  },
+  {
+    "file": "app/god-mode/page.tsx",
+    "line": 23,
+    "kind": "button",
+    "label": "God Mode afsluiten",
+    "handler": ""
+  },
+  {
+    "file": "app/god-mode/setup/page.tsx",
+    "line": 7,
+    "kind": "functie",
+    "label": "GodModeSetupPage",
+    "handler": "GodModeSetupPage"
+  },
+  {
+    "file": "app/god-mode/setup/page.tsx",
+    "line": 18,
+    "kind": "h1",
+    "label": "{configured?'God Mode login wijzigen':'God Mode eenmalig activeren'}",
+    "handler": ""
+  },
+  {
+    "file": "app/god-mode/setup/page.tsx",
+    "line": 20,
+    "kind": "form",
+    "label": "Login God Mode wachtwoord Bevestig wachtwoord {configured?'LOGIN WIJZIGEN':'GOD MODE ACTIVEREN'}",
+    "handler": "action={configureGodMode}"
+  },
+  {
+    "file": "app/god-mode/setup/page.tsx",
+    "line": 22,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/god-mode/setup/page.tsx",
+    "line": 25,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/god-mode/setup/page.tsx",
+    "line": 28,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/god-mode/setup/page.tsx",
+    "line": 30,
+    "kind": "button",
+    "label": "{configured?'LOGIN WIJZIGEN':'GOD MODE ACTIVEREN'}",
+    "handler": ""
+  },
+  {
+    "file": "app/layout.tsx",
+    "line": 44,
+    "kind": "functie",
+    "label": "RootLayout",
+    "handler": "RootLayout"
+  },
+  {
+    "file": "app/manifest.ts",
+    "line": 3,
+    "kind": "functie",
+    "label": "manifest",
+    "handler": "manifest"
+  },
+  {
+    "file": "app/robots.ts",
+    "line": 3,
+    "kind": "functie",
+    "label": "robots",
+    "handler": "robots"
+  },
+  {
+    "file": "app/sitemap.ts",
+    "line": 5,
+    "kind": "functie",
+    "label": "sitemap",
+    "handler": "sitemap"
+  },
+  {
+    "file": "components/admin/live-operations-timers.tsx",
+    "line": 52,
+    "kind": "functie",
+    "label": "AdminActivePersonnel",
+    "handler": "AdminActivePersonnel"
+  },
+  {
+    "file": "components/admin/live-operations-timers.tsx",
+    "line": 72,
+    "kind": "h3",
+    "label": "{group.name}",
+    "handler": ""
+  },
+  {
+    "file": "components/admin/live-operations-timers.tsx",
+    "line": 83,
+    "kind": "functie",
+    "label": "AdminRunningShifts",
+    "handler": "AdminRunningShifts"
+  },
+  {
+    "file": "components/auth/admin-only.tsx",
+    "line": 5,
+    "kind": "functie",
+    "label": "AdminOnly",
+    "handler": "AdminOnly"
+  },
+  {
+    "file": "components/auth/assigned-event-only.tsx",
+    "line": 5,
+    "kind": "functie",
+    "label": "AssignedEventOnly",
+    "handler": "AssignedEventOnly"
+  },
+  {
+    "file": "components/auth/manager-only.tsx",
+    "line": 5,
+    "kind": "functie",
+    "label": "ManagerOnly",
+    "handler": "ManagerOnly"
+  },
+  {
+    "file": "components/auth/staff-availability.tsx",
+    "line": 5,
+    "kind": "functie",
+    "label": "StaffAvailability",
+    "handler": "StaffAvailability"
+  },
+  {
+    "file": "components/auth/staff-availability.tsx",
+    "line": 21,
+    "kind": "functie",
+    "label": "StaffUnavailableMessage",
+    "handler": "StaffUnavailableMessage"
+  },
+  {
+    "file": "components/crew/address-autocomplete.tsx",
+    "line": 16,
+    "kind": "functie",
+    "label": "AddressAutocomplete",
+    "handler": "AddressAutocomplete"
+  },
+  {
+    "file": "components/crew/address-autocomplete.tsx",
+    "line": 67,
+    "kind": "input",
+    "label": "0} value={value} onFocus={()=>setFocused(true)} onBlur={()=>window.setTimeout(()=>{setFocused(false);setSuggestions([])},120)} onChange={e=>{ const next=e.target.value setValue(nex",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/address-autocomplete.tsx",
+    "line": 96,
+    "kind": "button",
+    "label": "{item.addressLine1||item.name} {item.formatted}",
+    "handler": "onClick={()=>choose(item)}"
+  },
+  {
+    "file": "components/crew/assignment-scope-fields.tsx",
+    "line": 10,
+    "kind": "functie",
+    "label": "AssignmentScopeFields",
+    "handler": "AssignmentScopeFields"
+  },
+  {
+    "file": "components/crew/assignment-scope-fields.tsx",
+    "line": 78,
+    "kind": "select",
+    "label": "Evenement… {events.map(event => {event.name} )}",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/assignment-scope-fields.tsx",
+    "line": 93,
+    "kind": "select",
+    "label": "{showEventSelect ? {workplaceRequired?'Werkplek…':'Geheel evenement'} : Werkplek… } {visibleWorkplaces.map(workplace => { const eventName = events.find(event => event.id === workpl",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/assignment-scope-fields.tsx",
+    "line": 123,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/assignment-scope-fields.tsx",
+    "line": 128,
+    "kind": "select",
+    "label": "Medewerker… {visiblePeople.map(person => {person.full_name || \"Naam ontbreekt\"} , )}",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/chat-client.tsx",
+    "line": 14,
+    "kind": "functie",
+    "label": "ChatClient",
+    "handler": "ChatClient"
+  },
+  {
+    "file": "components/crew/chat-client.tsx",
+    "line": 128,
+    "kind": "h1",
+    "label": "Chat",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/chat-client.tsx",
+    "line": 133,
+    "kind": "button",
+    "label": "{channelName(selectedChannel)} Tik om van chat te wisselen",
+    "handler": "onClick={()=>setPickerOpen(open=>!open)}"
+  },
+  {
+    "file": "components/crew/chat-client.tsx",
+    "line": 140,
+    "kind": "button",
+    "label": "",
+    "handler": "onClick={()=>setPickerOpen(false)}"
+  },
+  {
+    "file": "components/crew/chat-client.tsx",
+    "line": 181,
+    "kind": "a",
+    "label": "",
+    "handler": "href={attachment.url}"
+  },
+  {
+    "file": "components/crew/chat-client.tsx",
+    "line": 188,
+    "kind": "button",
+    "label": "Modereer",
+    "handler": "onClick={()=>moderate(message.id)}"
+  },
+  {
+    "file": "components/crew/chat-client.tsx",
+    "line": 200,
+    "kind": "button",
+    "label": "",
+    "handler": "onClick={()=>{setFile(null);setFileKey(key=>key+1)}}"
+  },
+  {
+    "file": "components/crew/chat-client.tsx",
+    "line": 202,
+    "kind": "form",
+    "label": "setFile(event.target.files?.[0]||null)} className=\"sr-only\"/> setBody(event.target.value)} placeholder=\"Typ een bericht…\" className=\"max-h-32 min-h-11 min-w-0 flex-1 resize-none ro",
+    "handler": "onSubmit={event=>{event.preventDefault();void sendMessage()}}"
+  },
+  {
+    "file": "components/crew/chat-client.tsx",
+    "line": 205,
+    "kind": "input",
+    "label": "setFile(event.target.files?.[0]||null)} className=\"sr-only\"/>",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/chat-client.tsx",
+    "line": 207,
+    "kind": "textarea",
+    "label": "setBody(event.target.value)} placeholder=\"Typ een bericht…\" className=\"max-h-32 min-h-11 min-w-0 flex-1 resize-none rounded-2xl border bg-card px-4 py-3 text-sm outline-none focus:",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/chat-client.tsx",
+    "line": 216,
+    "kind": "button",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/chat-client.tsx",
+    "line": 227,
+    "kind": "button",
+    "label": "{name}",
+    "handler": "onClick={()=>onChoose(channel.id)}"
+  },
+  {
+    "file": "components/crew/date-input.tsx",
+    "line": 12,
+    "kind": "functie",
+    "label": "DateInput",
+    "handler": "DateInput"
+  },
+  {
+    "file": "components/crew/date-input.tsx",
+    "line": 18,
+    "kind": "input",
+    "label": "{ setLocal(e.target.value) setIso(e.target.value ? new Date(e.target.value).toISOString() : '') }} />",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/date-input.tsx",
+    "line": 28,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/incident-controls.tsx",
+    "line": 7,
+    "kind": "functie",
+    "label": "IncidentControls",
+    "handler": "IncidentControls"
+  },
+  {
+    "file": "components/crew/incident-controls.tsx",
+    "line": 32,
+    "kind": "button",
+    "label": "ERKENNEN",
+    "handler": "onClick={() => run('acknowledge')}"
+  },
+  {
+    "file": "components/crew/incident-controls.tsx",
+    "line": 33,
+    "kind": "button",
+    "label": "OPGELOST",
+    "handler": "onClick={() => run('resolve')}"
+  },
+  {
+    "file": "components/crew/incident-form.tsx",
+    "line": 15,
+    "kind": "functie",
+    "label": "IncidentForm",
+    "handler": "IncidentForm"
+  },
+  {
+    "file": "components/crew/incident-form.tsx",
+    "line": 36,
+    "kind": "form",
+    "label": "URGENT MELDEN { const next=e.target.value setEventId(next) if(!contexts.some(context=>context.event_id===next&&context.workplace_id===workplaceId))setWorkplaceId('') }} className=\"",
+    "handler": "onSubmit={async e=>{\n    e.preventDefault()\n    if(busy)return\n    setBusy(true);setStatus('')\n    const fd=new FormData(e.currentTarget)\n    const selectedEvent=String(fd.get('event')||'')\n    const selectedWorkplace=St"
+  },
+  {
+    "file": "components/crew/incident-form.tsx",
+    "line": 74,
+    "kind": "h2",
+    "label": "URGENT MELDEN",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/incident-form.tsx",
+    "line": 75,
+    "kind": "select",
+    "label": "Selecteer evenement {events.map(e=> {e.name} )}",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/incident-form.tsx",
+    "line": 83,
+    "kind": "select",
+    "label": "Geen specifieke werkplek {contexts.filter(context=>!eventId||context.event_id===eventId).map(context=> {context.workplace_name} )}",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/incident-form.tsx",
+    "line": 89,
+    "kind": "textarea",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/incident-form.tsx",
+    "line": 91,
+    "kind": "input",
+    "label": "setFile(e.target.files?.[0]||null)} className=\"mt-1 block w-full rounded-lg border bg-background p-3\"/>",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/incident-form.tsx",
+    "line": 94,
+    "kind": "button",
+    "label": "{busy?'BEWAREN…':'URGENT VERSTUREN'}",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/profile-form.tsx",
+    "line": 18,
+    "kind": "functie",
+    "label": "ProfileForm",
+    "handler": "ProfileForm"
+  },
+  {
+    "file": "components/crew/profile-form.tsx",
+    "line": 31,
+    "kind": "form",
+    "label": "{photoUrl && {/* Private signed storage URL. */} {/* eslint-disable-next-line @next/next/no-img-element */} } Naam Telefoon Geboortedatum Rijksregisternummer IBAN Permanente profie",
+    "handler": "onSubmit={async e => {\n    e.preventDefault()\n    if (busy) return\n    setBusy(true)\n    setMsg('')\n    const form = new FormData(e.currentTarget)\n    const s = createClient()\n    const file = form.get('photo')\n    const"
+  },
+  {
+    "file": "components/crew/profile-form.tsx",
+    "line": 87,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/profile-form.tsx",
+    "line": 89,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/profile-form.tsx",
+    "line": 90,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/profile-form.tsx",
+    "line": 91,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/profile-form.tsx",
+    "line": 92,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/profile-form.tsx",
+    "line": 93,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/profile-form.tsx",
+    "line": 95,
+    "kind": "button",
+    "label": "{busy ? 'OPSLAAN…' : 'PROFIEL OPSLAAN'}",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/queue-status.tsx",
+    "line": 7,
+    "kind": "functie",
+    "label": "QueueStatus",
+    "handler": "QueueStatus"
+  },
+  {
+    "file": "components/crew/queue-status.tsx",
+    "line": 44,
+    "kind": "button",
+    "label": "Opnieuw proberen",
+    "handler": "onClick={() => user && void synchronize(user.id)}"
+  },
+  {
+    "file": "components/crew/queue-status.tsx",
+    "line": 45,
+    "kind": "Link",
+    "label": "Details / probleem oplossen",
+    "handler": "href=\"/sync\""
+  },
+  {
+    "file": "components/crew/staff-workplace-personnel.tsx",
+    "line": 14,
+    "kind": "functie",
+    "label": "StaffWorkplacePersonnel",
+    "handler": "StaffWorkplacePersonnel"
+  },
+  {
+    "file": "components/crew/staff-workplace-personnel.tsx",
+    "line": 40,
+    "kind": "h3",
+    "label": "{group.name}",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/sync-center.tsx",
+    "line": 28,
+    "kind": "functie",
+    "label": "SyncCenter",
+    "handler": "SyncCenter"
+  },
+  {
+    "file": "components/crew/sync-center.tsx",
+    "line": 108,
+    "kind": "button",
+    "label": "OPNIEUW SYNCHRONISEREN",
+    "handler": "onClick={retry}"
+  },
+  {
+    "file": "components/crew/sync-center.tsx",
+    "line": 116,
+    "kind": "h2",
+    "label": "{labels[op.type] || op.type}",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/sync-center.tsx",
+    "line": 126,
+    "kind": "button",
+    "label": "Definitief uit wachtrij verwijderen",
+    "handler": "onClick={() => discardOperation(op)}"
+  },
+  {
+    "file": "components/crew/sync-center.tsx",
+    "line": 132,
+    "kind": "h2",
+    "label": "{labels[upload.kind]}",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/sync-center.tsx",
+    "line": 138,
+    "kind": "button",
+    "label": "Bestand definitief verwijderen",
+    "handler": "onClick={() => discardUpload(upload)}"
+  },
+  {
+    "file": "components/crew/task-controls.tsx",
+    "line": 12,
+    "kind": "functie",
+    "label": "TaskControls",
+    "handler": "TaskControls"
+  },
+  {
+    "file": "components/crew/task-controls.tsx",
+    "line": 12,
+    "kind": "button",
+    "label": "{status.label}",
+    "handler": "onClick={async()=>{setBusy(true);setError(false);try{await enqueue(userId,'task',{assignment_id:id,status:status.value});router.refresh()}catch{setError(true)}finally{setBusy(false)}}}"
+  },
+  {
+    "file": "components/crew/time-correction-form.tsx",
+    "line": 7,
+    "kind": "functie",
+    "label": "TimeCorrectionForm",
+    "handler": "TimeCorrectionForm"
+  },
+  {
+    "file": "components/crew/time-correction-form.tsx",
+    "line": 46,
+    "kind": "form",
+    "label": "Starttijd {endedAt && Eindtijd } CORRIGEER {message || `Huidig: ${new Date(startedAt).toLocaleString('nl-BE')}${endedAt ? ` → ${new Date(endedAt).toLocaleString('nl-BE')}` : ' → ac",
+    "handler": "action={submit}"
+  },
+  {
+    "file": "components/crew/time-correction-form.tsx",
+    "line": 47,
+    "kind": "select",
+    "label": "Starttijd {endedAt && Eindtijd }",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/time-correction-form.tsx",
+    "line": 51,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/time-correction-form.tsx",
+    "line": 52,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/time-correction-form.tsx",
+    "line": 53,
+    "kind": "button",
+    "label": "CORRIGEER",
+    "handler": ""
+  },
+  {
+    "file": "components/events/delete-event-button.tsx",
+    "line": 5,
+    "kind": "functie",
+    "label": "DeleteEventButton",
+    "handler": "DeleteEventButton"
+  },
+  {
+    "file": "components/events/delete-event-button.tsx",
+    "line": 6,
+    "kind": "form",
+    "label": "Verwijderen",
+    "handler": "action={deleteEvent} onSubmit={event=>{\n    if(!window.confirm(`Evenement “${eventName}” definitief verwijderen? Alle gekoppelde operationele gegevens worden mee verwijderd.`)){\n      event.preventDefault()\n    }\n  }}"
+  },
+  {
+    "file": "components/events/delete-event-button.tsx",
+    "line": 11,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/events/delete-event-button.tsx",
+    "line": 12,
+    "kind": "button",
+    "label": "Verwijderen",
+    "handler": ""
+  },
+  {
+    "file": "components/events/facebook-event-field.tsx",
+    "line": 20,
+    "kind": "functie",
+    "label": "FacebookEventField",
+    "handler": "FacebookEventField"
+  },
+  {
+    "file": "components/events/facebook-event-field.tsx",
+    "line": 63,
+    "kind": "input",
+    "label": "{setUrl(e.target.value);setEvent(null);setMessage(\"\")}} placeholder=\"https://www.facebook.com/events/...\" className=\"min-w-0 flex-1 rounded-lg border bg-background p-3\" />",
+    "handler": ""
+  },
+  {
+    "file": "components/events/facebook-event-field.tsx",
+    "line": 72,
+    "kind": "button",
+    "label": "{busy?\"IMPORTEREN…\":\"IMPORTEREN\"}",
+    "handler": "onClick={()=>void importEvent()}"
+  },
+  {
+    "file": "components/events/geoapify-place-fields.tsx",
+    "line": 25,
+    "kind": "functie",
+    "label": "GeoapifyPlaceFields",
+    "handler": "GeoapifyPlaceFields"
+  },
+  {
+    "file": "components/events/geoapify-place-fields.tsx",
+    "line": 154,
+    "kind": "button",
+    "label": "{suggestion.name} {suggestion.formatted}",
+    "handler": "onClick={()=>selectSuggestion(suggestion)}"
+  },
+  {
+    "file": "components/events/geoapify-place-fields.tsx",
+    "line": 173,
+    "kind": "input",
+    "label": "editField(\"venue\",event.target.value)} onFocus={()=>focusField(\"venue\")} onBlur={()=>blurField(\"venue\")} onKeyDown={handleKeyDown} maxLength={200} placeholder=\"Zoek locatie\" autoCo",
+    "handler": ""
+  },
+  {
+    "file": "components/events/geoapify-place-fields.tsx",
+    "line": 194,
+    "kind": "input",
+    "label": "editField(\"address\",event.target.value)} onFocus={()=>focusField(\"address\")} onBlur={()=>blurField(\"address\")} onKeyDown={handleKeyDown} maxLength={500} placeholder=\"Zoek adres\" au",
+    "handler": ""
+  },
+  {
+    "file": "components/events/geoapify-place-fields.tsx",
+    "line": 213,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/events/geoapify-place-fields.tsx",
+    "line": 214,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/events/geoapify-place-fields.tsx",
+    "line": 215,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/events/geoapify-place-fields.tsx",
+    "line": 216,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/events/geoapify-place-fields.tsx",
+    "line": 220,
+    "kind": "a",
+    "label": "Open adres in Google Maps",
+    "handler": "href={mapsUri}"
+  },
+  {
+    "file": "components/events/geoapify-place-fields.tsx",
+    "line": 222,
+    "kind": "a",
+    "label": "Geoapify",
+    "handler": "href=\"https://www.geoapify.com/\""
+  },
+  {
+    "file": "components/events/geoapify-place-fields.tsx",
+    "line": 224,
+    "kind": "a",
+    "label": "OpenStreetMap contributors",
+    "handler": "href=\"https://www.openstreetmap.org/copyright\""
+  },
+  {
+    "file": "components/first-use-install-prompt.tsx",
+    "line": 21,
+    "kind": "functie",
+    "label": "FirstUseInstallPrompt",
+    "handler": "FirstUseInstallPrompt"
+  },
+  {
+    "file": "components/first-use-install-prompt.tsx",
+    "line": 107,
+    "kind": "button",
+    "label": "",
+    "handler": "onClick={dismiss}"
+  },
+  {
+    "file": "components/first-use-install-prompt.tsx",
+    "line": 113,
+    "kind": "h2",
+    "label": "Up Till Dawn toevoegen aan uw toestel",
+    "handler": ""
+  },
+  {
+    "file": "components/first-use-install-prompt.tsx",
+    "line": 123,
+    "kind": "button",
+    "label": "{busy?\"INSTALLATIE STARTEN…\":iosHelp?\"IK OPEN HET DEELMENU\":\"BEVESTIGEN\"}",
+    "handler": "onClick={()=>void confirm()}"
+  },
+  {
+    "file": "components/god-mode/code-editor.tsx",
+    "line": 14,
+    "kind": "functie",
+    "label": "CodeEditor",
+    "handler": "CodeEditor"
+  },
+  {
+    "file": "components/god-mode/code-editor.tsx",
+    "line": 41,
+    "kind": "button",
+    "label": "Zoeken / vervangen",
+    "handler": "onClick={()=>{if(ref.current?.view)openSearchPanel(ref.current.view)}}"
+  },
+  {
+    "file": "components/god-mode/code-editor.tsx",
+    "line": 41,
+    "kind": "button",
+    "label": "Ongedaan",
+    "handler": "onClick={()=>{if(ref.current?.view)undo(ref.current.view)}}"
+  },
+  {
+    "file": "components/god-mode/code-editor.tsx",
+    "line": 41,
+    "kind": "button",
+    "label": "Opnieuw",
+    "handler": "onClick={()=>{if(ref.current?.view)redo(ref.current.view)}}"
+  },
+  {
+    "file": "components/god-mode/code-editor.tsx",
+    "line": 41,
+    "kind": "button",
+    "label": "Formatteren",
+    "handler": "onClick={()=>void format()}"
+  },
+  {
+    "file": "components/god-mode/code-editor.tsx",
+    "line": 41,
+    "kind": "button",
+    "label": "Knop invoegen",
+    "handler": "onClick={insertButton}"
+  },
+  {
+    "file": "components/god-mode/god-data-editor.tsx",
+    "line": 8,
+    "kind": "functie",
+    "label": "GodDataEditor",
+    "handler": "GodDataEditor"
+  },
+  {
+    "file": "components/god-mode/god-data-editor.tsx",
+    "line": 65,
+    "kind": "h2",
+    "label": "Alle applicatiegegevens",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-data-editor.tsx",
+    "line": 66,
+    "kind": "select",
+    "label": "Kies een tabel {tables.map(t=> {t.name} )}",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-data-editor.tsx",
+    "line": 66,
+    "kind": "button",
+    "label": "Record toevoegen",
+    "handler": "onClick={()=>edit(null)}"
+  },
+  {
+    "file": "components/god-mode/god-data-editor.tsx",
+    "line": 66,
+    "kind": "button",
+    "label": "Vernieuwen",
+    "handler": "onClick={()=>void load(table,offset)}"
+  },
+  {
+    "file": "components/god-mode/god-data-editor.tsx",
+    "line": 68,
+    "kind": "button",
+    "label": "Bewerken",
+    "handler": "onClick={()=>edit(row)}"
+  },
+  {
+    "file": "components/god-mode/god-data-editor.tsx",
+    "line": 69,
+    "kind": "button",
+    "label": "Vorige",
+    "handler": "onClick={()=>void load(table,Math.max(0,offset-50))}"
+  },
+  {
+    "file": "components/god-mode/god-data-editor.tsx",
+    "line": 69,
+    "kind": "button",
+    "label": "Volgende",
+    "handler": "onClick={()=>void load(table,offset+50)}"
+  },
+  {
+    "file": "components/god-mode/god-data-editor.tsx",
+    "line": 70,
+    "kind": "h3",
+    "label": "{original?'Record bewerken':'Nieuw record'} · {table}",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-data-editor.tsx",
+    "line": 70,
+    "kind": "textarea",
+    "label": "setValue(e.target.value)} rows={16} spellCheck={false} className=\"w-full rounded-xl border bg-background p-3 font-mono text-sm\"/>",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-data-editor.tsx",
+    "line": 70,
+    "kind": "button",
+    "label": "Direct opslaan",
+    "handler": "onClick={()=>void save()}"
+  },
+  {
+    "file": "components/god-mode/god-data-editor.tsx",
+    "line": 70,
+    "kind": "button",
+    "label": "Sluiten",
+    "handler": "onClick={()=>setEditing(false)}"
+  },
+  {
+    "file": "components/god-mode/god-data-editor.tsx",
+    "line": 70,
+    "kind": "button",
+    "label": "Verwijderen",
+    "handler": "onClick={()=>setConfirmDelete(true)}"
+  },
+  {
+    "file": "components/god-mode/god-data-editor.tsx",
+    "line": 70,
+    "kind": "button",
+    "label": "Record definitief verwijderen",
+    "handler": "onClick={()=>void save(true)}"
+  },
+  {
+    "file": "components/god-mode/god-mode-editor.tsx",
+    "line": 38,
+    "kind": "functie",
+    "label": "GodModeEditor",
+    "handler": "GodModeEditor"
+  },
+  {
+    "file": "components/god-mode/god-mode-editor.tsx",
+    "line": 137,
+    "kind": "button",
+    "label": "{item.label}",
+    "handler": "onClick={()=>setRole(item.value)}"
+  },
+  {
+    "file": "components/god-mode/god-mode-editor.tsx",
+    "line": 146,
+    "kind": "Link",
+    "label": "Website openen",
+    "handler": "href=\"/\""
+  },
+  {
+    "file": "components/god-mode/god-mode-editor.tsx",
+    "line": 147,
+    "kind": "Link",
+    "label": "God login wijzigen",
+    "handler": "href=\"/god-mode/setup\""
+  },
+  {
+    "file": "components/god-mode/god-mode-editor.tsx",
+    "line": 148,
+    "kind": "form",
+    "label": "God Mode afsluiten",
+    "handler": "action={godModeLogout}"
+  },
+  {
+    "file": "components/god-mode/god-mode-editor.tsx",
+    "line": 148,
+    "kind": "button",
+    "label": "God Mode afsluiten",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-mode-editor.tsx",
+    "line": 154,
+    "kind": "h2",
+    "label": "AI app-editor",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-mode-editor.tsx",
+    "line": 157,
+    "kind": "textarea",
+    "label": "setAiPrompt(e.target.value)} rows={4} maxLength={4000} placeholder=\"Bijv. zet Werkplekken vóór Taken en toon Werkuren alleen tijdens een actieve shift.\" className=\"w-full rounded-x",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-mode-editor.tsx",
+    "line": 165,
+    "kind": "button",
+    "label": "{aiBusy?\"AI DENKT…\":\"VRAAG AI\"}",
+    "handler": "onClick={()=>void askAi()}"
+  },
+  {
+    "file": "components/god-mode/god-mode-editor.tsx",
+    "line": 171,
+    "kind": "button",
+    "label": "{aiReply.patches.length} AI-WIJZIGING {aiReply.patches.length===1?\"\":\"EN\"} TOEPASSEN",
+    "handler": "onClick={applyAi}"
+  },
+  {
+    "file": "components/god-mode/god-mode-editor.tsx",
+    "line": 179,
+    "kind": "h2",
+    "label": "Layout & rolrechten",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-mode-editor.tsx",
+    "line": 180,
+    "kind": "button",
+    "label": "Standaard laden",
+    "handler": "onClick={()=>setRules(getDefaultRoleUiRules(role))}"
+  },
+  {
+    "file": "components/god-mode/god-mode-editor.tsx",
+    "line": 197,
+    "kind": "input",
+    "label": "patch(rule.feature_key,{label:e.target.value})} className=\"rounded-lg border bg-background p-2\"/>",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-mode-editor.tsx",
+    "line": 199,
+    "kind": "input",
+    "label": "patch(rule.feature_key,{visible:e.target.checked})}/>",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-mode-editor.tsx",
+    "line": 200,
+    "kind": "input",
+    "label": "patch(rule.feature_key,{enabled:e.target.checked})}/>",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-mode-editor.tsx",
+    "line": 202,
+    "kind": "select",
+    "label": "{conditions.map(item=> {item.label} )}",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-mode-editor.tsx",
+    "line": 209,
+    "kind": "button",
+    "label": "{busy?\"OPSLAAN…\":\"GOD MODE WIJZIGINGEN OPSLAAN\"}",
+    "handler": "onClick={()=>void save()}"
+  },
+  {
+    "file": "components/god-mode/god-sql-editor.tsx",
+    "line": 11,
+    "kind": "functie",
+    "label": "GodSqlEditor",
+    "handler": "GodSqlEditor"
+  },
+  {
+    "file": "components/god-mode/god-sql-editor.tsx",
+    "line": 28,
+    "kind": "h2",
+    "label": "Logica, workflows & SQL",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-sql-editor.tsx",
+    "line": 28,
+    "kind": "button",
+    "label": "{t.name}",
+    "handler": "onClick={()=>{setSql(t.sql);setConfirmed(false)}}"
+  },
+  {
+    "file": "components/god-mode/god-sql-editor.tsx",
+    "line": 28,
+    "kind": "textarea",
+    "label": "{setSql(e.target.value);setConfirmed(false)}} className=\"w-full rounded-xl border bg-background p-3 font-mono text-sm\"/>",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-sql-editor.tsx",
+    "line": 28,
+    "kind": "input",
+    "label": "{setWrite(e.target.checked);setConfirmed(false)}}/>",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-sql-editor.tsx",
+    "line": 28,
+    "kind": "input",
+    "label": "setConfirmed(e.target.checked)}/>",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-sql-editor.tsx",
+    "line": 28,
+    "kind": "button",
+    "label": "{busy?'UITVOEREN…':write?'WIJZIGING UITVOEREN':'ALLEEN LEZEN UITVOEREN'}",
+    "handler": "onClick={()=>void run()}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 26,
+    "kind": "functie",
+    "label": "GodStudio",
+    "handler": "GodStudio"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 135,
+    "kind": "button",
+    "label": "{label}",
+    "handler": "onClick={()=>{setTab(key);if(key==='versions')void action(loadHistory)}}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 138,
+    "kind": "button",
+    "label": "Concept downloaden",
+    "handler": "onClick={exportDraft}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 138,
+    "kind": "button",
+    "label": "Concept importeren",
+    "handler": "onClick={()=>uploadRef.current?.click()}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 138,
+    "kind": "input",
+    "label": "{const file=e.target.files?.[0];if(file)void action(()=>importDraft(file));e.target.value=''}}/>",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 139,
+    "kind": "input",
+    "label": "setSearch(e.target.value)} className=\"w-full rounded-lg border bg-background p-2 text-sm\"/>",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 139,
+    "kind": "button",
+    "label": "{Object.hasOwn(drafts,file)?'● ':''} {file}",
+    "handler": "onClick={()=>void open(file)}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 139,
+    "kind": "input",
+    "label": "setNewPath(e.target.value)} className=\"w-full rounded-lg border bg-background p-2 text-xs\"/>",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 139,
+    "kind": "button",
+    "label": "Bestand toevoegen",
+    "handler": "onClick={addFile}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 139,
+    "kind": "h2",
+    "label": "{path}",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 139,
+    "kind": "button",
+    "label": "Bestand verwijderen",
+    "handler": "onClick={()=>{setDrafts(current=>({...current,[path]:null}));setMessage('Verwijdering staat klaar in je concept; pas definitief na publicatie.')}}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 139,
+    "kind": "button",
+    "label": "Ongedaan maken",
+    "handler": "onClick={()=>setDrafts(current=>{const next={...current};delete next[path];return next})}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 140,
+    "kind": "h2",
+    "label": "AI-programmeur",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 140,
+    "kind": "textarea",
+    "label": "setAiPrompt(e.target.value)} placeholder=\"Voeg een knop toe die… / Verander deze workflow zodat…\" className=\"w-full rounded-xl border bg-background p-3\"/>",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 140,
+    "kind": "button",
+    "label": "Codevoorstel maken",
+    "handler": "onClick={()=>void action(askAi)}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 140,
+    "kind": "button",
+    "label": "Voorstel in concept overnemen",
+    "handler": "onClick={()=>void action(applyAi)}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 141,
+    "kind": "h2",
+    "label": "Wijzigingen controleren",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 141,
+    "kind": "input",
+    "label": "setTitle(e.target.value)} placeholder=\"Beschrijf wat je verandert\" className=\"w-full rounded-xl border bg-background p-3\"/>",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 141,
+    "kind": "button",
+    "label": "Concept opslaan & tests starten",
+    "handler": "onClick={()=>void action(save)}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 143,
+    "kind": "h2",
+    "label": "Van knop naar programmering",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 143,
+    "kind": "input",
+    "label": "setPreviewPath(e.target.value)} className=\"min-w-0 flex-1 rounded-xl border bg-background p-3\"/>",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 143,
+    "kind": "button",
+    "label": "Pagina inspecteren",
+    "handler": "onClick={()=>{if(!previewPath.startsWith('/')||previewPath.startsWith('//')||previewPath.startsWith('/god-mode')){setMessage('Gebruik een intern app-pad, bijvoorbeeld /events.');return}setPreview(previewPath)}}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 143,
+    "kind": "select",
+    "label": "Desktop Mobiel Tablet",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 143,
+    "kind": "input",
+    "label": "setElementSearch(e.target.value)} placeholder=\"Zoek knoptekst, functienaam of bestand…\" className=\"w-full rounded-xl border bg-background p-3\"/>",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 143,
+    "kind": "button",
+    "label": "{t.kind} {t.label||t.handler} {t.file}:{t.line} {t.handler}",
+    "handler": "onClick={()=>void open(t.file,t.line)}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 147,
+    "kind": "h2",
+    "label": "Versies, tests & publicatie",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 147,
+    "kind": "button",
+    "label": "Status vernieuwen",
+    "handler": "onClick={()=>void action(loadHistory)}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 147,
+    "kind": "a",
+    "label": "Laatst opgeslagen voorstel # {proposal.number}",
+    "handler": "href={proposal.url}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 147,
+    "kind": "a",
+    "label": "# {p.number} {p.title}",
+    "handler": "href={p.html_url}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 147,
+    "kind": "button",
+    "label": "Tests bekijken",
+    "handler": "onClick={()=>void action(async()=>{const data=await api<{runs:Run[]}>(`/api/god/source?action=checks&sha=${p.head.sha}`);setRuns(data.runs);setMessage(data.runs.length?'Teststatus geladen.':'Tests zijn nog niet gestart. "
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 147,
+    "kind": "button",
+    "label": "Geteste versie publiceren",
+    "handler": "onClick={()=>void action(async()=>{const data=await api<{notice:string}>('/api/god/source',{action:'publish',number:p.number,sha:p.head.sha});setMessage(data.notice);await loadHistory();await load()})}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 147,
+    "kind": "a",
+    "label": "{r.name} : {r.conclusion||r.status} · log openen",
+    "handler": "href={r.html_url}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 147,
+    "kind": "h3",
+    "label": "Broncodegeschiedenis",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 147,
+    "kind": "a",
+    "label": "{c.commit.message.split('\\n')[0]}",
+    "handler": "href={c.html_url}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 147,
+    "kind": "button",
+    "label": "Herstelvoorstel",
+    "handler": "onClick={()=>setRestore(c.sha)}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 147,
+    "kind": "button",
+    "label": "Herstelvoorstel maken",
+    "handler": "onClick={()=>void action(async()=>{const data=await api<{proposal:Proposal}>('/api/god/source',{action:'restore',target:restore,base});setProposal(data.proposal);setRestore('');await loadHistory()})}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 147,
+    "kind": "button",
+    "label": "Annuleren",
+    "handler": "onClick={()=>setRestore('')}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 148,
+    "kind": "h2",
+    "label": "Schrijftoegang koppelen",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 148,
+    "kind": "h3",
+    "label": "GitHub · {connected?'gekoppeld':'nog niet gekoppeld'}",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 148,
+    "kind": "a",
+    "label": "GitHub-toegang instellen",
+    "handler": "href=\"https://github.com/settings/personal-access-tokens/new\""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 148,
+    "kind": "input",
+    "label": "setCredential(e.target.value)} placeholder=\"GitHub-token\" className=\"w-full rounded-xl border bg-background p-3\"/>",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 148,
+    "kind": "button",
+    "label": "GitHub koppelen",
+    "handler": "onClick={()=>void action(async()=>{await api('/api/god/connection',{credential});setCredential('');setConnected(true);setMessage('GitHub gekoppeld.')})}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 148,
+    "kind": "button",
+    "label": "Ontkoppelen",
+    "handler": "onClick={()=>void action(async()=>{await api('/api/god/connection',undefined,'DELETE');setConnected(false)})}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 148,
+    "kind": "h3",
+    "label": "SQL-werkruimte · {databaseConnected?'gekoppeld':'nog niet gekoppeld'}",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 148,
+    "kind": "a",
+    "label": "Supabase-toegang instellen",
+    "handler": "href=\"https://supabase.com/dashboard/account/tokens\""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 148,
+    "kind": "input",
+    "label": "setDatabaseKey(e.target.value)} placeholder=\"Supabase Management API-token\" className=\"w-full rounded-xl border bg-background p-3\"/>",
+    "handler": ""
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 148,
+    "kind": "button",
+    "label": "SQL koppelen",
+    "handler": "onClick={()=>void action(async()=>{await api('/api/god/sql',{action:'connect',credential:databaseKey});setDatabaseKey('');setDatabaseConnected(true);setMessage('SQL-werkruimte gekoppeld.')})}"
+  },
+  {
+    "file": "components/god-mode/god-studio.tsx",
+    "line": 148,
+    "kind": "button",
+    "label": "Ontkoppelen",
+    "handler": "onClick={()=>void action(async()=>{await api('/api/god/sql',{action:'disconnect'});setDatabaseConnected(false)})}"
+  },
+  {
+    "file": "components/language-switcher.tsx",
+    "line": 11,
+    "kind": "functie",
+    "label": "LanguageSwitcher",
+    "handler": "LanguageSwitcher"
+  },
+  {
+    "file": "components/language-switcher.tsx",
+    "line": 38,
+    "kind": "select",
+    "label": "{languages.map(item => {item.label} )}",
+    "handler": ""
+  },
+  {
+    "file": "components/layout/app-layout.tsx",
+    "line": 22,
+    "kind": "functie",
+    "label": "AppLayout",
+    "handler": "AppLayout"
+  },
+  {
+    "file": "components/layout/app-layout.tsx",
+    "line": 232,
+    "kind": "Link",
+    "label": "URGENT",
+    "handler": "href=\"/incidents\""
+  },
+  {
+    "file": "components/layout/floating-chat-button.tsx",
+    "line": 21,
+    "kind": "functie",
+    "label": "FloatingChatButton",
+    "handler": "FloatingChatButton"
+  },
+  {
+    "file": "components/layout/floating-chat-button.tsx",
+    "line": 68,
+    "kind": "button",
+    "label": "{count > 0 && {count > 99 ? \"99+\" : count} }",
+    "handler": ""
+  },
+  {
+    "file": "components/layout/mobile-nav.tsx",
+    "line": 16,
+    "kind": "functie",
+    "label": "MobileBottomNav",
+    "handler": "MobileBottomNav"
+  },
+  {
+    "file": "components/layout/mobile-nav.tsx",
+    "line": 89,
+    "kind": "Link",
+    "label": "{count>0&& {count>99?\"99+\":count} } {label}",
+    "handler": "href={href} onClick={()=>setExpanded(false)}"
+  },
+  {
+    "file": "components/layout/mobile-nav.tsx",
+    "line": 122,
+    "kind": "button",
+    "label": "{expanded? : }",
+    "handler": "onClick={()=>setExpanded(value=>!value)}"
+  },
+  {
+    "file": "components/layout/sidebar.tsx",
+    "line": 12,
+    "kind": "functie",
+    "label": "AppSidebar",
+    "handler": "AppSidebar"
+  },
+  {
+    "file": "components/layout/sidebar.tsx",
+    "line": 39,
+    "kind": "Link",
+    "label": "UP TILL DAWN PERSONEELSBEHEER",
+    "handler": "href={isAdmin?\"/admin\":\"/\"}"
+  },
+  {
+    "file": "components/layout/sidebar.tsx",
+    "line": 49,
+    "kind": "Link",
+    "label": "{count>0&& {count>99?\"99+\":count} } {featureLabels[i.key] || fallbackLabel}",
+    "handler": "href={href}"
+  },
+  {
+    "file": "components/layout/topbar.tsx",
+    "line": 9,
+    "kind": "functie",
+    "label": "Topbar",
+    "handler": "Topbar"
+  },
+  {
+    "file": "components/layout/topbar.tsx",
+    "line": 16,
+    "kind": "Link",
+    "label": "Up Till Dawn",
+    "handler": "href={isAdmin?\"/admin\":\"/\"}"
+  },
+  {
+    "file": "components/layout/topbar.tsx",
+    "line": 22,
+    "kind": "Link",
+    "label": "Meldingen",
+    "handler": "href=\"/notifications\""
+  },
+  {
+    "file": "components/layout/topbar.tsx",
+    "line": 23,
+    "kind": "Link",
+    "label": "Profiel",
+    "handler": "href=\"/settings\""
+  },
+  {
+    "file": "components/layout/topbar.tsx",
+    "line": 24,
+    "kind": "button",
+    "label": "{loggingOut?\"Uitloggen…\":\"Uitloggen\"}",
+    "handler": "onClick={()=>startLogout(async()=>{\n      await disablePushNotifications().catch(()=>{})\n      await signOut()\n    })}"
+  },
+  {
+    "file": "components/locale-sync.tsx",
+    "line": 116,
+    "kind": "functie",
+    "label": "LocaleSync",
+    "handler": "LocaleSync"
+  },
+  {
+    "file": "components/push-notification-settings.tsx",
+    "line": 16,
+    "kind": "functie",
+    "label": "PushNotificationSettings",
+    "handler": "PushNotificationSettings"
+  },
+  {
+    "file": "components/push-notification-settings.tsx",
+    "line": 48,
+    "kind": "h2",
+    "label": "App- & pushmeldingen",
+    "handler": ""
+  },
+  {
+    "file": "components/push-notification-settings.tsx",
+    "line": 56,
+    "kind": "button",
+    "label": "UITSCHAKELEN",
+    "handler": "onClick={()=>void disable()}"
+  },
+  {
+    "file": "components/push-notification-settings.tsx",
+    "line": 58,
+    "kind": "button",
+    "label": "{busy?\"LADEN…\":\"PUSHMELDINGEN INSCHAKELEN\"}",
+    "handler": "onClick={()=>void enable()}"
+  },
+  {
+    "file": "components/push-permission-prompt.tsx",
+    "line": 10,
+    "kind": "functie",
+    "label": "PushPermissionPrompt",
+    "handler": "PushPermissionPrompt"
+  },
+  {
+    "file": "components/push-permission-prompt.tsx",
+    "line": 54,
+    "kind": "button",
+    "label": "{busy?\"ACTIVEREN…\":\"TOESTAAN\"}",
+    "handler": "onClick={()=>void enable()}"
+  },
+  {
+    "file": "components/push-permission-prompt.tsx",
+    "line": 55,
+    "kind": "button",
+    "label": "Later",
+    "handler": "onClick={later}"
+  },
+  {
+    "file": "components/pwa-register.tsx",
+    "line": 13,
+    "kind": "functie",
+    "label": "PwaRegister",
+    "handler": "PwaRegister"
+  },
+  {
+    "file": "components/responsible/responsible-live-personnel.tsx",
+    "line": 25,
+    "kind": "functie",
+    "label": "ResponsibleLivePersonnel",
+    "handler": "ResponsibleLivePersonnel"
+  },
+  {
+    "file": "components/responsible/responsible-live-personnel.tsx",
+    "line": 53,
+    "kind": "h3",
+    "label": "{group.name}",
+    "handler": ""
+  },
+  {
+    "file": "components/shared/footer.tsx",
+    "line": 1,
+    "kind": "functie",
+    "label": "Footer",
+    "handler": "Footer"
+  },
+  {
+    "file": "components/theme-provider.tsx",
+    "line": 9,
+    "kind": "functie",
+    "label": "ThemeProvider",
+    "handler": "ThemeProvider"
+  },
+  {
+    "file": "components/ui/input.tsx",
+    "line": 7,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "lib/actions/auth.ts",
+    "line": 35,
+    "kind": "functie",
+    "label": "signUp",
+    "handler": "signUp"
+  },
+  {
+    "file": "lib/actions/auth.ts",
+    "line": 90,
+    "kind": "functie",
+    "label": "signIn",
+    "handler": "signIn"
+  },
+  {
+    "file": "lib/actions/auth.ts",
+    "line": 258,
+    "kind": "functie",
+    "label": "signOut",
+    "handler": "signOut"
+  },
+  {
+    "file": "lib/actions/auth.ts",
+    "line": 269,
+    "kind": "functie",
+    "label": "forgotPassword",
+    "handler": "forgotPassword"
+  },
+  {
+    "file": "lib/actions/auth.ts",
+    "line": 301,
+    "kind": "functie",
+    "label": "updatePassword",
+    "handler": "updatePassword"
+  },
+  {
+    "file": "lib/actions/auth.ts",
+    "line": 329,
+    "kind": "functie",
+    "label": "resendVerificationEmail",
+    "handler": "resendVerificationEmail"
+  },
+  {
+    "file": "lib/actions/auth.ts",
+    "line": 359,
+    "kind": "functie",
+    "label": "getCurrentUser",
+    "handler": "getCurrentUser"
+  },
+  {
+    "file": "lib/actions/auth.ts",
+    "line": 406,
+    "kind": "functie",
+    "label": "verifyAdminSettingsCode",
+    "handler": "verifyAdminSettingsCode"
+  },
+  {
+    "file": "lib/actions/god-mode-login.ts",
+    "line": 9,
+    "kind": "functie",
+    "label": "signInGodMode",
+    "handler": "signInGodMode"
+  },
+  {
+    "file": "lib/actions/god-mode.ts",
+    "line": 9,
+    "kind": "functie",
+    "label": "configureGodMode",
+    "handler": "configureGodMode"
+  },
+  {
+    "file": "lib/actions/god-mode.ts",
+    "line": 37,
+    "kind": "functie",
+    "label": "godModeLogout",
+    "handler": "godModeLogout"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 165,
+    "kind": "functie",
+    "label": "createEvent",
+    "handler": "createEvent"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 191,
+    "kind": "functie",
+    "label": "addWorkplace",
+    "handler": "addWorkplace"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 204,
+    "kind": "functie",
+    "label": "updateWorkplace",
+    "handler": "updateWorkplace"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 217,
+    "kind": "functie",
+    "label": "setEventAvailability",
+    "handler": "setEventAvailability"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 232,
+    "kind": "functie",
+    "label": "addEventMember",
+    "handler": "addEventMember"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 248,
+    "kind": "functie",
+    "label": "addAvailableEventMembers",
+    "handler": "addAvailableEventMembers"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 273,
+    "kind": "functie",
+    "label": "assignAvailableCrewShift",
+    "handler": "assignAvailableCrewShift"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 316,
+    "kind": "functie",
+    "label": "assignResponsible",
+    "handler": "assignResponsible"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 360,
+    "kind": "functie",
+    "label": "demoteResponsibleToStaff",
+    "handler": "demoteResponsibleToStaff"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 423,
+    "kind": "functie",
+    "label": "createShift",
+    "handler": "createShift"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 437,
+    "kind": "functie",
+    "label": "updateShift",
+    "handler": "updateShift"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 450,
+    "kind": "functie",
+    "label": "cancelShift",
+    "handler": "cancelShift"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 456,
+    "kind": "functie",
+    "label": "setAccountStatus",
+    "handler": "setAccountStatus"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 462,
+    "kind": "functie",
+    "label": "acknowledgeBriefing",
+    "handler": "acknowledgeBriefing"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 463,
+    "kind": "functie",
+    "label": "acknowledgeInstruction",
+    "handler": "acknowledgeInstruction"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 464,
+    "kind": "functie",
+    "label": "createBriefing",
+    "handler": "createBriefing"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 492,
+    "kind": "functie",
+    "label": "createPersonalInstruction",
+    "handler": "createPersonalInstruction"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 528,
+    "kind": "functie",
+    "label": "updateBriefing",
+    "handler": "updateBriefing"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 544,
+    "kind": "functie",
+    "label": "updatePersonalInstruction",
+    "handler": "updatePersonalInstruction"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 560,
+    "kind": "functie",
+    "label": "createTask",
+    "handler": "createTask"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 638,
+    "kind": "functie",
+    "label": "removeTaskAssignment",
+    "handler": "removeTaskAssignment"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 650,
+    "kind": "functie",
+    "label": "markNotificationRead",
+    "handler": "markNotificationRead"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 655,
+    "kind": "functie",
+    "label": "archiveEvent",
+    "handler": "archiveEvent"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 656,
+    "kind": "functie",
+    "label": "duplicateEvent",
+    "handler": "duplicateEvent"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 657,
+    "kind": "functie",
+    "label": "updateEvent",
+    "handler": "updateEvent"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 671,
+    "kind": "functie",
+    "label": "deleteEvent",
+    "handler": "deleteEvent"
+  },
+  {
+    "file": "lib/crew-gps.ts",
+    "line": 2,
+    "kind": "functie",
+    "label": "captureLocation",
+    "handler": "captureLocation"
+  },
+  {
+    "file": "lib/crew-offline-snapshot.ts",
+    "line": 48,
+    "kind": "functie",
+    "label": "saveOperationsSnapshot",
+    "handler": "saveOperationsSnapshot"
+  },
+  {
+    "file": "lib/crew-offline-snapshot.ts",
+    "line": 65,
+    "kind": "functie",
+    "label": "clearOfflineIdentity",
+    "handler": "clearOfflineIdentity"
+  },
+  {
+    "file": "lib/crew-queue.ts",
+    "line": 85,
+    "kind": "functie",
+    "label": "queued",
+    "handler": "queued"
+  },
+  {
+    "file": "lib/crew-queue.ts",
+    "line": 102,
+    "kind": "functie",
+    "label": "queuedUploads",
+    "handler": "queuedUploads"
+  },
+  {
+    "file": "lib/crew-queue.ts",
+    "line": 119,
+    "kind": "functie",
+    "label": "discardQueuedOperation",
+    "handler": "discardQueuedOperation"
+  },
+  {
+    "file": "lib/crew-queue.ts",
+    "line": 127,
+    "kind": "functie",
+    "label": "discardQueuedUpload",
+    "handler": "discardQueuedUpload"
+  },
+  {
+    "file": "lib/crew-queue.ts",
+    "line": 253,
+    "kind": "functie",
+    "label": "synchronize",
+    "handler": "synchronize"
+  },
+  {
+    "file": "lib/crew-queue.ts",
+    "line": 303,
+    "kind": "functie",
+    "label": "enqueue",
+    "handler": "enqueue"
+  },
+  {
+    "file": "lib/crew-queue.ts",
+    "line": 318,
+    "kind": "functie",
+    "label": "enqueueIncidentPhoto",
+    "handler": "enqueueIncidentPhoto"
+  },
+  {
+    "file": "lib/crew-queue.ts",
+    "line": 345,
+    "kind": "functie",
+    "label": "enqueueChatPhoto",
+    "handler": "enqueueChatPhoto"
+  },
+  {
+    "file": "lib/crew-time.ts",
+    "line": 5,
+    "kind": "functie",
+    "label": "allocateTime",
+    "handler": "allocateTime"
+  },
+  {
+    "file": "lib/facebook-event.ts",
+    "line": 101,
+    "kind": "functie",
+    "label": "isFacebookEventUrl",
+    "handler": "isFacebookEventUrl"
+  },
+  {
+    "file": "lib/facebook-event.ts",
+    "line": 110,
+    "kind": "functie",
+    "label": "fetchFacebookEventInfo",
+    "handler": "fetchFacebookEventInfo"
+  },
+  {
+    "file": "lib/geoapify.ts",
+    "line": 66,
+    "kind": "functie",
+    "label": "autocompleteGeoapify",
+    "handler": "autocompleteGeoapify"
+  },
+  {
+    "file": "lib/geoapify.ts",
+    "line": 73,
+    "kind": "functie",
+    "label": "geocodeGeoapify",
+    "handler": "geocodeGeoapify"
+  },
+  {
+    "file": "lib/god-studio-server.ts",
+    "line": 9,
+    "kind": "functie",
+    "label": "authorizeStudio",
+    "handler": "authorizeStudio"
+  },
+  {
+    "file": "lib/god-studio-server.ts",
+    "line": 22,
+    "kind": "functie",
+    "label": "repositoryCredential",
+    "handler": "repositoryCredential"
+  },
+  {
+    "file": "lib/god-studio-server.ts",
+    "line": 29,
+    "kind": "functie",
+    "label": "github",
+    "handler": "github"
+  },
+  {
+    "file": "lib/god-studio-server.ts",
+    "line": 59,
+    "kind": "functie",
+    "label": "studioResponse",
+    "handler": "studioResponse"
+  },
+  {
+    "file": "lib/god-studio-server.ts",
+    "line": 63,
+    "kind": "functie",
+    "label": "studioFailure",
+    "handler": "studioFailure"
+  },
+  {
+    "file": "lib/god-studio-server.ts",
+    "line": 68,
+    "kind": "functie",
+    "label": "studioBody",
+    "handler": "studioBody"
+  },
+  {
+    "file": "lib/god-studio.ts",
+    "line": 7,
+    "kind": "functie",
+    "label": "editablePath",
+    "handler": "editablePath"
+  },
+  {
+    "file": "lib/god-studio.ts",
+    "line": 38,
+    "kind": "functie",
+    "label": "summarizeChanges",
+    "handler": "summarizeChanges"
+  },
+  {
+    "file": "lib/providers.tsx",
+    "line": 47,
+    "kind": "functie",
+    "label": "AuthProvider",
+    "handler": "AuthProvider"
+  },
+  {
+    "file": "lib/providers.tsx",
+    "line": 181,
+    "kind": "functie",
+    "label": "useAuth",
+    "handler": "useAuth"
+  },
+  {
+    "file": "lib/providers.tsx",
+    "line": 183,
+    "kind": "functie",
+    "label": "useDisplayName",
+    "handler": "useDisplayName"
+  },
+  {
+    "file": "lib/push-client.ts",
+    "line": 16,
+    "kind": "functie",
+    "label": "isInstalledPwa",
+    "handler": "isInstalledPwa"
+  },
+  {
+    "file": "lib/push-client.ts",
+    "line": 28,
+    "kind": "functie",
+    "label": "supportsWebPush",
+    "handler": "supportsWebPush"
+  },
+  {
+    "file": "lib/push-client.ts",
+    "line": 66,
+    "kind": "functie",
+    "label": "getPushState",
+    "handler": "getPushState"
+  },
+  {
+    "file": "lib/push-client.ts",
+    "line": 80,
+    "kind": "functie",
+    "label": "enablePushNotifications",
+    "handler": "enablePushNotifications"
+  },
+  {
+    "file": "lib/push-client.ts",
+    "line": 110,
+    "kind": "functie",
+    "label": "clearLocalPushSubscription",
+    "handler": "clearLocalPushSubscription"
+  },
+  {
+    "file": "lib/push-client.ts",
+    "line": 123,
+    "kind": "functie",
+    "label": "disablePushNotifications",
+    "handler": "disablePushNotifications"
+  },
+  {
+    "file": "lib/push-client.ts",
+    "line": 146,
+    "kind": "functie",
+    "label": "refreshPushBadge",
+    "handler": "refreshPushBadge"
+  },
+  {
+    "file": "lib/role-ui.ts",
+    "line": 33,
+    "kind": "functie",
+    "label": "ruleMatches",
+    "handler": "ruleMatches"
+  },
+  {
+    "file": "lib/role-ui.ts",
+    "line": 52,
+    "kind": "functie",
+    "label": "ruleUsable",
+    "handler": "ruleUsable"
+  },
+  {
+    "file": "lib/role-ui.ts",
+    "line": 125,
+    "kind": "functie",
+    "label": "getDefaultRoleUiRules",
+    "handler": "getDefaultRoleUiRules"
+  },
+  {
+    "file": "lib/role-ui.ts",
+    "line": 129,
+    "kind": "functie",
+    "label": "getDefaultRoleUiLabel",
+    "handler": "getDefaultRoleUiLabel"
+  },
+  {
+    "file": "lib/supabase/crew-client.ts",
+    "line": 9,
+    "kind": "functie",
+    "label": "createClient",
+    "handler": "createClient"
+  },
+  {
+    "file": "lib/supabase/crew-server.ts",
+    "line": 10,
+    "kind": "functie",
+    "label": "createClient",
+    "handler": "createClient"
+  },
+  {
+    "file": "lib/supabase/middleware.ts",
+    "line": 9,
+    "kind": "functie",
+    "label": "updateSession",
+    "handler": "updateSession"
+  },
+  {
+    "file": "lib/ui-nl.ts",
+    "line": 1,
+    "kind": "functie",
+    "label": "nlStatus",
+    "handler": "nlStatus"
+  },
+  {
+    "file": "lib/ui-nl.ts",
+    "line": 40,
+    "kind": "functie",
+    "label": "nlRole",
+    "handler": "nlRole"
+  },
+  {
+    "file": "lib/ui-translations.ts",
+    "line": 501,
+    "kind": "functie",
+    "label": "translateUiText",
+    "handler": "translateUiText"
+  },
+  {
+    "file": "lib/utils.ts",
+    "line": 4,
+    "kind": "functie",
+    "label": "cn",
+    "handler": "cn"
+  }
+]

@@ -9,7 +9,7 @@
 - Runtime: Next.js 16 through OpenNext on Cloudflare Workers
 - Supabase project: `eakoavcieossazqzplke`
 
-Production is deployed to Cloudflare Workers with Wrangler. The GitHub production workflow is manual and requires the production deployment credentials to be configured; repository CI separately validates lint, TypeScript, tests, OpenNext build and Wrangler dry-run.
+Production is deployed by the Cloudflare Workers Builds trigger `Production main` connected to GitHub `main`. It runs lint, TypeScript checks, tests and the OpenNext build before deploying with Wrangler. The separate GitHub production workflow remains manual. God Mode source proposals create branches and pull requests, require a successful CI run, and merge to main to start the production build.
 
 ## Runtime variables
 
@@ -56,3 +56,7 @@ After deployment, verify the public login/auth surface, manifest, service worker
 ## Database
 
 Production has 108 migration-history entries matching 108 migration files in the repository at this baseline. Do not reset production or replay the chain there. Use an isolated project for from-zero migration verification.
+
+## God Mode source studio
+
+See [GOD_MODE_STUDIO.md](GOD_MODE_STUDIO.md) for code editing, data administration, SQL and the one-time website-owned GitHub/Supabase connections.

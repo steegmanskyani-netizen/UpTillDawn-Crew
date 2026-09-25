@@ -1805,6 +1805,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      upt_god_database_secret: { Args: {p_token: string}; Returns: string | null }
+      upt_god_database_connect: { Args: {p_token: string; p_secret: string}; Returns: undefined }
+      upt_god_database_disconnect: { Args: {p_token: string}; Returns: undefined }
+
+      upt_god_repository_secret: { Args: {p_token: string}; Returns: string | null }
+      upt_god_repository_connect: { Args: {p_token: string; p_secret: string}; Returns: undefined }
+      upt_god_repository_disconnect: { Args: {p_token: string}; Returns: undefined }
+      upt_god_data_catalog: { Args: {p_token: string}; Returns: Json }
+      upt_god_data_rows: { Args: {p_token: string; p_table: string; p_offset: number}; Returns: Json }
+      upt_god_data_mutate: { Args: {p_token: string; p_table: string; p_operation: string; p_key: Json; p_before: Json; p_values: Json}; Returns: Json }
+
       upt_acknowledge_briefing: {
         Args: { p_briefing: string }
         Returns: undefined

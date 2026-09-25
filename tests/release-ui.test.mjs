@@ -18,7 +18,7 @@ test('normal admin UI is separate from God Mode editing controls', async () => {
   assert.doesNotMatch(sidebar, /editMode|EDIT MODE/)
   assert.match(auth, /email === 'edit@uptilldown'/)
   assert.match(auth, /redirect\('\/god-mode'\)/)
-  assert.match(godPage, /GodModeEditor/)
+  assert.match(godPage, /GodStudio/)
   assert.match(godEditor, /Admin/)
   assert.match(godEditor, /Personeel/)
   assert.match(godEditor, /Verantwoordelijke/)

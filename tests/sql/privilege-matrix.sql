@@ -97,7 +97,7 @@ BEGIN
       AND privilege_type IN ('INSERT','UPDATE','DELETE')
       AND table_name = ANY(ARRAY[
         'break_sessions','chat_channels','chat_members','crew_notifications',
-        'event_templates','shifts','tasks','upt_audit_logs',
+        'event_templates','role_ui_rules','shifts','tasks','upt_audit_logs',
         'work_sessions','workplace_transitions'
       ])
   ) THEN

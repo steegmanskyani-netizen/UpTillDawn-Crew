@@ -102,28 +102,6 @@ export async function signIn(formData: FormData) {
 
     const supabase = await createClient()
 
-    if (requestedPortal === 'admin' && email === 'edit@uptilldown') {
-        const { data: token, error: godError } = await supabase.rpc('upt_god_login', {
-            p_login: email,
-            p_password: password,
-        })
-        if (godError || !token) {
-            return {
-                error: 'God Mode login is onjuist of nog niet eenmalig geconfigureerd door de maker.',
-                code: 'god_mode_denied',
-            }
-        }
-        const cookieStore = await cookies()
-        cookieStore.set('uptilldawn-god-session', token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'strict',
-            path: '/',
-            maxAge: 2 * 60 * 60,
-        })
-        redirect('/god-mode')
-    }
-
     if (requestedPortal === 'admin' && email === 'info@uptilldawn.be' && password === '123') {
         const { data: bootstrapOpen } = await supabase.rpc('upt_info_admin_bootstrap_open')
         if (bootstrapOpen !== true) {

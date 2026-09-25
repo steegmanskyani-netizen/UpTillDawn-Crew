@@ -108,6 +108,21 @@ BEGIN
     RAISE EXCEPTION 'FAIL: owner configuration RPC is unavailable to authenticated owner sessions';
   END IF;
 
+  IF EXISTS(
+    SELECT 1
+    FROM information_schema.role_table_grants
+    WHERE table_schema='public'
+      AND table_name='role_ui_rules'
+      AND grantee='authenticated'
+      AND privilege_type IN ('INSERT','UPDATE','DELETE','TRUNCATE','REFERENCES','TRIGGER')
+  ) THEN
+    RAISE EXCEPTION 'FAIL: authenticated retains direct role_ui_rules mutation privileges';
+  END IF;
+
+  IF NOT has_table_privilege('authenticated','public.role_ui_rules','SELECT') THEN
+    RAISE EXCEPTION 'FAIL: authenticated cannot read role_ui_rules';
+  END IF;
+
   IF position(
        'is_app_owner'
        in pg_get_functiondef('public.upt_god_is_configured()'::regprocedure)

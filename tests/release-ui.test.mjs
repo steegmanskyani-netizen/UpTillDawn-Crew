@@ -802,3 +802,18 @@ test('QR attendance owns start and stop while offline queue keeps only supported
   assert.match(operations, /href="\/qr"/)
   assert.match(syncCenter, /Start- en stopuren verlopen via QR/)
 })
+
+
+test('God Mode has one dedicated login path and role UI writes remain RPC-only', async () => {
+  const auth = await read('lib/actions/auth.ts')
+  const godLogin = await read('lib/actions/god-mode-login.ts')
+  const godPage = await read('app/god-mode/login/page.tsx')
+  const migration = await read('supabase/migrations/20260925191002_uptilldawn_role_ui_rules_read_only_for_authenticated.sql')
+
+  assert.doesNotMatch(auth, /edit@uptilldown/)
+  assert.doesNotMatch(auth, /upt_god_login/)
+  assert.match(godLogin, /upt_god_login/)
+  assert.match(godPage, /signInGodMode/)
+  assert.match(migration, /revoke insert, update, delete, truncate, references, trigger/i)
+  assert.match(migration, /grant select on table public\.role_ui_rules to authenticated/i)
+})

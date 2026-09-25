@@ -70,7 +70,7 @@ The audit also checked the database attack surface rather than only the visible 
 - anonymous table access is absent; anonymous RPC access is limited to the explicit token-gated God Mode surface and the read-only bootstrap-status probe;
 - retired private-chat creation/peer discovery remains revoked;
 - generated Supabase TypeScript types exactly match the production schema;
-- repository and production migration histories match 120/120.
+- repository and production migration histories match 121/121.
 
 Issues found and corrected during this audit:
 - permanent-admin server routes now use the central admin privilege check;
@@ -83,6 +83,8 @@ Issues found and corrected during this audit:
 - Edit-mode code is no longer in source and database writes require a temporary verified unlock with failed-attempt rate limiting;
 - AI Edit-assistant POSTs reject cross-site origins;
 - QR attendance is the only supported start/stop entry path: direct clock RPCs and the retired pre-QR check-in/check-out RPCs are revoked, while old offline direct-clock queue items are quarantined instead of replayed.
+- authenticated users retain read-only access to `role_ui_rules`; direct table mutation privileges are removed and God Mode changes flow only through the token-validated RPC.
+- the obsolete `edit@uptilldown` shortcut was removed from normal admin login; God Mode uses only its dedicated login route.
 
 ## Supabase advisor state
 
@@ -99,7 +101,7 @@ Known remaining advisor findings are reviewed rather than blindly removed:
 These are not regressions in the current web/mobile baseline:
 
 1. Define an explicit overtime/pay-period policy before presenting overtime as payroll truth.
-2. Replay all 120 migrations from zero on an isolated project before claiming a fresh-install proof.
+2. Replay all 121 migrations from zero on an isolated project before claiming a fresh-install proof.
 3. Expand offline browsing beyond the operational workflows if full offline parity is ever required.
 4. Continue physical-device regression testing after major browser/OS updates.
 5. Enable Supabase leaked-password protection when the project setting is approved.

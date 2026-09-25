@@ -533,6 +533,7 @@ test('installed PWA supports background updates and web push', async () => {
   const configRoute = await read('app/api/push/config/route.ts')
   const subscriptionRoute = await read('app/api/push/subscription/route.ts')
   const migration = await read('supabase/migrations/20260925062147_uptilldawn_web_push_pwa.sql')
+  const timeoutCleanup = await read('supabase/migrations/20260925065915_uptilldawn_push_delivery_timeout_cleanup.sql')
   const edge = await read('supabase/functions/push-notification/index.ts')
 
   assert.match(manifest, /id:'\/'/)
@@ -558,6 +559,7 @@ test('installed PWA supports background updates and web push', async () => {
   assert.match(migration, /create table if not exists public\.push_subscriptions/)
   assert.match(migration, /crew_notifications_push_dispatch/)
   assert.doesNotMatch(migration, /insert into upt_private\.push_delivery_config/)
+  assert.match(timeoutCleanup, /timeout_milliseconds := 10000/)
   assert.match(edge, /npm:web-push@3\.6\.7/)
   assert.match(edge, /webpush\.sendNotification/)
   assert.match(edge, /x-upt-push-secret/)

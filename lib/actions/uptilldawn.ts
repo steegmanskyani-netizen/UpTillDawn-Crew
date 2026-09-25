@@ -215,16 +215,17 @@ export async function updateWorkplace(fd:FormData){
  check(error);revalidatePath('/workplaces')
 }
 export async function setEventAvailability(fd:FormData){
- const {s,user}=await approvedClient()
+ const {s}=await approvedClient()
  const eventId=uuid.parse(fd.get('event_id'))
  const response=z.enum(['can','cannot']).parse(fd.get('response'))
- const {error}=await s.from('event_availability').upsert({
-  event_id:eventId,
-  user_id:user.id,
-  response,
-  responded_at:new Date().toISOString(),
-  updated_at:new Date().toISOString(),
- },{onConflict:'event_id,user_id'})
+ const setup=z.enum(['yes','no']).parse(fd.get('setup_available'))==='yes'
+ const breakdown=z.enum(['yes','no']).parse(fd.get('breakdown_available'))==='yes'
+ const {error}=await s.rpc('upt_set_event_availability_extended',{
+  p_event:eventId,
+  p_response:response,
+  p_setup:setup,
+  p_breakdown:breakdown,
+ })
  check(error)
  revalidatePath('/events')
 }
@@ -277,6 +278,7 @@ export async function assignAvailableCrewShift(fd:FormData){
  const workplaceId=uuid.parse(fd.get('workplace_id'))
  const [start,end]=dates(fd,'start','end')
  const roleName=text.parse(fd.get('role_name')||'Personeel')
+ const shiftKind=z.enum(['event','setup','breakdown']).parse(fd.get('shift_kind')||'event')
 
  const [
   {data:person,error:personError},
@@ -285,13 +287,18 @@ export async function assignAvailableCrewShift(fd:FormData){
   {data:membership,error:membershipError},
  ]=await Promise.all([
   s.from('profiles').select('id,approved,role').eq('id',userId).single(),
-  s.from('event_availability').select('response').eq('event_id',eventId).eq('user_id',userId).maybeSingle(),
+  s.from('event_availability').select('response,setup_available,breakdown_available').eq('event_id',eventId).eq('user_id',userId).maybeSingle(),
   s.from('workplaces').select('id,event_id,is_active').eq('id',workplaceId).single(),
   s.from('event_members').select('user_id').eq('event_id',eventId).eq('user_id',userId).maybeSingle(),
  ])
  check(personError);check(availabilityError);check(workplaceError);check(membershipError)
  if(!person?.approved)throw new Error('Dit account is niet goedgekeurd.')
- if(availability?.response!=='can')throw new Error('Deze persoon heeft niet aangeduid dat die kan.')
+ const eligible=shiftKind==='event'
+  ? availability?.response==='can'
+  : shiftKind==='setup'
+    ? availability?.setup_available===true
+    : availability?.breakdown_available===true
+ if(!eligible)throw new Error('Deze persoon heeft voor dit shift-type geen beschikbaarheid bevestigd.')
  if(!workplace||workplace.event_id!==eventId||!workplace.is_active)throw new Error('Selecteer een actieve werkplek van dit evenement.')
 
  if(!membership){
@@ -307,12 +314,11 @@ export async function assignAvailableCrewShift(fd:FormData){
   p_start:start,
   p_end:end,
   p_overlap_allowed:fd.get('overlap_allowed')==='on',
-  p_shift_kind:z.enum(['event','setup','breakdown']).parse(fd.get('shift_kind')||'event'),
+  p_shift_kind:shiftKind,
  })
  check(error)
  revalidatePath('/events');revalidatePath('/shifts');revalidatePath('/workplaces');revalidatePath('/operations');revalidatePath('/tasks');revalidatePath('/briefings')
 }
-
 export async function assignResponsible(fd:FormData){
  const {s,user}=await adminClient()
  const workplace_id=uuid.parse(fd.get('workplace_id'))
@@ -446,6 +452,12 @@ export async function updateShift(fd:FormData){
   p_shift_kind:z.enum(['event','setup','breakdown']).parse(fd.get('shift_kind')||'event'),
  })
  check(error);revalidatePath('/shifts');revalidatePath('/operations')
+}
+export async function confirmShift(fd:FormData){
+ const {s}=await approvedClient()
+ const {error}=await s.rpc('upt_confirm_shift',{p_shift:uuid.parse(fd.get('shift_id'))})
+ check(error)
+ revalidatePath('/shifts');revalidatePath('/operations')
 }
 export async function cancelShift(fd:FormData){
  const {s}=await adminClient()

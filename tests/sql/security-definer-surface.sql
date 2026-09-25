@@ -4,7 +4,7 @@
 
 BEGIN;
 
-DO $$
+DO $surface$
 DECLARE
   v_count integer;
 BEGIN
@@ -52,9 +52,10 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'FAIL: authenticated Uptilldawn SECURITY DEFINER entry point lacks an explicit authorization primitive';
   END IF;
-END $;
+END
+$surface$;
 
-DO $
+DO $edit_gate$
 DECLARE
   v_policy_count integer;
 BEGIN
@@ -83,7 +84,8 @@ BEGIN
   IF v_policy_count <> 3 THEN
     RAISE EXCEPTION 'FAIL: Edit-mode unlock is not enforced on all role_ui_rules write policies';
   END IF;
-END $;
+END
+$edit_gate$;
 
 SELECT 'PASS: SECURITY DEFINER surface, Edit-mode gate and private state are locked down' AS result;
 ROLLBACK;

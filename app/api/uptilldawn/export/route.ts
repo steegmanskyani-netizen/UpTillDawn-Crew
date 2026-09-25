@@ -26,8 +26,11 @@ export async function GET() {
   const { data: { user } } = await s.auth.getUser()
   if (!user) return new NextResponse('Aanmelden vereist.', { status: 401 })
 
-  const { data: profile } = await s.from('profiles').select('role,approved').eq('id', user.id).single()
-  if (!profile?.approved || profile.role !== 'admin') return new NextResponse('Geen toegang.', { status: 403 })
+  const [{ data: isApproved }, { data: isAdmin }] = await Promise.all([
+    s.rpc('upt_is_approved'),
+    s.rpc('upt_is_admin', { uid: user.id }),
+  ])
+  if (!isApproved || !isAdmin) return new NextResponse('Geen toegang.', { status: 403 })
 
   let sessions: Tables<'work_sessions'>[]
   let breaks: Tables<'break_sessions'>[]

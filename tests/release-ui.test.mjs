@@ -564,3 +564,15 @@ test('installed PWA supports background updates and web push', async () => {
   assert.match(edge, /webpush\.sendNotification/)
   assert.match(edge, /x-upt-push-secret/)
 })
+
+
+test('server admin routes honor permanent maker/admin privilege', async () => {
+  const geocode = await read('app/api/geocode/autocomplete/route.ts')
+  const exportRoute = await read('app/api/uptilldawn/export/route.ts')
+
+  for (const source of [geocode, exportRoute]) {
+    assert.match(source, /upt_is_approved/)
+    assert.match(source, /upt_is_admin/)
+    assert.doesNotMatch(source, /profile\.role\s*!==?\s*['"]admin['"]/)
+  }
+})

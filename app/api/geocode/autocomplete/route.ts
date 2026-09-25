@@ -9,8 +9,11 @@ export async function GET(request:NextRequest){
   const {data:{user}}=await s.auth.getUser()
   if(!user)return NextResponse.json({error:"Aanmelden vereist."},{status:401})
 
-  const {data:profile}=await s.from("profiles").select("approved,role").eq("id",user.id).maybeSingle()
-  if(!profile?.approved||profile.role!=="admin"){
+  const [{data:isApproved},{data:isAdmin}]=await Promise.all([
+    s.rpc("upt_is_approved"),
+    s.rpc("upt_is_admin",{uid:user.id}),
+  ])
+  if(!isApproved||!isAdmin){
     return NextResponse.json({error:"Geen toegang."},{status:403})
   }
 

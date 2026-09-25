@@ -49,16 +49,16 @@ SELECT public.upt_create_shift(
   (SELECT id FROM rr_ids WHERE name='future_wp'),
   (SELECT id FROM rr_ids WHERE name='lead'),
   'Verantwoordelijke',
-  now()+interval '1 hour',
   now()+interval '3 hours',
+  now()+interval '4 hours',
   false
 );
 SELECT public.upt_create_shift(
   (SELECT id FROM rr_ids WHERE name='future_wp'),
   (SELECT id FROM rr_ids WHERE name='staff'),
   'Personeel',
-  now()+interval '1 hour',
   now()+interval '3 hours',
+  now()+interval '4 hours',
   false
 );
 INSERT INTO public.responsible_assignments(event_id,workplace_id,user_id,assigned_by)
@@ -120,8 +120,8 @@ BEGIN
       (SELECT id FROM rr_ids WHERE name='future_wp'),
       (SELECT id FROM rr_ids WHERE name='staff'),
       'Personeel',
-      now()+interval '1 hour',
-      now()+interval '3 hours',
+      now()+interval '4 hours',
+      now()+interval '4 hours 30 minutes',
       false
     );
     RAISE EXCEPTION 'FAIL lead created shift';

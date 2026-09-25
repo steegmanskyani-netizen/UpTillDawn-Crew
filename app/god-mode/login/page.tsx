@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation'
 import { cookies } from 'next/headers'
 import { createClient } from '@/lib/supabase/crew-server'
-import { godModeLogin } from '@/lib/actions/god-mode'
+import { signInGodMode } from '@/lib/actions/god-mode-login'
 
 export const dynamic='force-dynamic'
 
@@ -18,7 +18,7 @@ export default async function GodModeLoginPage({searchParams}:{searchParams:Prom
   return <main className="grid min-h-screen place-items-center bg-black p-5 text-white">
     <section className="w-full max-w-sm rounded-3xl border border-white/10 bg-zinc-950 p-6 shadow-2xl">
       <h1 className="text-xl font-black">Beveiligde toegang</h1>
-      <form action={godModeLogin} className="mt-6 space-y-4">
+      <form action={signInGodMode} className="mt-6 space-y-4">
         <label className="grid gap-1 text-sm">Login
           <input name="login" type="text" required autoComplete="username" className="rounded-xl border border-white/15 bg-black p-3 outline-none"/>
         </label>

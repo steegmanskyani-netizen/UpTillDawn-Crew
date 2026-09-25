@@ -1,77 +1,55 @@
 # Uptilldawn deployment
 
-## Architecture
+## Production
 
-The existing Next.js application uses SSR, Server Actions, authenticated cookies and an Excel route handler. Use Cloudflare **Workers with OpenNext**, not a static Pages export. The requested `uptilldawn-crew.pages.dev` URL is not a verified deployment and is not the default hostname for Workers.
+- Cloudflare Worker: `uptilldawn-crew`
+- Production origin: `https://uptilldawn-crew.steegmans-kyani.workers.dev`
+- Deployment source: GitHub `main`
+- Runtime: Next.js 16 through OpenNext on Cloudflare Workers
+- Supabase project: `eakoavcieossazqzplke`
 
-Cloudflare now recommends vinext for new applications. OpenNext is used here to retain the actual existing Next.js build/runtime rather than introducing a framework implementation change during security repairs.
-
-References:
-- https://developers.cloudflare.com/workers/framework-guides/web-apps/opennext/
-- https://opennext.js.org/cloudflare/get-started
+The Git-connected Cloudflare build is the production deployment path. CI separately validates the same application with lint, TypeScript, tests, OpenNext build and Wrangler dry-run.
 
 ## Runtime variables
 
-Use `.env.example` as the authoritative template:
-
 | Variable | Purpose |
 | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | URL of the existing Uptilldawn Supabase project |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Active publishable key; variable name retained for compatibility |
-| `NEXT_PUBLIC_APP_URL` | Exact production HTTPS origin for auth email redirects |
-| `GEOAPIFY_API_KEY` | Server-side Geoapify key for event location/address autocomplete and coordinate resolution |
+| `NEXT_PUBLIC_SUPABASE_URL` | Production Supabase URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Browser-safe publishable key |
+| `NEXT_PUBLIC_APP_URL` | Exact production HTTPS origin |
+| `GEOAPIFY_API_KEY` | Server-only event address/geocoding key |
 
-The active crew application does not require a service-role key. Never use a service-role/secret key in a `NEXT_PUBLIC_` variable. `GEOAPIFY_API_KEY` is server-side only and must be configured as a Cloudflare Worker secret. Build with the correct production values: public Next.js variables are embedded into the bundle.
+The Cloudflare Worker must never receive a Supabase service-role key in a public variable.
 
-Set Supabase Auth's Site URL and allowed redirects to the final production origin and `/auth/callback`. Local testing uses `http://localhost:3000`. Do not ship a bundle built with localhost as the production app origin.
+## Web Push architecture
 
-## Commands
+Web Push delivery is intentionally separated from the Cloudflare app runtime:
+
+1. Browser/PWA obtains permission and stores a Push API subscription through authenticated app routes.
+2. Subscription details are stored in `public.push_subscriptions` through scoped RPCs; direct browser table access is not used.
+3. A new `crew_notifications` row triggers an asynchronous `pg_net` POST.
+4. Supabase Edge Function `push-notification` loads the target notification/subscriptions using the built-in server-side service role and sends Web Push.
+5. VAPID private key and webhook secret remain in private server-side configuration, never GitHub or frontend code.
+
+## PWA update behavior
+
+`public/sw.js` handles offline fallbacks, push, notification clicks, subscription renewal and optional Periodic Background Sync. The client also requests service-worker updates on launch/focus/visibility/online transitions so installed apps do not depend solely on background scheduling support.
+
+## Release checks
 
 ```sh
 npm ci
 npm audit --audit-level=high
-npm run typecheck
 npm run lint
+npm run typecheck
 npm test
+npm run build
 npm run build:cloudflare
 npx wrangler deploy --dry-run
 ```
 
-After release blockers in `UPTILLDAWN_IMPLEMENTATION_STATUS.md` have been resolved, authenticate Cloudflare, configure the production variables and rebuild before deploying:
-
-```sh
-npx wrangler login
-npm run build:cloudflare
-npm run deploy:cloudflare
-```
-
-No paid resources or paid plan were enabled. Recent dry-runs produced a compressed Worker bundle of roughly 3.5 MiB; actual Cloudflare account limits, CPU usage and operational load still require verification. No R2, D1 or KV binding is required by this configuration.
-
-## GitHub production workflow
-
-A guarded manual workflow is available at `.github/workflows/deploy-cloudflare.yml`. It only deploys from `main`, uses the GitHub `production` environment and refuses to continue when required secrets are missing.
-
-Configure these GitHub production-environment secrets before triggering it:
-
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `NEXT_PUBLIC_APP_URL` — exact HTTPS production origin
-- `GEOAPIFY_API_KEY` — Geoapify project API key; keep this server-side
-- `CLOUDFLARE_API_TOKEN` — scoped to the Worker deployment
-- `CLOUDFLARE_ACCOUNT_ID`
-
-The workflow runs lint, typecheck, tests, the OpenNext Cloudflare build and a Wrangler dry-run before the actual deployment. Deployment is blocked when the Geoapify key is missing, because event location/address autocomplete is a required production feature. The workflow writes it to the Worker as a runtime secret before deployment. Do not place the Supabase service-role key in GitHub frontend/deployment variables; the active crew app does not require it.
+After deployment, verify the public login/auth surface, manifest, service worker and production Worker version. Authenticated role/device E2E remains a real-device regression activity.
 
 ## Database
 
-Project ref: `eakoavcieossazqzplke`. Migrations introduced here are already applied there. Do not reapply them blindly or run a reset. Migration filenames are aligned to the versions returned by Supabase's migration history.
-
-The SQL regression file must be executed as a complete transaction. It creates synthetic users/data and ends with `ROLLBACK`. Do not split it into separately committed statements. Never use production accounts as mutable fixtures.
-
-Server warnings use the `uptilldawn-break-allowance` pg_cron job, once per minute. Its internal function and receipt table are in a private schema without browser access. This creates in-app notifications; it does not send Web Push.
-
-## Release gates
-
-Verify approved and unapproved login for all three roles, workload isolation, fresh camera capture, GPS denial and poor accuracy, self-approval denial, work/break cycles, pending offline operations/replay, chat isolation, XLSX output and audit entries. Exercise the real deployed Worker runtime, not only `next dev`.
-
-Deployment was not attempted because Wrangler reported no authenticated Cloudflare account and the feature-completion gates remain open. No production URL or production smoke-test success is claimed.
+Production has 102 migration-history entries matching 102 migration files in the repository at this baseline. Do not reset production or replay the chain there. Use an isolated project for from-zero migration verification.

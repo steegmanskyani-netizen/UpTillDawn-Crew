@@ -2,17 +2,16 @@
 
 ## Runtime
 
-Uptilldawn is a single Next.js 16 App Router application on React 19.
-
 ```text
 Browser / installed PWA
         |
         v
 Next.js + OpenNext Cloudflare Worker
-  - Server Components
-  - Server Actions
-  - Auth callback
-  - XLSX export route
+  - Server Components / Server Actions
+  - Auth callback and app routes
+  - Geoapify server route
+  - XLSX export
+  - Workers AI maker-only Edit assistant
         |
         v
 Supabase
@@ -20,21 +19,23 @@ Supabase
   - PostgreSQL + RLS
   - private Storage
   - Realtime
-  - pg_cron break notifications
+  - pg_cron / pg_net
+  - push-notification Edge Function
+        |
+        v
+Platform Web Push services
 ```
 
-There is no separate trusted application backend and no service-role key in the active runtime. Browser and server code use the Supabase publishable/anon key; authorization is enforced by authenticated RPCs, RLS and server-side role checks.
+The normal Cloudflare application uses the browser-safe Supabase publishable key and validated database/RLS boundaries. Web Push delivery is a separate trusted Supabase Edge Function and uses Supabase's built-in server-side service-role environment only inside that function.
 
-## Application areas
+## UI baseline
 
-- `app/(auth)/` — login, registration, verification and password recovery
-- `app/(app)/operations/` — check-in/out, work/break and workplace transitions
-- `app/(app)/events/`, `workplaces/`, `shifts/` — event configuration
-- `app/(app)/briefings/`, `tasks/` — crew instructions and task packages
-- `app/(app)/chat/` — realtime crew chat
-- `app/(app)/incidents/` — URGENT incident workflow
-- `app/(app)/admin/` — operational admin dashboard and time corrections
-- `app/api/uptilldawn/export/` — admin XLSX export
+- `lib/role-ui.ts`: canonical role navigation labels/order/conditions.
+- `components/layout/mobile-nav.tsx`: canonical contextual mobile quick tabs and expandable navigation.
+- `components/layout/app-layout.tsx`: shared role/context visibility enforcement.
+- `public/sw.js`: offline fallback, push and installed-PWA background hooks.
+
+The live `role_ui_rules` rows are kept aligned with the repository defaults.
 
 ## Authorization model
 
@@ -44,17 +45,13 @@ Roles stored in `profiles.role`:
 - `responsible_lead`
 - `admin`
 
-Unapproved accounts are rejected with `ACCOUNT NOT APPROVED`.
+Operational authorization is narrower than labels alone: event membership, workplace assignment, active event/shift context and Admin/Responsible scope are revalidated in RLS/RPCs.
 
-Sensitive changes use SECURITY DEFINER RPCs that validate `auth.uid()`, account approval and the relevant Admin/Responsible/ownership scope. Direct table mutation is intentionally restricted for timekeeping, approvals, incidents, chat moderation and offline replay.
+Sensitive changes use validated SECURITY DEFINER RPCs with explicit authentication/authorization checks and fixed `search_path`. Direct browser mutation is intentionally restricted on protected operational tables.
 
 ## Offline model
 
-The browser stores pending operations in IndexedDB with a client-generated operation UUID. The server records processed IDs in `offline_operation_records` and rejects conflicting reuse. Ordered time actions can reference the server entity produced by an earlier queued action.
-
-Photo uploads for URGENT incidents and chat are stored as IndexedDB Blobs until both the private Storage upload and matching server RPC succeed.
-
-A service-worker fallback serves a non-sensitive per-user operational snapshot after the authenticated page has been closed. It never fabricates server timestamps, GPS verification or approval state.
+IndexedDB stores pending operations/uploads with immutable client operation IDs. Server replay is idempotent and conflict-aware. The service worker does not cache authenticated HTML as a substitute for authorization; offline operation state is a separate non-sensitive operational shell/snapshot.
 
 ## Storage
 
@@ -65,8 +62,12 @@ Private buckets:
 - `incident-photos`
 - `chat-attachments`
 
-Operational evidence cannot be directly deleted by authenticated uploaders after server acceptance. Access is scoped through RLS and short-lived signed URLs.
+Access is scoped through RLS and short-lived signed URLs where required. Accepted operational evidence is not directly deletable by ordinary authenticated uploaders.
+
+## Push model
+
+Subscriptions are user/device scoped. Database notification inserts asynchronously invoke the push Edge Function through `pg_net`; the Edge Function sends Web Push and removes expired endpoints when providers report them invalid.
 
 ## Database history
 
-Migrations are ordered in `supabase/migrations/`. The local filenames are aligned with the migration versions recorded in the target Supabase project. Historical pre-Uptilldawn migrations remain because they are part of that history.
+The repository contains 102 ordered migration files matching the current production migration-history count at this baseline.

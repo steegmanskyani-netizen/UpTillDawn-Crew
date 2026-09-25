@@ -2,41 +2,51 @@
 
 ## Supported code
 
-Only the latest Uptilldawn code on the active release branch / merged `main` should be deployed. Older commits are not maintained as separate supported versions.
+`main` is the canonical production branch. Older commits are not maintained as separately supported versions.
 
 ## Security model
 
-- Supabase Auth provides user authentication.
-- Every active public application table uses Row Level Security.
+- Supabase Auth provides authentication.
+- Active public application tables use RLS.
 - Unapproved accounts cannot use crew operations.
-- Admin and Responsible permissions are rechecked in database RPCs.
-- The active application does not use a Supabase service-role key.
-- Sensitive media is stored in private Supabase Storage buckets and exposed with scoped policies / short-lived signed URLs.
-- Timekeeping and approval timestamps are server authoritative.
+- Admin and Responsible permissions are rechecked in RPC/RLS logic.
+- Timekeeping and approval timestamps are server-authoritative.
 - Offline replay uses immutable operation IDs and conflict detection.
-- RPC/trigger-only operational tables have direct authenticated INSERT/UPDATE/DELETE grants revoked; validated RPCs are the mutation boundary.
+- Direct authenticated mutations are revoked where RPC/trigger boundaries are required.
+- Sensitive media is stored in private Supabase Storage.
+- Push subscriptions are associated with the authenticated user and are not exposed as a generally readable browser table.
 
-SECURITY DEFINER RPCs are intentionally exposed only where the authenticated application must perform a validated privileged workflow. They must keep explicit caller/role/ownership checks and a fixed `search_path`.
+SECURITY DEFINER RPCs are intentional only where a validated privileged workflow is required. They must retain explicit caller/role/ownership checks and fixed `search_path`.
 
-## Secrets
+## Service-role boundary
 
-Never commit:
+The browser and Cloudflare app runtime do **not** contain a Supabase service-role key.
+
+The `push-notification` Supabase Edge Function uses Supabase's built-in server-side service-role environment to read the target notification/subscriptions and clean expired push endpoints. That credential remains server-side inside Supabase and is never committed or returned to the client.
+
+## Push secrets
+
+The VAPID private key and internal push-webhook secret are private server configuration. Only the VAPID public key is exposed to authenticated clients for Push API subscription.
+
+## Secrets never committed
 
 - Supabase secret/service-role keys
+- VAPID private keys
+- internal webhook secrets
 - Cloudflare API tokens
 - database passwords
 - personal access tokens
+- local `.env.local`
 
-Only `NEXT_PUBLIC_SUPABASE_URL`, the publishable/anon key and the public app URL belong in the active application configuration.
+## Regression verification
 
-## Reporting
+Security regression SQL lives in `tests/sql/` and is designed to run with synthetic fixtures inside transactions that roll back. The current baseline includes privilege/RLS, SECURITY DEFINER surface, role/event lifecycle, workplace scope, storage, queued media, chat lifecycle, offline-time and foreign-key coverage.
 
-Do not post credentials, private employee data or exploit details in a public issue. Contact the repository owner privately with the affected route/RPC, reproduction steps and impact.
+CI also runs dependency audit, lint, TypeScript and production builds.
 
-## Dependency verification
+## Known project-level advisor items
 
-CI runs `npm audit --audit-level=high`. The current lockfile resolves the transitive `uuid` dependency to patched v11.1.1 and the verified cleanup run reports 0 known npm vulnerabilities.
-
-## Remaining project-level setting
-
-Supabase leaked-password protection should be enabled before production release. This is an Auth project setting, not an application-code permission.
+- Supabase leaked-password protection is still a project setting to enable.
+- `pg_net` is non-relocatable; the advisor may report its extension installation namespace even though runtime requests use the dedicated `net` schema.
+- Some intentionally RPC-only/RLS tables have no browser policies because direct browser table access is not part of their design.
+- Authenticated SECURITY DEFINER warnings require review against the validated RPC surface; they are not automatically removed solely to silence the advisor.

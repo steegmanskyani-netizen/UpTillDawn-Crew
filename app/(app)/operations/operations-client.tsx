@@ -27,20 +27,21 @@ export default function OperationsClient(p:Props){
 }).catch(()=>{})},[p.userId,p.events,p.workplaces,p.shifts,p.activeSession,p.activeBreak,p.checkins])
  async function run(action:()=>Promise<void>){if(busy)return;setBusy(true);setMsg('');try{await action();router.refresh()}catch{setMsg('Actie niet bevestigd. Controleer je verbinding en huidige status.')}finally{setBusy(false)}}
  async function work(type:string,payload:Record<string,string>){await enqueue(p.userId,type,payload);setMsg('Actie bewaard. Alleen de bevestigde serverstatus geldt.')}
- async function requestCheckin(shift:Tables<'shifts'>){
- let path:string|null=null
- if(remote){
-  if(!file){setMsg('Maak eerst een nieuwe werkplekselfie.');return}
-  if(file.size>8*1024*1024){setMsg('Kies een foto van maximaal 8 MB.');return}
-  const extensions:Record<string,string>={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'}
-  const extension=extensions[file.type]
-  if(!extension){setMsg('Gebruik een JPG-, PNG- of WEBP-foto.');return}
-  path=`${p.userId}/${crypto.randomUUID()}.${extension}`
-  const {error}=await s.storage.from('checkin-selfies').upload(path,file,{contentType:file.type,upsert:false});if(error)throw error
+ async function decide(kind:'in'|'out',id:string,approve:boolean){
+  const notes=(rejectionReasons[id]||'').trim()
+  if(!approve&&!notes){setMsg('Vul eerst een reden voor de afwijzing in.');return}
+  const result=kind==='in'
+   ?await s.rpc('upt_decide_check_in',{p_check_in:id,p_approve:approve,p_notes:notes||undefined})
+   :await s.rpc('upt_decide_check_out',{p_check_out:id,p_approve:approve,p_notes:notes||undefined})
+  if(result.error)throw result.error
+  if(!approve)setRejectionReasons(current=>({...current,[id]:''}))
+  setMsg(approve?'Goedgekeurd. De effectieve tijd is automatisch toegepast.':'Afgewezen. Het personeelslid ontvangt de reden en moet opnieuw aanvragen.')
  }
- const {error}=await s.rpc('upt_request_check_in',{p_event:shift.event_id,p_workplace:shift.workplace_id,p_remote:remote,...(path?{p_selfie_path:path}:{})});if(error)throw error;setFile(null);setMsg(p.manager&&!p.isAdmin?'Uren starten aangevraagd. Na goedkeuring door een beheerder start de urenteller automatisch vanaf de aanvraagtijd.':'Inklokken aangevraagd. Goedkeuring start de werktimer niet.')
- }
- async function decide(kind:'in'|'out',id:string,approve:boolean){const result=kind==='in'?await s.rpc('upt_decide_check_in',{p_check_in:id,p_approve:approve}):await s.rpc('upt_decide_check_out',{p_check_out:id,p_approve:approve});if(result.error)throw result.error;setMsg(approve?'Goedgekeurd. De oorspronkelijke aanvraagtijd is als effectieve tijd toegepast.':'Beslissing opgeslagen.')}
+ const pendingStop=p.activeSession?p.checkouts.find(row=>row.user_id===p.userId&&row.status==='pending'&&(row.work_session_id===p.activeSession?.id||row.event_id===p.activeSession?.event_id)):null
+ const approvals=p.manager?[
+  ...p.checkins.filter(row=>row.status==='pending'&&row.user_id!==p.userId&&(p.isAdmin||row.reviewer_kind!=='admin')).map(row=>({...row,kind:'in' as const})),
+  ...p.checkouts.filter(row=>row.status==='pending'&&row.user_id!==p.userId&&(p.isAdmin||row.reviewer_kind!=='admin')).map(row=>({...row,kind:'out' as const}))
+ ]:[]
  return <main className="mx-auto max-w-4xl space-y-6 p-4 pb-28 md:p-8"><h1 className="text-3xl font-black">{p.personalWork?'Werk & pauze':'Operationele status & goedkeuringen'}</h1>{msg&&<p role="status" className="rounded-xl border p-4">{msg}</p>}
  {p.personalWork&&<section className="rounded-2xl border p-4"><label className="flex gap-3"><input type="checkbox" checked={remote} onChange={e=>setRemote(e.target.checked)}/>Inklokken op afstand met nieuwe werkplekselfie</label>{remote&&<input className="mt-3" type="file" accept="image/jpeg,image/png,image/webp" capture="user" onChange={e=>setFile(e.target.files?.[0]||null)}/>}</section>}
  {p.personalWork&&p.activeSession&&<section className="space-y-4 rounded-2xl border border-violet-500 bg-card p-5"><h2 className="text-xl font-bold">WERK ACTIEF</h2><p>Gestart: {new Date(p.activeSession.started_at).toLocaleString('nl-BE')}</p>

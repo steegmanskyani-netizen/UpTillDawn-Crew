@@ -716,3 +716,17 @@ test('AI editor rejects cross-site POST requests', async () => {
   assert.match(route, /origin&&origin!==new URL\(request\.url\)\.origin/)
   assert.match(route, /Ongeldige oorsprong/)
 })
+
+
+test('non-admin role views filter admin-broad event reads to real role visibility', async () => {
+  const events = await read('app/(app)/events/page.tsx')
+  const dashboard = await read('app/(app)/page.tsx')
+
+  assert.match(events, /visibleEvents=user\.isAdmin/)
+  assert.match(events, /future\|\|assigned/)
+  assert.match(events, /responsibleResult/)
+  assert.match(events, /visibleEvents\.map/)
+  assert.match(dashboard, /const rawEvents = eventsResult\.data \|\| \[\]/)
+  assert.match(dashboard, /assignedEventIds/)
+  assert.match(dashboard, /Date\.parse\(event\.start_at\)>nowMs\|\|assignedEventIds\.has\(event\.id\)/)
+})

@@ -23,12 +23,13 @@ export default async function Page(){
   const user=await getCurrentUser()
   if(!user)return null
 
-  const [eventsResult,membershipResult,shiftResult,startedResult,availabilityResult]=await Promise.all([
+  const [eventsResult,membershipResult,shiftResult,startedResult,availabilityResult,responsibleResult]=await Promise.all([
     s.from('events').select('id,name,venue,address,start_at,end_at,status,latitude,longitude,checkin_radius_m').order('start_at'),
     s.from('event_members').select('event_id,user_id'),
     s.from('shifts').select('event_id').eq('user_id',user.id).neq('status','cancelled'),
     s.from('events').select('id').lte('start_at','now'),
     s.from('event_availability').select('event_id,user_id,response,updated_at'),
+    s.from('responsible_assignments').select('event_id').eq('user_id',user.id),
   ])
   const peopleResult=user.isAdmin
     ? await s.from('profiles').select('id,full_name').eq('approved',true).order('full_name')
@@ -50,7 +51,18 @@ export default async function Page(){
   const assignedEventIds=new Set([
     ...memberships.filter(row=>row.user_id===user.id).map(row=>row.event_id),
     ...(shiftResult.data||[]).map(row=>row.event_id),
+    ...(user.role==='responsible_lead'?(responsibleResult.data||[]).map(row=>row.event_id):[]),
   ])
+  const nowMs=Date.now()
+  const visibleEvents=user.isAdmin
+    ? events
+    : events.filter(event=>{
+        const start=Date.parse(event.start_at)
+        const end=Date.parse(event.end_at)
+        const future=nowMs<start&&event.status!=='archived'
+        const assigned=assignedEventIds.has(event.id)&&nowMs<=end+3*24*60*60*1000
+        return future||assigned
+      })
   const memberKeys=new Set(memberships.map(row=>`${row.event_id}:${row.user_id}`))
   const peopleById=new Map(people.map(person=>[person.id,person]))
 
@@ -69,9 +81,9 @@ export default async function Page(){
     </form></AdminOnly>}
 
     {eventsResult.error&&<p>Evenementen konden niet worden geladen.</p>}
-    {!eventsResult.error&&!events.length&&<p className="rounded-xl border p-4 text-muted-foreground">Geen evenementen beschikbaar.</p>}
+    {!eventsResult.error&&!visibleEvents.length&&<p className="rounded-xl border p-4 text-muted-foreground">Geen evenementen beschikbaar.</p>}
 
-    <div className="space-y-3">{events.map(event=>{
+    <div className="space-y-3">{visibleEvents.map(event=>{
       const started=startedEventIds.has(event.id)
       const myResponse=availability.find(row=>row.event_id===event.id&&row.user_id===user.id)?.response
       const canRows=user.isAdmin?availability.filter(row=>row.event_id===event.id&&row.response==='can'):[]

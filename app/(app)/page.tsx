@@ -42,13 +42,26 @@ export default async function Dashboard() {
     return <div className="p-8"><div className="mx-auto mt-20 max-w-xl rounded-2xl border border-amber-500/30 bg-amber-500/10 p-8 text-center"><h1 className="text-2xl font-black">ACCOUNT NOG NIET GOEDGEKEURD</h1><p className="mt-2 text-muted-foreground">Je account wacht op goedkeuring door een beheerder.</p></div></div>
   }
 
-  const events = eventsResult.data || []
+  const rawEvents = eventsResult.data || []
   const shifts = shiftsResult.data || []
   const memberships = membershipsResult.data || []
   const activeEventIds = new Set((activeEventsResult.data || []).map(event => event.id))
   const openEventIds = new Set((openEventsResult.data || []).map(event => event.id))
+  const responsibleAssignments=responsibleAssignmentsResult.data||[]
+  const assignedEventIds=new Set([
+    ...memberships.map(member=>member.event_id),
+    ...shifts.map(shift=>shift.event_id),
+    ...(current.role==='responsible_lead'?responsibleAssignments.map(row=>row.event_id):[]),
+  ])
+  const nowMs=Date.now()
+  const events=rawEvents.filter(event=>
+    event.status!=='archived'
+    && (Date.parse(event.start_at)>nowMs||assignedEventIds.has(event.id))
+  )
   const hasEventAssignment = memberships.some(member => openEventIds.has(member.event_id))
-  const activeResponsibleAssignments=(responsibleAssignmentsResult.data||[])
+    || shifts.some(shift=>openEventIds.has(shift.event_id))
+    || (current.role==='responsible_lead'&&responsibleAssignments.some(row=>openEventIds.has(row.event_id)))
+  const activeResponsibleAssignments=responsibleAssignments
     .filter(assignment=>activeEventIds.has(assignment.event_id))
   const activeResponsibleWorkplaces=new Set(activeResponsibleAssignments.map(assignment=>assignment.workplace_id))
   const hasActiveIncidentContext = current.role === 'responsible_lead' && activeResponsibleAssignments.length>0

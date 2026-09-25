@@ -31,6 +31,10 @@ export default function LoginPage() {
     setError(null)
     const formData = new FormData(e.currentTarget)
     formData.set("portal", portal)
+    const requestedNext = new URLSearchParams(window.location.search).get("next")
+    if (requestedNext && requestedNext.startsWith("/") && !requestedNext.startsWith("//")) {
+      formData.set("next", requestedNext)
+    }
     startTransition(async () => {
       const result = await signIn(formData)
       if (result?.error) setError(result.error)

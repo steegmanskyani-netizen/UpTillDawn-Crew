@@ -667,3 +667,24 @@ test('notification links cannot escape the app origin', async () => {
   assert.match(edge, /function safeNotificationLink/)
   assert.match(edge, /link:safeNotificationLink\(notification\.link\)/)
 })
+
+
+test('maker role previews scope incidents, overview and badges to the active role', async () => {
+  const incidents = await read('app/(app)/incidents/page.tsx')
+  const overview = await read('app/(app)/page.tsx')
+  const layout = await read('components/layout/app-layout.tsx')
+
+  assert.match(incidents, /activeWorkplaceIds/)
+  assert.match(incidents, /isResponsible.*incident\.workplace_id/s)
+  assert.doesNotMatch(incidents, /return isAdmin\|\|manager\|\|/)
+
+  assert.match(overview, /activeResponsibleWorkplaces/)
+  assert.match(overview, /incident\.workplace_id/)
+  assert.match(overview, /responsibleAssignmentsResult/)
+
+  assert.match(layout, /activeUiRole==="admin"/)
+  assert.match(layout, /activeResponsibleWorkplaceIds/)
+  assert.match(layout, /allowedChannelIds/)
+  assert.match(layout, /\.eq\("reporter_id",user\.id\)/)
+  assert.doesNotMatch(layout, /profile\?\.role==="staff"/)
+})

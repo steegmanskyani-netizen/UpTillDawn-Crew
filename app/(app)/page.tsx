@@ -26,14 +26,15 @@ export default async function Dashboard() {
   const user = { id: current.id }
 
   const now = new Date().toISOString()
-  const [profileResult, eventsResult, shiftsResult, incidentsResult, membershipsResult, activeEventsResult, openEventsResult] = await Promise.all([
+  const [profileResult, eventsResult, shiftsResult, incidentsResult, membershipsResult, activeEventsResult, openEventsResult, responsibleAssignmentsResult] = await Promise.all([
     s.from('profiles').select('full_name,approved,role').eq('id', user.id).single(),
     s.from('events').select('id,name,venue,start_at,end_at,status').gte('end_at', now).order('start_at', { ascending: true }),
     s.from('shifts').select('id,scheduled_start,scheduled_end,role_name,workplace_id,event_id').eq('user_id', user.id).order('scheduled_start', { ascending: true }),
-    s.from('incidents').select('id,event_id').neq('status', 'resolved'),
+    s.from('incidents').select('id,event_id,workplace_id').neq('status', 'resolved'),
     s.from('event_members').select('event_id,event_role').eq('user_id', user.id),
     s.from('events').select('id').lte('start_at', now).gte('end_at', now),
     s.from('events').select('id').gte('end_at', now),
+    s.from('responsible_assignments').select('event_id,workplace_id').eq('user_id', user.id),
   ])
 
   const profile = profileResult.data
@@ -47,12 +48,17 @@ export default async function Dashboard() {
   const activeEventIds = new Set((activeEventsResult.data || []).map(event => event.id))
   const openEventIds = new Set((openEventsResult.data || []).map(event => event.id))
   const hasEventAssignment = memberships.some(member => openEventIds.has(member.event_id))
-  const hasActiveIncidentContext = current.role === 'admin'
-    ? activeEventIds.size > 0
-    : current.role === 'responsible_lead'
-      && memberships.some(member => ['responsible_lead','admin'].includes(member.event_role) && activeEventIds.has(member.event_id))
+  const activeResponsibleAssignments=(responsibleAssignmentsResult.data||[])
+    .filter(assignment=>activeEventIds.has(assignment.event_id))
+  const activeResponsibleWorkplaces=new Set(activeResponsibleAssignments.map(assignment=>assignment.workplace_id))
+  const hasActiveIncidentContext = current.role === 'responsible_lead' && activeResponsibleAssignments.length>0
   const activeIncidentCount = (incidentsResult.data || []).filter(incident =>
-    Boolean(incident.event_id && activeEventIds.has(incident.event_id))
+    Boolean(
+      incident.event_id
+      && activeEventIds.has(incident.event_id)
+      && incident.workplace_id
+      && activeResponsibleWorkplaces.has(incident.workplace_id)
+    )
   ).length
 
   let responsibleLivePeople:ResponsibleLivePerson[]=[]
@@ -61,12 +67,9 @@ export default async function Dashboard() {
   let staffLiveError=false
 
   if(current.role==='responsible_lead'){
-    const assignmentsResult=await s.from('responsible_assignments')
-      .select('event_id,workplace_id')
-      .eq('user_id',current.id)
-    responsibleLiveError=Boolean(assignmentsResult.error)
+    responsibleLiveError=Boolean(responsibleAssignmentsResult.error)
 
-    const activeAssignments=(assignmentsResult.data||[]).filter(assignment=>activeEventIds.has(assignment.event_id))
+    const activeAssignments=activeResponsibleAssignments
     if(activeAssignments.length){
       const workplaceIds=[...new Set(activeAssignments.map(assignment=>assignment.workplace_id))]
       const eventIds=[...new Set(activeAssignments.map(assignment=>assignment.event_id))]
@@ -153,7 +156,7 @@ export default async function Dashboard() {
   const hasLoadError = Boolean(
     profileResult.error || eventsResult.error || shiftsResult.error || incidentsResult.error
     || membershipsResult.error || activeEventsResult.error || openEventsResult.error
-    || responsibleLiveError || staffLiveError
+    || responsibleAssignmentsResult.error || responsibleLiveError || staffLiveError
   )
 
   return <main className="space-y-7 p-4 md:p-8">

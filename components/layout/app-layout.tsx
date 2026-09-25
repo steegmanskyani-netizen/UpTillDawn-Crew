@@ -22,7 +22,7 @@ const emptyContext:RoleUiContext={assignedEvent:false,assignedWorkplaceRole:fals
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname=usePathname()
-  const {user,profile,roles,isAdmin,realIsAdmin,editMode}=useAuth()
+  const {user,roles,isAdmin,realIsAdmin,editMode}=useAuth()
   const supabase=useMemo(()=>createClient(),[])
   const [chatMissed,setChatMissed]=useState(0)
   const [incidentMissed,setIncidentMissed]=useState(0)
@@ -87,11 +87,21 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     if(!chatSince){chatSince=nowIso;window.localStorage.setItem(chatKey,chatSince)}
     if(!incidentSince){incidentSince=nowIso;window.localStorage.setItem(incidentKey,incidentSince)}
 
-    const [{data:events},{data:memberships},{data:shifts},{data:responsibleAssignments}]=await Promise.all([
+    const chatWindowStart=new Date(now.getTime()-3*24*60*60*1000).toISOString()
+    const [
+      {data:events},
+      {data:memberships},
+      {data:shifts},
+      {data:responsibleAssignments},
+      {data:chatEvents},
+      {data:chatChannels},
+    ]=await Promise.all([
       supabase.from("events").select("id,start_at,end_at,status").neq("status","archived").gte("end_at",nowIso),
       supabase.from("event_members").select("event_id,event_role").eq("user_id",user.id),
       supabase.from("shifts").select("event_id,workplace_id,scheduled_start,scheduled_end,status").eq("user_id",user.id).neq("status","cancelled"),
       supabase.from("responsible_assignments").select("event_id,workplace_id").eq("user_id",user.id),
+      supabase.from("events").select("id,start_at,end_at,status").neq("status","archived").lte("start_at",nowIso).gte("end_at",chatWindowStart),
+      supabase.from("chat_channels").select("id,kind,event_id,workplace_id").in("kind",["organization","event","workplace"]),
     ])
     const eventRows=events||[]
     const memberIds=new Set((memberships||[]).map(x=>x.event_id))
@@ -109,26 +119,79 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const assignedWorkplaceRole=(shifts||[]).length>0||(responsibleAssignments||[]).length>0
     setContext({assignedEvent,assignedWorkplaceRole,eventActive,shiftActive})
 
+    const activeShiftRows=(shifts||[]).filter(shift=>
+      Date.parse(shift.scheduled_start)<=now.getTime()&&Date.parse(shift.scheduled_end)>=now.getTime()
+    )
+    const activeShiftEventIds=new Set(activeShiftRows.map(shift=>shift.event_id))
+    const activeShiftWorkplaceIds=new Set(activeShiftRows.map(shift=>shift.workplace_id))
+    const responsibleWorkplaceIds=new Set((responsibleAssignments||[]).map(row=>row.workplace_id))
+    const activeResponsibleWorkplaceIds=new Set(
+      [...responsibleWorkplaceIds].filter(workplaceId=>activeShiftWorkplaceIds.has(workplaceId))
+    )
+
     if(pathname.startsWith("/tasks")){window.localStorage.setItem(taskKey,nowIso);setTaskMissed(0)}
-    else{
+    else if(activeUiRole==="admin"){
       const {count}=await supabase.from("task_assignments").select("id",{count:"exact",head:true}).gt("created_at",taskSince).neq("status","COMPLETED")
       setTaskMissed(count??0)
+    }else{
+      const {data:taskRows}=await supabase.from("task_assignments")
+        .select("id,user_id,tasks(event_id,workplace_id)")
+        .gt("created_at",taskSince)
+        .neq("status","COMPLETED")
+        .limit(1000)
+      const count=(taskRows||[]).filter(row=>{
+        const task=row.tasks
+        if(!task)return false
+        if(activeUiRole==="employee")return row.user_id===user.id&&activeShiftEventIds.has(task.event_id)
+        if(row.user_id===user.id&&activeShiftEventIds.has(task.event_id))return true
+        return Boolean(task.workplace_id&&activeResponsibleWorkplaceIds.has(task.workplace_id))
+      }).length
+      setTaskMissed(count)
     }
 
     if(pathname.startsWith("/chat")){window.localStorage.setItem(chatKey,nowIso);setChatMissed(0)}
-    else{
+    else if(activeUiRole==="admin"){
       const {count}=await supabase.from("messages").select("id",{count:"exact",head:true}).gt("created_at",chatSince).neq("sender_id",user.id)
       setChatMissed(count??0)
+    }else{
+      const chatEventIds=new Set((chatEvents||[]).map(event=>event.id))
+      const ownEventIds=new Set((memberships||[]).map(row=>row.event_id))
+      const ownWorkplaceIds=new Set([
+        ...(shifts||[]).map(row=>row.workplace_id),
+        ...(responsibleAssignments||[]).map(row=>row.workplace_id),
+      ])
+      const allowedChannelIds=(chatChannels||[]).filter(channel=>{
+        if(channel.kind==="organization")return true
+        if(!channel.event_id||!chatEventIds.has(channel.event_id))return false
+        if(channel.kind==="event")return ownEventIds.has(channel.event_id)
+        return Boolean(channel.workplace_id&&ownWorkplaceIds.has(channel.workplace_id))
+      }).map(channel=>channel.id)
+      if(!allowedChannelIds.length)setChatMissed(0)
+      else{
+        const {count}=await supabase.from("messages").select("id",{count:"exact",head:true})
+          .in("channel_id",allowedChannelIds)
+          .gt("created_at",chatSince)
+          .neq("sender_id",user.id)
+        setChatMissed(count??0)
+      }
     }
 
     if(pathname.startsWith("/incidents")){window.localStorage.setItem(incidentKey,nowIso);setIncidentMissed(0)}
-    else{
-      let query=supabase.from("incidents").select("id",{count:"exact",head:true}).gt("created_at",incidentSince)
-      if(profile?.role==="staff") query=query.eq("reporter_id",user.id)
-      const {count}=await query
+    else if(activeUiRole==="admin"){
+      const {count}=await supabase.from("incidents").select("id",{count:"exact",head:true}).gt("created_at",incidentSince)
       setIncidentMissed(count??0)
-    }
-  },[pathname,profile?.role,supabase,user])
+    }else if(activeUiRole==="employee"){
+      const {count}=await supabase.from("incidents").select("id",{count:"exact",head:true})
+        .eq("reporter_id",user.id)
+        .gt("created_at",incidentSince)
+      setIncidentMissed(count??0)
+    }else if(activeResponsibleWorkplaceIds.size){
+      const {count}=await supabase.from("incidents").select("id",{count:"exact",head:true})
+        .in("workplace_id",[...activeResponsibleWorkplaceIds])
+        .gt("created_at",incidentSince)
+      setIncidentMissed(count??0)
+    }else setIncidentMissed(0)
+  },[activeUiRole,pathname,supabase,user])
 
   useEffect(()=>{queueMicrotask(()=>void refresh());const timer=window.setInterval(()=>void refresh(),10000);const focus=()=>void refresh();window.addEventListener("focus",focus);return()=>{window.clearInterval(timer);window.removeEventListener("focus",focus)}},[refresh])
 

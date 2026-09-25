@@ -32,9 +32,11 @@ export default async function Page(){
   ])
 
   const isAdmin=current.role==='admin'
-  const manager=isAdmin||current.role==='responsible_lead'
+  const isResponsible=current.role==='responsible_lead'
+  const manager=isAdmin||isResponsible
   const activeEventIds=new Set((events||[]).map(event=>event.id))
   const activeShifts=(shifts||[]).filter(shift=>activeEventIds.has(shift.event_id))
+  const activeWorkplaceIds=new Set(activeShifts.map(shift=>shift.workplace_id))
 
   if(!isAdmin&&!activeShifts.length)redirect('/events')
   if(!(events||[]).length){
@@ -44,7 +46,9 @@ export default async function Page(){
 
   const visibleIncidents=(incidents||[]).filter(incident=>{
     if(!incident.event_id||!activeEventIds.has(incident.event_id))return false
-    return isAdmin||manager||incident.reporter_id===user.id||incident.user_id===user.id
+    if(isAdmin)return true
+    if(isResponsible)return Boolean(incident.workplace_id&&activeWorkplaceIds.has(incident.workplace_id))
+    return incident.reporter_id===user.id||incident.user_id===user.id
   })
   const activeShift=activeShifts.find(shift=>shift.id===activeSession?.shift_id)||activeShifts[0]
   const contexts=activeShifts.map(shift=>({

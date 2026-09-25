@@ -34,7 +34,7 @@ export function MobileBottomNav({
 }) {
  const pathname=usePathname()
  const [expanded,setExpanded]=useState(false)
- const {roles,isAdmin,editMode}=useAuth()
+ const {roles,isAdmin}=useAuth()
  const roleKey:RoleRuleRole=roles.includes("admin")?"admin":roles.includes("responsible_lead")?"responsible_lead":"staff"
  const order=new Map(featureOrder.map((key,index)=>[key,index]))
 
@@ -44,7 +44,7 @@ export function MobileBottomNav({
    return true
  }).sort((a,b)=>(order.get(a.key)??999)-(order.get(b.key)??999))
 
- const hrefFor=(item:NavigationItem)=>item.href==='/'&&isAdmin&&!editMode?'/admin':item.href
+ const hrefFor=(item:NavigationItem)=>item.href==='/'&&isAdmin?'/admin':item.href
  const isActive=(item:NavigationItem)=>{
    const href=hrefFor(item)
    return href==='/'?pathname==='/':pathname.startsWith(href)

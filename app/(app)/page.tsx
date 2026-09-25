@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 import { CalendarDays, Clock3, MapPin, AlertTriangle, ArrowRight } from 'lucide-react'
 import { createClient } from '@/lib/supabase/crew-server'
 import { ManagerOnly } from '@/components/auth/manager-only'
@@ -19,6 +20,7 @@ export default async function Dashboard() {
   const s = await createClient()
   const current = await getCurrentUser()
   if (!current) return null
+  if (current.isAdmin) redirect('/admin')
   const user = { id: current.id }
 
   const now = new Date().toISOString()

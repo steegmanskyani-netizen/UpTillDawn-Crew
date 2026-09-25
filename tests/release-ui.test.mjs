@@ -446,3 +446,15 @@ test('mobile navigation uses the desktop navigation source and horizontal swipe 
     last = index
   }
 })
+
+
+test('authenticated users open the overview for their active role', async () => {
+  const dashboard = await read('app/(app)/page.tsx')
+  const auth = await read('lib/actions/auth.ts')
+  const admin = await read('app/(app)/admin/page.tsx')
+
+  assert.match(dashboard, /if \(current\.isAdmin\) redirect\('\/admin'\)/)
+  assert.match(auth, /redirect\(requestedPortal === 'admin' \? '\/admin' : '\/'\)/)
+  assert.doesNotMatch(auth, /requestedPortal === 'responsible'[\s\S]{0,120}'\/operations'/)
+  assert.match(admin, /if\(!current\?\.isAdmin\) redirect\('\/'\)/)
+})

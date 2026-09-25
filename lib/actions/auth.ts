@@ -180,13 +180,7 @@ export async function signIn(formData: FormData) {
         }
     }
 
-    redirect(
-        requestedPortal === 'admin'
-            ? '/admin'
-            : requestedPortal === 'responsible'
-                ? '/operations'
-                : '/'
-    )
+    redirect(requestedPortal === 'admin' ? '/admin' : '/')
 }
 
 // ── Sign Out ─────────────────────────────────────────────────

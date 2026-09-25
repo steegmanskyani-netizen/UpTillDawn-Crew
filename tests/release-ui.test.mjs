@@ -370,10 +370,10 @@ test('maker account keeps permanent admin privilege independent of visible statu
 })
 
 
-test('edit mode contains role tabs, exit control and owner-only ChatGPT app editor', async () => {
+test('edit mode contains role tabs, exit control and owner-only free AI app editor', async () => {
   const editor = await read('components/layout/edit-mode-editor.tsx')
   const route = await read('app/api/edit-assistant/route.ts')
-  const env = await read('.env.example')
+  const wrangler = await read('wrangler.jsonc')\n  const env = await read('.env.example')
 
   assert.match(editor, /aria-label="Edit rol"/)
   assert.match(editor, /Admin/)
@@ -382,7 +382,7 @@ test('edit mode contains role tabs, exit control and owner-only ChatGPT app edit
   assert.match(editor, /setEditRole/)
   assert.match(editor, /EDIT MODE AFSLUITEN/)
   assert.match(editor, /setEditMode\(false\)/)
-  assert.match(editor, /ChatGPT app-editor/)
+  assert.match(editor, /AI app-editor/)
   assert.match(editor, /isOwner&&/)
   assert.match(editor, /WIJZIGING/)
   assert.match(route, /upt_current_is_owner/)

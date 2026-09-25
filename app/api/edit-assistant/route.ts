@@ -1,3 +1,4 @@
+import { getCloudflareContext } from "@opennextjs/cloudflare"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/crew-server"
 
@@ -57,22 +58,26 @@ const outputSchema={
   required:["answer","patches"],
 } as const
 
-function responseText(payload:unknown):string|null{
+type WorkersAiBinding={
+  run:(model:string,input:Record<string,unknown>)=>Promise<unknown>
+}
+
+type AiResult={
+  answer:string
+  patches:unknown[]
+}
+
+function normalizeAiResult(payload:unknown):AiResult|null{
   if(!payload||typeof payload!=="object")return null
-  const root=payload as {output_text?:unknown;output?:unknown}
-  if(typeof root.output_text==="string")return root.output_text
-  if(!Array.isArray(root.output))return null
-  for(const item of root.output){
-    if(!item||typeof item!=="object")continue
-    const content=(item as {content?:unknown}).content
-    if(!Array.isArray(content))continue
-    for(const part of content){
-      if(!part||typeof part!=="object")continue
-      const typed=part as {type?:unknown;text?:unknown}
-      if(typed.type==="output_text"&&typeof typed.text==="string")return typed.text
-    }
+  const response=(payload as {response?:unknown}).response
+  let parsed:unknown=response
+  if(typeof response==="string"){
+    try{parsed=JSON.parse(response)}catch{return null}
   }
-  return null
+  if(!parsed||typeof parsed!=="object")return null
+  const result=parsed as {answer?:unknown;patches?:unknown}
+  if(typeof result.answer!=="string"||!Array.isArray(result.patches))return null
+  return {answer:result.answer,patches:result.patches}
 }
 
 export async function POST(request:Request){
@@ -84,82 +89,77 @@ export async function POST(request:Request){
   if(isOwner!==true)return Response.json({error:"Deze AI-editor is alleen beschikbaar voor de maker van de app."},{status:403})
 
   const parsed=requestSchema.safeParse(await request.json().catch(()=>null))
-  if(!parsed.success)return Response.json({error:"Ongeldige ChatGPT-aanvraag."},{status:400})
+  if(!parsed.success)return Response.json({error:"Ongeldige AI-aanvraag."},{status:400})
 
-  const apiKey=process.env.OPENAI_API_KEY?.trim()
-  if(!apiKey){
+  let ai:WorkersAiBinding|undefined
+  try{
+    const {env}=getCloudflareContext()
+    ai=(env as {AI?:WorkersAiBinding}).AI
+  }catch(error){
+    console.error("[Edit assistant] Cloudflare context unavailable",{
+      message:error instanceof Error?error.message:"unknown",
+    })
+  }
+
+  if(!ai){
     return Response.json({
-      error:"ChatGPT is nog niet geconfigureerd. Voeg OPENAI_API_KEY toe als server-side Cloudflare secret.",
+      error:"Gratis AI is nog niet beschikbaar op deze deployment.",
       configured:false,
     },{status:503})
   }
 
-  const model=process.env.OPENAI_MODEL?.trim()||"gpt-5.6"
   const input=parsed.data
-
-  const openAiResponse=await fetch("https://api.openai.com/v1/responses",{
-    method:"POST",
-    headers:{
-      "Authorization":`Bearer ${apiKey}`,
-      "Content-Type":"application/json",
-    },
-    body:JSON.stringify({
-      model,
-      instructions:[
-        "Je bent de ingebouwde Up Till Dawn app-editor.",
-        "Antwoord in het Nederlands tenzij de gebruiker expliciet een andere taal vraagt.",
-        "Je krijgt de huidige pagina, previewrol en de actuele role_ui_rules.",
-        "Voor wijzigingen die met de huidige Edit mode uitvoerbaar zijn, vul patches in.",
-        "Gebruik alleen bestaande feature_key-waarden uit de aangeleverde rules.",
-        "Gebruik null voor velden die niet moeten wijzigen.",
-        "sort_order mag worden gebruikt om navigatievolgorde te veranderen; lagere waarden komen eerst.",
-        "Leg kort uit wat je voorstelt.",
-        "Broncode, database-schema en GitHub-commits kun je in deze interface alleen bespreken; voer daarvoor geen verzonnen wijzigingen uit.",
-      ].join("\n"),
-      input:JSON.stringify({
-        request:input.message,
-        current_path:input.path,
-        editing_role:input.role,
-        editable_rules:input.rules,
-      }),
-      text:{
-        format:{
-          type:"json_schema",
-          name:"uptilldawn_edit_assistant",
-          strict:true,
-          schema:outputSchema,
-        },
-      },
-    }),
-  })
-
-  if(!openAiResponse.ok){
-    const failure=await openAiResponse.json().catch(()=>null) as {
-      error?:{code?:string|null;type?:string|null;message?:string|null}
-    } | null
-    const code=failure?.error?.code||failure?.error?.type||null
-    console.error("[Edit assistant] OpenAI request failed",{status:openAiResponse.status,code})
-    if(openAiResponse.status===429){
-      const billingCodes=new Set(["insufficient_quota","credit_balance_exhausted","billing_hard_limit_reached"])
-      return Response.json({
-        error:billingCodes.has(code||"")
-          ?"OpenAI API-tegoed is niet actief of is opgebruikt. Voeg API-billing/credits toe aan het OpenAI Platform-account."
-          :"OpenAI heeft de aanvraag tijdelijk begrensd (rate limit). Probeer zo meteen opnieuw.",
-        code,
-      },{status:429})
-    }
-    return Response.json({error:"ChatGPT kon de aanvraag niet verwerken.",code},{status:502})
-  }
-
-  const raw=await openAiResponse.json()
-  const text=responseText(raw)
-  if(!text)return Response.json({error:"ChatGPT gaf geen bruikbaar antwoord."},{status:502})
+  const system=[
+    "Je bent de ingebouwde Up Till Dawn AI app-editor.",
+    "Antwoord in het Nederlands tenzij de gebruiker expliciet een andere taal vraagt.",
+    "Je krijgt de huidige pagina, previewrol en de actuele role_ui_rules.",
+    "Voor wijzigingen die met de huidige Edit mode uitvoerbaar zijn, vul patches in.",
+    "Gebruik alleen bestaande feature_key-waarden uit de aangeleverde rules.",
+    "Gebruik null voor velden die niet moeten wijzigen.",
+    "sort_order mag worden gebruikt om navigatievolgorde te veranderen; lagere waarden komen eerst.",
+    "Leg kort uit wat je voorstelt.",
+    "Broncode, database-schema en GitHub-commits kun je in deze interface alleen bespreken; voer daarvoor geen verzonnen wijzigingen uit.",
+  ].join("\n")
 
   try{
-    const result=JSON.parse(text) as {answer?:unknown;patches?:unknown}
-    if(typeof result.answer!=="string"||!Array.isArray(result.patches))throw new Error("invalid")
-    return Response.json({answer:result.answer,patches:result.patches,configured:true})
-  }catch{
-    return Response.json({error:"ChatGPT gaf een ongeldig gestructureerd antwoord."},{status:502})
+    const raw=await ai.run("@cf/meta/llama-3.3-70b-instruct-fp8-fast",{
+      messages:[
+        {role:"system",content:system},
+        {role:"user",content:JSON.stringify({
+          request:input.message,
+          current_path:input.path,
+          editing_role:input.role,
+          editable_rules:input.rules,
+        })},
+      ],
+      response_format:{
+        type:"json_schema",
+        json_schema:outputSchema,
+      },
+      max_tokens:700,
+      temperature:0.1,
+    })
+
+    const result=normalizeAiResult(raw)
+    if(!result){
+      console.error("[Edit assistant] Workers AI returned an invalid structured result")
+      return Response.json({error:"De gratis AI gaf geen bruikbaar gestructureerd antwoord."},{status:502})
+    }
+
+    return Response.json({
+      answer:result.answer,
+      patches:result.patches,
+      configured:true,
+      provider:"cloudflare-workers-ai",
+    })
+  }catch(error){
+    const message=error instanceof Error?error.message:"unknown"
+    console.error("[Edit assistant] Workers AI request failed",{message})
+    const quota=/neuron|quota|limit|capacity|429|3040/i.test(message)
+    return Response.json({
+      error:quota
+        ?"De gratis AI-daglimiet of capaciteit is tijdelijk bereikt. Probeer later opnieuw; de gratis limiet wordt dagelijks vernieuwd."
+        :"De gratis AI kon de aanvraag niet verwerken. Probeer opnieuw.",
+    },{status:quota?429:502})
   }
 }

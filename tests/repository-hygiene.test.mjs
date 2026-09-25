@@ -41,8 +41,6 @@ test('environment example exposes required public variables and keeps server sec
     'NEXT_PUBLIC_SUPABASE_ANON_KEY',
     'NEXT_PUBLIC_APP_URL',
     'GEOAPIFY_API_KEY',
-    'OPENAI_API_KEY',
-    'OPENAI_MODEL',
   ])
   assert.doesNotMatch(text, /NEXT_PUBLIC_GEOAPIFY_API_KEY/)
   assert.doesNotMatch(text, /NEXT_PUBLIC_OPENAI_API_KEY/)

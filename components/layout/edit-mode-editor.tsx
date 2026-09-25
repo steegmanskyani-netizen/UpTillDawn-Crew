@@ -135,7 +135,7 @@ export function EditModeEditor() {
     setBusy(false)
   }
 
-  async function askChatGpt() {
+  async function askAi() {
     const prompt=aiPrompt.trim()
     if (!prompt || aiBusy) return
     setAiBusy(true)
@@ -154,12 +154,12 @@ export function EditModeEditor() {
       })
       const payload=await response.json().catch(()=>null) as (AiReply & {error?:string}) | null
       if (!response.ok || !payload) {
-        setAiError(payload?.error || "ChatGPT kon niet antwoorden.")
+        setAiError(payload?.error || "AI kon niet antwoorden.")
         return
       }
       setAiReply({answer:payload.answer,patches:Array.isArray(payload.patches)?payload.patches:[]})
     } catch {
-      setAiError("ChatGPT kon niet worden bereikt.")
+      setAiError("AI kon niet worden bereikt.")
     } finally {
       setAiBusy(false)
     }
@@ -187,7 +187,7 @@ export function EditModeEditor() {
         .sort((a,b)=>a.sort_order-b.sort_order)
         .map((rule,index)=>({...rule,sort_order:(index+1)*10}))
     })
-    setMessage("ChatGPT-wijzigingen toegepast in de editor. Controleer ze en klik daarna op opslaan.")
+    setMessage("AI-wijzigingen toegepast in de editor. Controleer ze en klik daarna op opslaan.")
     setAiReply(current=>current?{...current,patches:[]}:current)
   }
 
@@ -224,8 +224,8 @@ export function EditModeEditor() {
 
       {isOwner&&<section className="space-y-2 rounded-xl border border-violet-500/40 bg-violet-500/5 p-3">
         <div>
-          <p className="font-black">ChatGPT app-editor</p>
-          <p className="text-xs text-muted-foreground">Beschrijf wat je wilt wijzigen. ChatGPT krijgt de huidige rol en Edit-layout mee en kan toepasbare wijzigingen voorstellen.</p>
+          <p className="font-black">AI app-editor</p>
+          <p className="text-xs text-muted-foreground">Beschrijf wat je wilt wijzigen. De AI draait via Cloudflare Workers AI en krijgt de huidige rol en Edit-layout mee om toepasbare wijzigingen voor te stellen.</p>
         </div>
         <textarea
           value={aiPrompt}
@@ -238,10 +238,10 @@ export function EditModeEditor() {
         <button
           type="button"
           disabled={aiBusy||!aiPrompt.trim()}
-          onClick={()=>void askChatGpt()}
+          onClick={()=>void askAi()}
           className="w-full rounded-xl bg-violet-600 px-4 py-2 font-black text-white disabled:opacity-50"
         >
-          {aiBusy?"CHATGPT DENKT…":"VRAAG CHATGPT"}
+          {aiBusy?"AI DENKT…":"VRAAG AI"}
         </button>
         {aiError&&<p role="alert" className="rounded-lg border border-red-500/40 p-2 text-sm text-red-500">{aiError}</p>}
         {aiReply&&<div className="space-y-2 rounded-xl border bg-background p-3">

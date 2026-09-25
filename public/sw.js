@@ -25,6 +25,15 @@ self.addEventListener('fetch',event=>{
  }
 })
 
+function safeLocalPath(value){
+ return typeof value==='string'
+  && value.startsWith('/')
+  && !value.startsWith('//')
+  && !value.includes('\\')
+  ? value
+  : '/notifications'
+}
+
 async function notifyOpenClients(){
  const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true})
  for(const client of windows)client.postMessage({type:'UPT_PUSH_REFRESH'})
@@ -35,7 +44,7 @@ self.addEventListener('push',event=>{
  try{payload=event.data?event.data.json():{}}catch{}
  const title=payload.title||'Up Till Dawn'
  const body=payload.body||'Je hebt een nieuwe melding.'
- const link=typeof payload.link==='string'&&payload.link.startsWith('/')?payload.link:'/notifications'
+ const link=safeLocalPath(payload.link)
  const tag=payload.notificationId?'uptilldawn-'+payload.notificationId:'uptilldawn-notification'
  const promises=[
   self.registration.showNotification(title,{
@@ -57,7 +66,7 @@ self.addEventListener('push',event=>{
 
 self.addEventListener('notificationclick',event=>{
  event.notification.close()
- const link=event.notification.data?.url||'/notifications'
+ const link=safeLocalPath(event.notification.data?.url)
  const target=new URL(link,self.location.origin).href
  event.waitUntil((async()=>{
   const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true})

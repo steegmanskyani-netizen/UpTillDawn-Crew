@@ -39,6 +39,15 @@ function safePushEndpoint(value:string){
   }catch{return false}
 }
 
+function safeNotificationLink(value:unknown){
+  return typeof value==="string"
+    && value.startsWith("/")
+    && !value.startsWith("//")
+    && !value.includes("\\")
+    ? value
+    : "/notifications"
+}
+
 Deno.serve(async(req)=>{
   if(req.method!=="POST")return json({error:"Method not allowed"},405)
 
@@ -95,7 +104,7 @@ Deno.serve(async(req)=>{
     title:String(notification.title||"Up Till Dawn").slice(0,120),
     body:String(notification.body||"").slice(0,700),
     kind:String(notification.kind||"info").slice(0,80),
-    link:typeof notification.link==="string"&&notification.link.startsWith("/")?notification.link:"/notifications",
+    link:safeNotificationLink(notification.link),
     createdAt:notification.created_at,
     badgeCount:unreadCount??1,
   })

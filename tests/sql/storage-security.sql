@@ -161,6 +161,28 @@ BEGIN
 END $$;
 RESET ROLE;
 
+-- Unapproved accounts must also be unable to write into user-owned private buckets.
+DO $
+BEGIN
+ IF (
+   SELECT count(*)
+   FROM pg_policies
+   WHERE schemaname='storage'
+     AND tablename='objects'
+     AND policyname IN (
+       'upt_chat_attachments_insert',
+       'upt_checkin_selfies_insert',
+       'upt_incident_photos_insert',
+       'upt_profile_photos_insert',
+       'upt_profile_photos_update',
+       'upt_profile_photos_delete'
+     )
+     AND (coalesce(qual,'')||' '||coalesce(with_check,'')) ILIKE '%upt_is_approved%'
+ ) <> 6 THEN
+   RAISE EXCEPTION 'FAIL unapproved storage write gate';
+ END IF;
+END $;
+
 -- Operational evidence must have no authenticated DELETE policy.
 DO $$
 BEGIN

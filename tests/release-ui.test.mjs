@@ -653,3 +653,17 @@ test('push endpoints are HTTPS-only and private-network targets are rejected', a
   assert.match(edge, /remove unsafe endpoint/)
   assert.match(migration, /not like 'https:\/\/%'/)
 })
+
+
+test('notification links cannot escape the app origin', async () => {
+  const notifications = await read('app/(app)/notifications/page.tsx')
+  const sw = await read('public/sw.js')
+  const edge = await read('supabase/functions/push-notification/index.ts')
+
+  assert.match(notifications, /!value\.startsWith\('\/\/'\)/)
+  assert.match(notifications, /safeLink && <Link href=\{safeLink\}/)
+  assert.match(sw, /function safeLocalPath/)
+  assert.match(sw, /!value\.startsWith\('\/\/'\)/)
+  assert.match(edge, /function safeNotificationLink/)
+  assert.match(edge, /link:safeNotificationLink\(notification\.link\)/)
+})

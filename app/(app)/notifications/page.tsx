@@ -6,6 +6,15 @@ import { PushNotificationSettings } from '@/components/push-notification-setting
 
 export const dynamic = 'force-dynamic'
 
+function safeNotificationLink(value:string|null){
+  return value
+    && value.startsWith('/')
+    && !value.startsWith('//')
+    && !value.includes('\\')
+    ? value
+    : null
+}
+
 export default async function Page() {
   const s = await createClient()
   const { data: { user } } = await s.auth.getUser()
@@ -20,8 +29,9 @@ export default async function Page() {
   return <main className="space-y-4 p-4 md:p-8">
     <h1 className="text-3xl font-black">Meldingen</h1>
     <PushNotificationSettings/>
-    {error ? <p>Meldingen konden niet worden geladen.</p> : !data?.length ? <p>Geen meldingen.</p> : data.map(n =>
-      <article key={n.id} className={`rounded-xl border p-4 ${n.read_at ? '' : 'border-violet-500'}`}>
+    {error ? <p>Meldingen konden niet worden geladen.</p> : !data?.length ? <p>Geen meldingen.</p> : data.map(n => {
+      const safeLink=safeNotificationLink(n.link)
+      return <article key={n.id} className={`rounded-xl border p-4 ${n.read_at ? '' : 'border-violet-500'}`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="font-bold">{n.title}</h2>
@@ -31,13 +41,13 @@ export default async function Page() {
           {!n.read_at && <span className="rounded-full bg-violet-500/20 px-2 py-1 text-xs font-bold text-violet-300">NIEUW</span>}
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
-          {n.link && <Link href={n.link} className="rounded-lg bg-violet-600 px-3 py-2 text-sm font-bold">OPENEN</Link>}
+          {safeLink && <Link href={safeLink} className="rounded-lg bg-violet-600 px-3 py-2 text-sm font-bold">OPENEN</Link>}
           {!n.read_at && <form action={markNotificationRead}>
             <input type="hidden" name="notification_id" value={n.id}/>
             <button className="rounded-lg border px-3 py-2 text-sm">Markeer gelezen</button>
           </form>}
         </div>
       </article>
-    )}
+    })}
   </main>
 }

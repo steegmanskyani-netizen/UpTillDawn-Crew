@@ -102,5 +102,19 @@ BEGIN
 END $$;
 
 RESET ROLE;
-SELECT 'PASS: automatic chat naming, scoped workplace access and three-day post-event window' AS result;
+
+DO $
+BEGIN
+  IF has_function_privilege('authenticated','public.upt_create_private_chat(uuid)','EXECUTE') THEN
+    RAISE EXCEPTION 'FAIL legacy private-chat creation RPC still executable';
+  END IF;
+  IF has_function_privilege('authenticated','public.upt_private_chat_peers()','EXECUTE') THEN
+    RAISE EXCEPTION 'FAIL legacy private-chat peers RPC still executable';
+  END IF;
+  IF has_table_privilege('authenticated','public.chat_members','SELECT') THEN
+    RAISE EXCEPTION 'FAIL legacy chat_members direct read still granted';
+  END IF;
+END $;
+
+SELECT 'PASS: automatic chat naming, scoped workplace access, three-day post-event window and retired private-chat surface' AS result;
 ROLLBACK;

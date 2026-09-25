@@ -48,7 +48,7 @@ The current cleanup reran all 13 SQL regression files in `tests/sql/` against th
 - Responsible scope is workplace-assignment based rather than broad event-wide workplace access.
 - Staff may see their assigned future workplace/shift according to current role UI rules.
 - Responsible cannot create workplaces or pre-shift tasks.
-- Legacy private-chat assumptions were replaced by current workplace-chat behavior.
+- Legacy private-chat assumptions were replaced by current workplace-chat behavior; the remaining private-chat peer RPC and direct `chat_members` read grant were revoked.
 - Incident/media Responsible fixtures now include the active-shift context required by current rules.
 
 The corrected SQL suites pass, including privilege/RLS, SECURITY DEFINER surface, release access, profile-role integrity, foreign-key coverage, Responsible read scope, operational security, chat lifecycle, queued uploads, storage security, offline time dependencies and event-selection guards.
@@ -70,7 +70,7 @@ Known remaining advisor findings are reviewed rather than blindly removed:
 These are not regressions in the current web/mobile baseline:
 
 1. Define an explicit overtime/pay-period policy before presenting overtime as payroll truth.
-2. Replay all 103 migrations from zero on an isolated project before claiming a fresh-install proof.
+2. Replay all 104 migrations from zero on an isolated project before claiming a fresh-install proof.
 3. Expand offline browsing beyond the operational workflows if full offline parity is ever required.
 4. Continue physical-device regression testing after major browser/OS updates.
 5. Enable Supabase leaked-password protection when the project setting is approved.

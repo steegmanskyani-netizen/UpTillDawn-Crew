@@ -38,6 +38,8 @@ The VAPID private key and internal push-webhook secret are private server config
 - personal access tokens
 - local `.env.local`
 
+Legacy private-chat creation/peer discovery is not part of the production app. Authenticated execute/read grants for that retired surface are revoked.
+
 ## Regression verification
 
 Security regression SQL lives in `tests/sql/` and is designed to run with synthetic fixtures inside transactions that roll back. The current baseline includes privilege/RLS, SECURITY DEFINER surface, role/event lifecycle, workplace scope, storage, queued media, chat lifecycle, offline-time and foreign-key coverage.

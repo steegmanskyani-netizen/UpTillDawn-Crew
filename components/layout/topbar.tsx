@@ -8,13 +8,12 @@ import { disablePushNotifications } from "@/lib/push-client"
 
 export function Topbar(){
  const name=useDisplayName()
- const {roles,isAdmin,editMode}=useAuth()
+ const {roles,isAdmin}=useAuth()
  const [loggingOut,startLogout]=useTransition()
- const baseRoleLabel=roles.includes("admin")?"Beheerder":roles.includes("responsible_lead")?"Verantwoordelijke":"Personeel"
- const roleLabel=editMode?`${baseRoleLabel} (edit)`:baseRoleLabel
+ const roleLabel=roles.includes("admin")?"Beheerder":roles.includes("responsible_lead")?"Verantwoordelijke":"Personeel"
 
  return <header className="flex min-h-16 items-center justify-between gap-2 border-b bg-card px-3 sm:gap-3 sm:px-4">
-  <Link href={isAdmin&&!editMode?"/admin":"/"} className="flex shrink-0 items-center gap-2 font-black">
+  <Link href={isAdmin?"/admin":"/"} className="flex shrink-0 items-center gap-2 font-black">
    <Image src="/up-till-dawn-mark.webp" alt="UP TILL DAWN" width={30} height={30} className="h-[30px] w-[30px] rounded-lg object-cover md:hidden" priority />
    <span>Up Till Dawn</span>
   </Link>

@@ -103,10 +103,11 @@ END $$;
 RESET ROLE;
 SELECT set_config('request.jwt.claim.sub','',true);
 SET LOCAL ROLE anon;
-DO $ BEGIN
+DO $anon_surface$ BEGIN
  IF has_function_privilege('anon','public.upt_start_work(uuid,uuid)','EXECUTE') THEN RAISE EXCEPTION 'FAIL anonymous RPC privilege'; END IF;
  IF has_table_privilege('anon','public.profiles','TRUNCATE') OR has_table_privilege('authenticated','public.profiles','TRUNCATE') THEN RAISE EXCEPTION 'FAIL truncate privilege'; END IF;
-END $;
+END
+$anon_surface$;
 RESET ROLE;
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_test_ids WHERE name='staff'),true);
 SET LOCAL ROLE authenticated;

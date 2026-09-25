@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/crew-server'
 import { AppLayout } from '@/components/layout/app-layout'
+import { ReturnAfterLogin } from '@/components/auth/return-after-login'
 export default async function AuthenticatedLayout({children}:{children:React.ReactNode}) {
  const s=await createClient()
  const {data:{user}}=await s.auth.getUser()
@@ -12,5 +13,5 @@ export default async function AuthenticatedLayout({children}:{children:React.Rea
  if(error || !p) return <main className="p-8">Je profiel kon niet worden geladen. Probeer opnieuw.</main>
  if(passwordChangeRequired===true) redirect('/auth/reset-password?forced=1')
  if(!p.approved) return <main className="p-8">ACCOUNT NOG NIET GOEDGEKEURD</main>
- return <AppLayout>{children}</AppLayout>
+ return <AppLayout><ReturnAfterLogin/>{children}</AppLayout>
 }

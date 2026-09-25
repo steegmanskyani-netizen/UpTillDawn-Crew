@@ -28,6 +28,10 @@ The `push-notification` Supabase Edge Function uses Supabase's built-in server-s
 
 The VAPID private key and internal push-webhook secret are private server configuration. Only the VAPID public key is exposed to authenticated clients for Push API subscription.
 
+## Edit-mode code
+
+The Edit-mode access code is environment data. Its hash is stored in `upt_private.admin_edit_config`; the raw code is not committed to GitHub or exposed to the browser. Verification is restricted to approved permanent-admin callers through `upt_verify_admin_edit_code`.
+
 ## Secrets never committed
 
 - Supabase secret/service-role keys

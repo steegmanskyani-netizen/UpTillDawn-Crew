@@ -27,6 +27,7 @@ test('active runtime has no service-role secret or retired StaffPortal schema re
     const text = await readFile(file, 'utf8')
     assert.doesNotMatch(text, /SUPABASE_SERVICE_ROLE_KEY|service_role_key/i, relative(root, file))
     assert.doesNotMatch(text, retired, relative(root, file))
+    assert.doesNotMatch(text, /2315/, relative(root, file))
   }
 })
 

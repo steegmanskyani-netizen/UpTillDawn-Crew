@@ -52,4 +52,4 @@ After deployment, verify the public login/auth surface, manifest, service worker
 
 ## Database
 
-Production has 104 migration-history entries matching 104 migration files in the repository at this baseline. Do not reset production or replay the chain there. Use an isolated project for from-zero migration verification.
+Production has 105 migration-history entries matching 105 migration files in the repository at this baseline. Do not reset production or replay the chain there. Use an isolated project for from-zero migration verification.

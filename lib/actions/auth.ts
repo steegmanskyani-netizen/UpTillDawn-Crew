@@ -360,6 +360,11 @@ export async function verifyAdminSettingsCode(code: string) {
     ) {
         return { ok: false, error: 'Geen toegang.' }
     }
-    if (code !== '2315') return { ok: false, error: 'Onjuiste code.' }
+    const { data: validCode, error: verifyError } = await supabase.rpc('upt_verify_admin_edit_code', { p_code: code })
+    if (verifyError) {
+        console.error('[Auth] Edit code verification failed', { code: verifyError.code })
+        return { ok: false, error: 'Edit mode kon niet worden geverifieerd.' }
+    }
+    if (validCode !== true) return { ok: false, error: 'Onjuiste code.' }
     return { ok: true }
 }

@@ -34,7 +34,7 @@ export function AddressAutocomplete({
   const [error,setError]=useState("")
 
   useEffect(()=>{
-    if(!focused||value.trim().length<2){setSuggestions([]);setLoading(false);return}
+    if(!focused||value.trim().length<2)return
     const controller=new AbortController()
     const timer=window.setTimeout(async()=>{
       try{
@@ -76,7 +76,11 @@ export function AddressAutocomplete({
       value={value}
       onFocus={()=>setFocused(true)}
       onBlur={()=>window.setTimeout(()=>{setFocused(false);setSuggestions([])},120)}
-      onChange={e=>{setValue(e.target.value);setActive(-1);setError("")}}
+      onChange={e=>{
+        const next=e.target.value
+        setValue(next);setActive(-1);setError("")
+        if(next.trim().length<2){setSuggestions([]);setLoading(false)}
+      }}
       onKeyDown={e=>{
         if(!suggestions.length)return
         if(e.key==="ArrowDown"){e.preventDefault();setActive(i=>Math.min(i+1,suggestions.length-1))}

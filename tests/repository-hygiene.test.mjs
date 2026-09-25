@@ -30,6 +30,13 @@ test('active runtime has no service-role secret or retired StaffPortal schema re
   }
 })
 
+test('active runtime has no retired OpenAI billing integration', async () => {
+  for (const file of await sourceFiles()) {
+    const text = await readFile(file, 'utf8')
+    assert.doesNotMatch(text, /OPENAI_API_KEY|api\.openai\.com|gpt-5\.6/i, relative(root, file))
+  }
+})
+
 test('environment example exposes required public variables and keeps server secrets server-side', async () => {
   const text = await readFile(join(root, '.env.example'), 'utf8')
   const keys = text.split(/\r?\n/)
@@ -43,7 +50,6 @@ test('environment example exposes required public variables and keeps server sec
     'GEOAPIFY_API_KEY',
   ])
   assert.doesNotMatch(text, /NEXT_PUBLIC_GEOAPIFY_API_KEY/)
-  assert.doesNotMatch(text, /NEXT_PUBLIC_OPENAI_API_KEY/)
   assert.doesNotMatch(text, /NEXT_PUBLIC_GOOGLE_MAPS_API_KEY/)
 })
 

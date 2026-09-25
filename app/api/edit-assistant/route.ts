@@ -30,6 +30,20 @@ const requestSchema=z.object({
   })).max(60),
 })
 
+const aiPatchSchema=z.object({
+  feature_key:z.string().min(1).max(100),
+  label:z.string().max(80).nullable(),
+  visible:z.boolean().nullable(),
+  enabled:z.boolean().nullable(),
+  condition_key:conditionSchema.nullable(),
+  sort_order:z.number().int().nullable(),
+})
+
+const aiResultSchema=z.object({
+  answer:z.string().max(4000),
+  patches:z.array(aiPatchSchema).max(60),
+})
+
 const outputSchema={
   type:"object",
   additionalProperties:false,
@@ -75,9 +89,8 @@ function normalizeAiResult(payload:unknown):AiResult|null{
     try{parsed=JSON.parse(response)}catch{return null}
   }
   if(!parsed||typeof parsed!=="object")return null
-  const result=parsed as {answer?:unknown;patches?:unknown}
-  if(typeof result.answer!=="string"||!Array.isArray(result.patches))return null
-  return {answer:result.answer,patches:result.patches}
+  const result=aiResultSchema.safeParse(parsed)
+  return result.success?result.data:null
 }
 
 export async function POST(request:Request){
@@ -146,9 +159,10 @@ export async function POST(request:Request){
       return Response.json({error:"De gratis AI gaf geen bruikbaar gestructureerd antwoord."},{status:502})
     }
 
+    const allowedKeys=new Set(input.rules.map(rule=>rule.feature_key))
     return Response.json({
       answer:result.answer,
-      patches:result.patches,
+      patches:result.patches.filter(patch=>allowedKeys.has(patch.feature_key)),
       configured:true,
       provider:"cloudflare-workers-ai",
     })

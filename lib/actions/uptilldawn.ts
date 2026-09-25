@@ -339,6 +339,69 @@ export async function assignResponsible(fd:FormData){
  check(error)
  revalidatePath('/workplaces');revalidatePath('/events');revalidatePath('/tasks');revalidatePath('/briefings');revalidatePath('/operations');revalidatePath('/personnel')
 }
+export async function demoteResponsibleToStaff(fd:FormData){
+ const {s}=await adminClient()
+ const workplaceId=uuid.parse(fd.get('workplace_id'))
+ const userId=uuid.parse(fd.get('user_id'))
+
+ const [
+  {data:workplace,error:workplaceError},
+  {data:profile,error:profileError},
+  {data:assignment,error:assignmentError},
+ ]=await Promise.all([
+  s.from('workplaces').select('event_id').eq('id',workplaceId).single(),
+  s.from('profiles').select('role,approved').eq('id',userId).single(),
+  s.from('responsible_assignments').select('event_id,workplace_id,user_id').eq('workplace_id',workplaceId).eq('user_id',userId).maybeSingle(),
+ ])
+ check(workplaceError);check(profileError);check(assignmentError)
+ if(!workplace||!assignment)throw new Error('Verantwoordelijke toewijzing niet gevonden.')
+ if(profile?.role==='admin')throw new Error('Een beheerder kan hier niet naar personeel worden omgezet.')
+
+ const {error:deleteError}=await s.from('responsible_assignments')
+  .delete()
+  .eq('workplace_id',workplaceId)
+  .eq('user_id',userId)
+ check(deleteError)
+
+ const [{data:eventAssignments,error:eventAssignmentsError},{data:allAssignments,error:allAssignmentsError}]=await Promise.all([
+  s.from('responsible_assignments').select('workplace_id').eq('event_id',workplace.event_id).eq('user_id',userId).limit(1),
+  s.from('responsible_assignments').select('workplace_id').eq('user_id',userId).limit(1),
+ ])
+ check(eventAssignmentsError);check(allAssignmentsError)
+
+ if(!eventAssignments?.length){
+  const {error:membershipError}=await s.from('event_members')
+   .update({event_role:'employee'})
+   .eq('event_id',workplace.event_id)
+   .eq('user_id',userId)
+   .eq('event_role','responsible_lead')
+  check(membershipError)
+ }
+
+ if(profile?.role==='responsible_lead'&&!allAssignments?.length){
+  const {error:roleError}=await s.rpc('upt_admin_set_account',{
+   p_user:userId,
+   p_approved:profile.approved===true,
+   p_role:'staff',
+  })
+  check(roleError)
+
+  const {error:membershipsError}=await s.from('event_members')
+   .update({event_role:'employee'})
+   .eq('user_id',userId)
+   .eq('event_role','responsible_lead')
+  check(membershipsError)
+ }
+
+ revalidatePath('/workplaces')
+ revalidatePath('/events')
+ revalidatePath('/operations')
+ revalidatePath('/tasks')
+ revalidatePath('/briefings')
+ revalidatePath('/personnel')
+ revalidatePath('/')
+}
+
 export async function createShift(fd:FormData){
  const {s}=await adminClient()
  const [start,end]=dates(fd,'start','end')

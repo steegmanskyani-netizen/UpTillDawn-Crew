@@ -1,12 +1,12 @@
 import { createClient } from '@/lib/supabase/crew-server'
-import { addWorkplace,assignResponsible,updateWorkplace } from '@/lib/actions/uptilldawn'
+import { addWorkplace,assignResponsible,demoteResponsibleToStaff,updateWorkplace } from '@/lib/actions/uptilldawn'
 import { AdminOnly } from '@/components/auth/admin-only'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/actions/auth'
 
 export const dynamic='force-dynamic'
 
-type Person={id:string;full_name:string|null}
+type Person={id:string;full_name:string|null;role?:string|null}
 
 export default async function Page(){
   const s=await createClient()
@@ -44,7 +44,7 @@ export default async function Page(){
       s.from('events').select('id,name').neq('status','archived').order('start_at'),
       s.from('workplaces').select('id,event_id,name,description,sort_order,is_active,events(name)').order('sort_order'),
       s.from('shifts').select('event_id,workplace_id,user_id,role_name,status').neq('status','cancelled').order('scheduled_start'),
-      s.from('profiles').select('id,full_name').eq('approved',true).order('full_name'),
+      s.from('profiles').select('id,full_name,role').eq('approved',true).order('full_name'),
       s.from('responsible_assignments').select('workplace_id,user_id'),
     ])
     events=eventRows||[]
@@ -96,7 +96,7 @@ export default async function Page(){
       ])
       const people=new Map<string,Person>()
       for(const result of memberResults){
-        for(const person of result.data||[])people.set(person.id,{id:person.id,full_name:person.full_name})
+        for(const person of result.data||[])people.set(person.id,{id:person.id,full_name:person.full_name,role:null})
       }
       peopleById=people
       responsibleAssignments=(responsibleRows||[]).map(row=>({workplace_id:row.workplace_id,user_id:row.user_id}))
@@ -175,10 +175,19 @@ export default async function Page(){
             <section className="rounded-xl border p-3">
               <p className="font-semibold">Verantwoordelijke</p>
               {responsiblePeople.length
-                ? <div className="mt-2 flex flex-wrap gap-2">{responsiblePeople.map(person=>
-                    <span key={person.id} className="rounded-full border border-violet-500/50 px-3 py-1 text-sm font-semibold">
-                      {person.full_name||'Naam ontbreekt'}{person.id===user.id?' (jij)':''}
-                    </span>
+                ? <div className="mt-2 space-y-2">{responsiblePeople.map(person=>
+                    <div key={person.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-violet-500/30 p-2">
+                      <span className="font-semibold">
+                        {person.full_name||'Naam ontbreekt'}{person.id===user.id?' (jij)':''}
+                      </span>
+                      {isAdmin&&person.role==='responsible_lead'&&<AdminOnly>
+                        <form action={demoteResponsibleToStaff}>
+                          <input type="hidden" name="workplace_id" value={workplace.id}/>
+                          <input type="hidden" name="user_id" value={person.id}/>
+                          <button className="rounded-lg border px-3 py-2 text-xs font-bold">PERSONEEL MAKEN</button>
+                        </form>
+                      </AdminOnly>}
+                    </div>
                   )}</div>
                 : <p className="mt-2 text-sm text-muted-foreground">Nog geen verantwoordelijke toegewezen.</p>}
             </section>

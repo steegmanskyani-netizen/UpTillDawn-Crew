@@ -505,3 +505,19 @@ test('staff overview shows workplace personnel status without timers', async () 
   assert.match(migration, /revoke all on function public\.upt_staff_workplace_live_status\(\) from anon/)
   assert.match(migration, /grant execute on function public\.upt_staff_workplace_live_status\(\) to authenticated/)
 })
+
+
+test('admin can turn a workplace responsible back into staff', async () => {
+  const workplaces = await read('app/(app)/workplaces/page.tsx')
+  const actions = await read('lib/actions/uptilldawn.ts')
+
+  assert.match(workplaces, /demoteResponsibleToStaff/)
+  assert.match(workplaces, /PERSONEEL MAKEN/)
+  assert.match(workplaces, /person\.role==='responsible_lead'/)
+  assert.match(actions, /export async function demoteResponsibleToStaff/)
+  assert.match(actions, /from\('responsible_assignments'\)[\s\S]*\.delete\(\)/)
+  assert.match(actions, /event_role:'employee'/)
+  assert.match(actions, /p_role:'staff'/)
+  assert.match(actions, /!allAssignments\?\.length/)
+  assert.match(actions, /Een beheerder kan hier niet naar personeel worden omgezet\./)
+})

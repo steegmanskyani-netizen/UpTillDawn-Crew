@@ -343,7 +343,7 @@ test('current production role UI is the canonical default baseline', async () =>
   assert.match(roleUi, /navRule\("responsible_lead","operations","Mijn werkuren",20,"event_active"\)/)
   assert.match(roleUi, /navRule\("staff","operations","Mijn werkuren",20,"shift_active"\)/)
   assert.match(roleUi, /navRule\("staff","shifts","Mijn shift's",40,"assigned_event"\)/)
-  assert.match(roleUi, /navRule\("staff","workplaces","Werkplekken",60,"assigned_workplace_role",false,false\)/)
+  assert.match(roleUi, /navRule\("staff","workplaces","Werkplekken",60,"assigned_event"\)/)
   assert.match(roleUi, /navRule\("admin","shifts","Shift's",40\)/)
   assert.match(roleUi, /navRule\("admin","briefings","Briefing",70\)/)
   assert.match(roleUi, /navRule\("admin","chat","Chat's",90\)/)
@@ -406,7 +406,7 @@ test('edit mode contains role tabs, exit control and owner-only free AI app edit
 })
 
 
-test('mobile navigation uses a maximum-three compact view with expandable drawer', async () => {
+test('mobile navigation uses role and shift specific quick tabs with expandable drawer', async () => {
   const navigation = await read('components/layout/navigation-items.ts')
   const sidebar = await read('components/layout/sidebar.tsx')
   const mobile = await read('components/layout/mobile-nav.tsx')
@@ -415,10 +415,13 @@ test('mobile navigation uses a maximum-three compact view with expandable drawer
 
   assert.match(sidebar, /NAV_ITEMS/)
   assert.match(mobile, /NAV_ITEMS/)
-  assert.match(mobile, /compactItems/)
+  assert.match(mobile, /ASSIGNED_EVENT_KEYS=\["events","briefings","shifts","workplaces"\]/)
+  assert.match(mobile, /STAFF_ACTIVE_SHIFT_KEYS=\["operations","shifts","briefings","tasks"\]/)
+  assert.match(mobile, /RESPONSIBLE_ACTIVE_SHIFT_KEYS=\["operations","shifts","workplaces","incidents"\]/)
+  assert.match(mobile, /assignedEvent/)
+  assert.match(mobile, /shiftActive/)
+  assert.match(mobile, /compactItems=contextualItems\.length\?contextualItems:fallbackItems/)
   assert.match(mobile, /items\.slice\(0,3\)/)
-  assert.match(mobile, /items\.slice\(-3\)/)
-  assert.match(mobile, /items\.slice\(activeIndex-1,activeIndex\+2\)/)
   assert.match(mobile, /ChevronUp/)
   assert.match(mobile, /ChevronDown/)
   assert.match(mobile, /aria-expanded=\{expanded\}/)
@@ -429,6 +432,8 @@ test('mobile navigation uses a maximum-three compact view with expandable drawer
   assert.match(topbar, /md:hidden/)
   assert.match(layout, /chatMissed=\{chatMissed\}/)
   assert.match(layout, /incidentMissed=\{incidentMissed\}/)
+  assert.match(layout, /assignedEvent=\{context\.assignedEvent\}/)
+  assert.match(layout, /shiftActive=\{context\.shiftActive\}/)
 
   const expectedOrder = [
     '"overview"',
@@ -463,4 +468,22 @@ test('authenticated users open the overview for their active role', async () => 
   assert.match(auth, /redirect\(requestedPortal === 'admin' \? '\/admin' : '\/'\)/)
   assert.doesNotMatch(auth, /requestedPortal === 'responsible'[\s\S]{0,120}'\/operations'/)
   assert.match(admin, /if\(!current\?\.isAdmin\) redirect\('\/'\)/)
+})
+
+
+test('responsible overview shows live workplace personnel timers', async () => {
+  const dashboard = await read('app/(app)/page.tsx')
+  const live = await read('components/responsible/responsible-live-personnel.tsx')
+
+  assert.match(dashboard, /responsible_assignments/)
+  assert.match(dashboard, /upt_responsible_crew_directory/)
+  assert.match(dashboard, /work_sessions/)
+  assert.match(dashboard, /break_sessions/)
+  assert.match(dashboard, /Personeel van mijn werkplek/)
+  assert.match(dashboard, /ResponsibleLivePersonnel/)
+  assert.match(live, /PAUZE/)
+  assert.match(live, /WERKT/)
+  assert.match(live, /Pauzetimer/)
+  assert.match(live, /Werktimer/)
+  assert.match(live, /router\.refresh\(\)/)
 })

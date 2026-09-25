@@ -9,6 +9,10 @@ import { useAuth } from "@/lib/providers"
 import { cn } from "@/lib/utils"
 import { getDefaultRoleUiLabel, type RoleRuleRole } from "@/lib/role-ui"
 
+const ASSIGNED_EVENT_KEYS=["events","briefings","shifts","workplaces"] as const
+const STAFF_ACTIVE_SHIFT_KEYS=["operations","shifts","briefings","tasks"] as const
+const RESPONSIBLE_ACTIVE_SHIFT_KEYS=["operations","shifts","workplaces","incidents"] as const
+
 export function MobileBottomNav({
   chatMissed=0,
   incidentMissed=0,
@@ -16,6 +20,8 @@ export function MobileBottomNav({
   featureOrder=[],
   featureLabels={},
   featureVisibility={},
+  assignedEvent=false,
+  shiftActive=false,
 }:{
   chatMissed?:number
   incidentMissed?:number
@@ -23,6 +29,8 @@ export function MobileBottomNav({
   featureOrder?:string[]
   featureLabels?:Record<string,string>
   featureVisibility?:Record<string,boolean>
+  assignedEvent?:boolean
+  shiftActive?:boolean
 }) {
  const pathname=usePathname()
  const [expanded,setExpanded]=useState(false)
@@ -41,14 +49,34 @@ export function MobileBottomNav({
    const href=hrefFor(item)
    return href==='/'?pathname==='/':pathname.startsWith(href)
  }
+
+ const contextualKeys=roleKey==="staff"
+   ? shiftActive
+     ? STAFF_ACTIVE_SHIFT_KEYS
+     : assignedEvent
+       ? ASSIGNED_EVENT_KEYS
+       : []
+   : roleKey==="responsible_lead"
+     ? shiftActive
+       ? RESPONSIBLE_ACTIVE_SHIFT_KEYS
+       : assignedEvent
+         ? ASSIGNED_EVENT_KEYS
+         : []
+     : []
+
+ const contextualItems=contextualKeys
+   .map(key=>items.find(item=>item.key===key))
+   .filter((item):item is NavigationItem=>Boolean(item))
+
  const activeIndex=items.findIndex(isActive)
- const compactItems=items.length<=3
+ const fallbackItems=items.length<=3
    ? items
    : activeIndex<=0
      ? items.slice(0,3)
      : activeIndex>=items.length-1
        ? items.slice(-3)
        : items.slice(activeIndex-1,activeIndex+2)
+ const compactItems=contextualItems.length?contextualItems:fallbackItems
 
  const badgeCount=(key:string)=>key==="chat"?chatMissed:key==="incidents"?incidentMissed:key==="tasks"?taskMissed:0
 
@@ -65,12 +93,12 @@ export function MobileBottomNav({
     className={cn(
       expandedItem
         ?"flex min-h-16 items-center gap-3 rounded-xl px-3 py-2 text-sm font-semibold"
-        :"flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[10px] font-semibold",
+        :"flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-lg px-1 py-1.5 text-[9px] font-semibold",
       active?"bg-violet-500/10 text-violet-400":"text-muted-foreground",
     )}
    >
     <span className="relative shrink-0">
-     <Icon className={expandedItem?"h-5 w-5":"h-5 w-5"}/>
+     <Icon className="h-5 w-5"/>
      {count>0&&<span className="absolute -right-3 -top-3 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-black leading-none text-white shadow ring-2 ring-card">{count>99?"99+":count}</span>}
     </span>
     <span className={expandedItem?"truncate":"max-w-full truncate"}>{label}</span>
@@ -90,14 +118,14 @@ export function MobileBottomNav({
    <div className="flex min-w-0 flex-1 items-stretch gap-1">
     {compactItems.map(item=><NavItem key={item.key} item={item}/>)}
    </div>
-   {items.length>3&&
+   {items.length>compactItems.length&&
     <button
      type="button"
      aria-label={expanded?"Navigatie inklappen":"Navigatie uitklappen"}
      aria-expanded={expanded}
      onClick={()=>setExpanded(value=>!value)}
      className={cn(
-       "flex w-12 shrink-0 items-center justify-center rounded-lg border border-border",
+       "flex w-11 shrink-0 items-center justify-center rounded-lg border border-border",
        expanded?"bg-violet-500/10 text-violet-400":"text-muted-foreground",
      )}
     >

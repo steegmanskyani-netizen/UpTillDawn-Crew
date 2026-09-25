@@ -95,8 +95,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     ])
     const eventRows=events||[]
     const memberIds=new Set((memberships||[]).map(x=>x.event_id))
-    const assignedEvent=eventRows.some(e=>memberIds.has(e.id))
-    const eventActive=eventRows.some(e=>memberIds.has(e.id)&&Date.parse(e.start_at)<=now.getTime()&&Date.parse(e.end_at)>=now.getTime())
+    const assignedEvent=eventRows.some(e=>
+      memberIds.has(e.id)
+      || (shifts||[]).some(shift=>shift.event_id===e.id)
+      || (responsibleAssignments||[]).some(assignment=>assignment.event_id===e.id)
+    )
+    const eventActive=eventRows.some(e=>
+      (memberIds.has(e.id)||(shifts||[]).some(shift=>shift.event_id===e.id)||(responsibleAssignments||[]).some(assignment=>assignment.event_id===e.id))
+      && Date.parse(e.start_at)<=now.getTime()
+      && Date.parse(e.end_at)>=now.getTime()
+    )
     const shiftActive=(shifts||[]).some(s=>Date.parse(s.scheduled_start)<=now.getTime()&&Date.parse(s.scheduled_end)>=now.getTime())
     const assignedWorkplaceRole=(shifts||[]).length>0||(responsibleAssignments||[]).length>0
     setContext({assignedEvent,assignedWorkplaceRole,eventActive,shiftActive})
@@ -157,7 +165,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </>}
         </main>
       </div>
-      <div className="print:hidden"><MobileBottomNav chatMissed={chatMissed} incidentMissed={incidentMissed} taskMissed={taskMissed} featureOrder={order} featureLabels={labels} featureVisibility={featureVisibility}/></div>
+      <div className="print:hidden"><MobileBottomNav chatMissed={chatMissed} incidentMissed={incidentMissed} taskMissed={taskMissed} featureOrder={order} featureLabels={labels} featureVisibility={featureVisibility} assignedEvent={context.assignedEvent} shiftActive={context.shiftActive}/></div>
     </div>
     {!pathname.startsWith("/chat")&&<>
       {showUrgent&&<Link href="/incidents" className="fixed bottom-20 left-4 z-50 rounded-full bg-red-600 px-5 py-4 font-black text-white print:hidden md:hidden">URGENT<CountBadge count={incidentMissed}/></Link>}

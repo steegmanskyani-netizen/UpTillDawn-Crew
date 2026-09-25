@@ -3,16 +3,23 @@
 import { useEffect,useState } from "react"
 import { BellRing } from "lucide-react"
 import { enablePushNotifications,getPushState,isInstalledPwa,type PushState } from "@/lib/push-client"
+import { useAuth } from "@/lib/providers"
 
 const WEEK=7*24*60*60*1000
 
 export function PushPermissionPrompt(){
+  const {user,profile,loading}=useAuth()
+  const canPrompt=!loading&&Boolean(user&&profile?.approved)
   const [visible,setVisible]=useState(false)
   const [busy,setBusy]=useState(false)
   const [state,setState]=useState<PushState>("default")
 
   useEffect(()=>{
     let cancelled=false
+    if(!canPrompt){
+      setVisible(false)
+      return()=>{cancelled=true}
+    }
     void (async()=>{
       if(!isInstalledPwa())return
       const current=await getPushState()
@@ -23,7 +30,7 @@ export function PushPermissionPrompt(){
       if(!dismissed||Date.now()-dismissed>WEEK)setVisible(true)
     })()
     return()=>{cancelled=true}
-  },[])
+  },[canPrompt])
 
   if(!visible)return null
 

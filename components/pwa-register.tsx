@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { enablePushNotifications,refreshPushBadge,supportsWebPush } from "@/lib/push-client"
+import { useAuth } from "@/lib/providers"
 
 type PeriodicSyncManagerLike={
   getTags:()=>Promise<string[]>
@@ -11,6 +12,8 @@ type PeriodicSyncManagerLike={
 
 export function PwaRegister(){
   const router=useRouter()
+  const {user,profile}=useAuth()
+  const canUsePush=Boolean(user&&profile?.approved)
 
   useEffect(()=>{
     if(!("serviceWorker" in navigator))return
@@ -22,7 +25,7 @@ export function PwaRegister(){
       try{
         const registration=await navigator.serviceWorker.ready
         await registration.update()
-        if(supportsWebPush()&&Notification.permission==="granted"){
+        if(canUsePush&&supportsWebPush()&&Notification.permission==="granted"){
           await enablePushNotifications({requestPermission:false})
           await refreshPushBadge()
         }
@@ -44,7 +47,7 @@ export function PwaRegister(){
           }catch{}
         }
 
-        if(!disposed&&supportsWebPush()&&Notification.permission==="granted"){
+        if(!disposed&&canUsePush&&supportsWebPush()&&Notification.permission==="granted"){
           await enablePushNotifications({requestPermission:false})
           await refreshPushBadge()
         }
@@ -83,7 +86,7 @@ export function PwaRegister(){
       window.removeEventListener("online",onOnline)
       document.removeEventListener("visibilitychange",onVisibility)
     }
-  },[router])
+  },[canUsePush,router])
 
   return null
 }

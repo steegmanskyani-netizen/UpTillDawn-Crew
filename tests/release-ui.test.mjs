@@ -600,3 +600,29 @@ test('permanent admin login portal selects the matching visible role mode', asyn
   assert.match(auth, /: 'staff'/)
   assert.match(auth, /upt_set_admin_role_mode/)
 })
+
+
+test('push is scoped to the authenticated account and removed before logout', async () => {
+  const topbar = await read('components/layout/topbar.tsx')
+  const prompt = await read('components/push-permission-prompt.tsx')
+  const register = await read('components/pwa-register.tsx')
+  const push = await read('lib/push-client.ts')
+
+  assert.match(topbar, /disablePushNotifications/)
+  assert.match(topbar, /await disablePushNotifications\(\)/)
+  assert.match(topbar, /await signOut\(\)/)
+  assert.ok(topbar.indexOf('await disablePushNotifications()') < topbar.indexOf('await signOut()'))
+  assert.match(prompt, /canPrompt/)
+  assert.match(prompt, /user&&profile\?\.approved/)
+  assert.match(register, /canUsePush/)
+  assert.match(register, /user&&profile\?\.approved/)
+  assert.match(push, /upt\/push\/subscription|\/api\/push\/subscription/)
+  assert.match(push, /subscription\.unsubscribe\(\)/)
+})
+
+test('language switcher hydrates safely before applying stored or device locale', async () => {
+  const switcher = await read('components/language-switcher.tsx')
+  assert.match(switcher, /useState\("nl"\)/)
+  assert.match(switcher, /useEffect\(\(\) =>/)
+  assert.match(switcher, /navigator\.languages/)
+})

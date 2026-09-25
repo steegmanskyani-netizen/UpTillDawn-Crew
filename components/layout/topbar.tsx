@@ -1,12 +1,15 @@
 "use client"
+import { useTransition } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { useAuth,useDisplayName } from "@/lib/providers"
 import { signOut } from "@/lib/actions/auth"
+import { disablePushNotifications } from "@/lib/push-client"
 
 export function Topbar(){
  const name=useDisplayName()
  const {roles,isAdmin,editMode}=useAuth()
+ const [loggingOut,startLogout]=useTransition()
  const baseRoleLabel=roles.includes("admin")?"Beheerder":roles.includes("responsible_lead")?"Verantwoordelijke":"Personeel"
  const roleLabel=editMode?`${baseRoleLabel} (edit)`:baseRoleLabel
 
@@ -19,7 +22,15 @@ export function Topbar(){
    <span className="hidden sm:inline">{name} · {roleLabel}</span>
    <Link href="/notifications">Meldingen</Link>
    <Link href="/settings">Profiel</Link>
-   <form action={signOut}><button className="rounded-lg border p-2">Uitloggen</button></form>
+   <button
+    type="button"
+    disabled={loggingOut}
+    onClick={()=>startLogout(async()=>{
+      await disablePushNotifications().catch(()=>{})
+      await signOut()
+    })}
+    className="rounded-lg border p-2 disabled:opacity-50"
+   >{loggingOut?"Uitloggen…":"Uitloggen"}</button>
   </div>
  </header>
 }

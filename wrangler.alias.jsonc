@@ -1,0 +1,12 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "crew",
+  "main": "workers/crew-alias.mjs",
+  "compatibility_date": "2026-09-25",
+  "workers_dev": true,
+  "preview_urls": false,
+  "services": [
+    { "binding": "UPSTREAM", "service": "uptilldawn-crew" }
+  ],
+  "observability": { "enabled": true }
+}

@@ -70,8 +70,8 @@ VALUES(
 );
 RESET ROLE;
 
--- Workplace Responsible can prepare briefing/task content for the assigned workplace,
--- can read the workplace, but cannot create workplaces or manage shifts.
+-- Workplace Responsible can prepare briefing/instruction content and read the assigned workplace,
+-- but cannot create workplaces, manage shifts or create shift-active tasks before the shift starts.
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM rr_ids WHERE name='lead'),true);
 SET LOCAL ROLE authenticated;
 
@@ -102,14 +102,18 @@ BEGIN
   INSERT INTO public.personal_instructions(event_id,user_id,title,body,created_by)
   VALUES((SELECT id FROM rr_ids WHERE name='future'),(SELECT id FROM rr_ids WHERE name='staff'),'Personal future','Readable before start',auth.uid());
 
-  v_task := public.upt_create_assigned_task(
-    (SELECT id FROM rr_ids WHERE name='future'),
-    (SELECT id FROM rr_ids WHERE name='future_wp'),
-    (SELECT id FROM rr_ids WHERE name='staff'),
-    'Future task',
-    'Hidden until start'
-  );
-  IF v_task IS NULL THEN RAISE EXCEPTION 'FAIL lead future task create'; END IF;
+  BEGIN
+    v_task := public.upt_create_assigned_task(
+      (SELECT id FROM rr_ids WHERE name='future'),
+      (SELECT id FROM rr_ids WHERE name='future_wp'),
+      (SELECT id FROM rr_ids WHERE name='staff'),
+      'Future task',
+      'Should be blocked before shift start'
+    );
+    RAISE EXCEPTION 'FAIL lead created future task';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM='FAIL lead created future task' THEN RAISE; END IF;
+  END;
 
   BEGIN
     PERFORM public.upt_create_shift(

@@ -10,9 +10,22 @@ const originalAttributes = new WeakMap<Element, Map<string, string>>()
 const renderedAttributes = new WeakMap<Element, Map<string, string>>()
 const attributes = ["placeholder", "aria-label", "title"] as const
 
-function normalizeLocale(value: string | null | undefined): UiLocale {
+function parseLocale(value: string | null | undefined): UiLocale | null {
   const language = value?.trim().toLowerCase().split(/[-_]/)[0] as UiLocale | undefined
-  return language && SUPPORTED.has(language) ? language : "nl"
+  return language && SUPPORTED.has(language) ? language : null
+}
+
+function normalizeLocale(value: string | null | undefined): UiLocale {
+  return parseLocale(value) || "nl"
+}
+
+function deviceLocale(): UiLocale {
+  const candidates = navigator.languages?.length ? navigator.languages : [navigator.language]
+  for (const candidate of candidates) {
+    const locale = parseLocale(candidate)
+    if (locale) return locale
+  }
+  return "nl"
 }
 
 function isExcluded(node: Node) {
@@ -102,7 +115,8 @@ function translateNode(root: Node, locale: UiLocale) {
 
 export function LocaleSync() {
   useEffect(() => {
-    let locale = normalizeLocale(window.localStorage.getItem("uptilldawn-language"))
+    const storedLocale = parseLocale(window.localStorage.getItem("uptilldawn-language"))
+    let locale = storedLocale || deviceLocale()
     let applying = false
 
     const applyLocale = (nextLocale: UiLocale) => {

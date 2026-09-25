@@ -577,3 +577,26 @@ test('server admin routes honor permanent maker/admin privilege', async () => {
     assert.doesNotMatch(source, /profile\.role\s*!==?\s*['"]admin['"]/)
   }
 })
+
+
+test('first launch follows device language while explicit choice remains authoritative', async () => {
+  const locale = await read('components/locale-sync.tsx')
+  const switcher = await read('components/language-switcher.tsx')
+
+  assert.match(locale, /navigator\.languages/)
+  assert.match(locale, /storedLocale \|\| deviceLocale\(\)/)
+  assert.match(locale, /localStorage\.setItem\("uptilldawn-language", locale\)/)
+  assert.match(switcher, /navigator\.languages/)
+  assert.match(switcher, /stored === "nl" \|\| stored === "fr" \|\| stored === "en"/)
+})
+
+test('permanent admin login portal selects the matching visible role mode', async () => {
+  const auth = await read('lib/actions/auth.ts')
+
+  assert.match(auth, /requestedPortal === 'responsible'[\s\S]*hasPermanentAdminAccess/)
+  assert.match(auth, /requestedRoleMode/)
+  assert.match(auth, /requestedPortal === 'admin'[\s\S]*'admin'/)
+  assert.match(auth, /requestedPortal === 'responsible'[\s\S]*'responsible_lead'/)
+  assert.match(auth, /: 'staff'/)
+  assert.match(auth, /upt_set_admin_role_mode/)
+})

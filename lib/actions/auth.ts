@@ -156,18 +156,24 @@ export async function signIn(formData: FormData) {
         requestedPortal === 'admin'
             ? hasPermanentAdminAccess
             : requestedPortal === 'responsible'
-                ? role === 'responsible_lead' || role === 'admin'
+                ? role === 'responsible_lead' || hasPermanentAdminAccess
                 : role === 'staff' ||
                   role === 'responsible_lead' ||
-                  role === 'admin'
+                  hasPermanentAdminAccess
 
-    if (requestedPortal === 'admin' && hasPermanentAdminAccess) {
-        const { error: roleModeError } = await supabase.rpc('upt_set_admin_role_mode', { p_role: 'admin' })
-        if (roleModeError) {
+    if (hasPermanentAdminAccess) {
+        const requestedRoleMode =
+            requestedPortal === 'admin'
+                ? 'admin'
+                : requestedPortal === 'responsible'
+                    ? 'responsible_lead'
+                    : 'staff'
+        const { data: roleMode, error: roleModeError } = await supabase.rpc('upt_set_admin_role_mode', { p_role: requestedRoleMode })
+        if (roleModeError || roleMode !== requestedRoleMode) {
             await supabase.auth.signOut()
             return {
-                error: 'Beheerderstoegang kon niet worden geactiveerd.',
-                code: 'admin_mode_error',
+                error: 'De gekozen rolweergave kon niet worden geactiveerd.',
+                code: 'role_mode_error',
             }
         }
     }

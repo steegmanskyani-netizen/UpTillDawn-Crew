@@ -12,7 +12,15 @@ export function LanguageSwitcher({ dark = false }: { dark?: boolean }) {
   const [language, setLanguage] = useState(() => {
     if (typeof window === "undefined") return "nl"
     const stored = window.localStorage.getItem("uptilldawn-language")
-    return stored === "fr" || stored === "en" ? stored : "nl"
+    if (stored === "nl" || stored === "fr" || stored === "en") return stored
+    const candidates = window.navigator.languages?.length
+      ? window.navigator.languages
+      : [window.navigator.language]
+    for (const candidate of candidates) {
+      const locale = candidate.trim().toLowerCase().split(/[-_]/)[0]
+      if (locale === "nl" || locale === "fr" || locale === "en") return locale
+    }
+    return "nl"
   })
 
   return <label className={`flex items-center justify-between gap-3 text-sm ${dark ? "text-zinc-300" : "text-muted-foreground"}`}>

@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/crew-server'
 import { ProfileForm } from '@/components/crew/profile-form'
 import { LanguageSwitcher } from '@/components/language-switcher'
-import { AdminEditControls } from '@/components/settings/admin-edit-controls'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,6 +28,5 @@ export default async function Page() {
     <section className="rounded-2xl border p-4">
       <LanguageSwitcher />
     </section>
-    <AdminEditControls />
   </main>
 }

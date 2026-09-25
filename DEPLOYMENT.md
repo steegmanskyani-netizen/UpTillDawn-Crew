@@ -9,7 +9,7 @@
 - Runtime: Next.js 16 through OpenNext on Cloudflare Workers
 - Supabase project: `eakoavcieossazqzplke`
 
-The Git-connected Cloudflare build is the production deployment path. CI separately validates the same application with lint, TypeScript, tests, OpenNext build and Wrangler dry-run.
+Production is deployed to Cloudflare Workers with Wrangler. The GitHub production workflow is manual and requires the production deployment credentials to be configured; repository CI separately validates lint, TypeScript, tests, OpenNext build and Wrangler dry-run.
 
 ## Runtime variables
 

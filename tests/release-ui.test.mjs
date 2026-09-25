@@ -844,3 +844,11 @@ test('Facebook event import blocks cross-domain redirect SSRF and oversized resp
   assert.match(source, /content-type/)
   assert.match(route, /upt_is_admin/)
 })
+
+
+test('God Mode rule editor uses the shared origin and session guard', async () => {
+  const route = await read('app/api/god/rules/route.ts')
+  assert.match(route, /authorizeStudio\(request\)/)
+  assert.match(route, /studioFailure/)
+  assert.doesNotMatch(route, /cookies\(\)/)
+})

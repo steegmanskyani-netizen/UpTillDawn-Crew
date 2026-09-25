@@ -9,7 +9,7 @@ import './globals.css'
 
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://crew-uptilldawn.be'),
+  metadataBase: new URL('https://crew.uptilldawn.workers.dev'),
   title: {
     default: 'UP TILL DAWN Crew',
     template: '%s | UP TILL DAWN Crew',
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     siteName: 'UP TILL DAWN Crew',
     title: 'UP TILL DAWN Crew',
     description: 'Crew- en personeelsbeheer voor Up Till Dawn-evenementen.',
-    url: 'https://crew-uptilldawn.be',
+    url: 'https://crew.uptilldawn.workers.dev',
   },
   appleWebApp: {
     capable: true,

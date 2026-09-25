@@ -1,4 +1,12 @@
+import type { Metadata } from "next"
 import { Footer } from "@/components/shared/footer"
+
+export const metadata: Metadata = {
+  title: 'Crew login',
+  description: 'Log in of maak een account aan voor het crewplatform van Up Till Dawn.',
+  robots: { index: true, follow: true },
+  alternates: { canonical: '/login' },
+}
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (

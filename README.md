@@ -5,7 +5,8 @@ Production crew-management PWA for Uptilldawn events. The application is a Next.
 ## Production baseline
 
 - Canonical branch: `main`
-- Production Worker: `https://uptilldawn-crew.steegmans-kyani.workers.dev`
+- Primary production URL: `https://crew-uptilldawn.be`
+- Cloudflare Worker fallback: `https://uptilldawn-crew.steegmans-kyani.workers.dev`
 - Supabase project: `eakoavcieossazqzplke`
 - Desktop/web and installed mobile PWA layouts are treated as the current default baseline.
 - Role navigation defaults live in `lib/role-ui.ts`.

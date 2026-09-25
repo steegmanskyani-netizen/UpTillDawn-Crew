@@ -3,7 +3,8 @@
 ## Production
 
 - Cloudflare Worker: `uptilldawn-crew`
-- Production origin: `https://uptilldawn-crew.steegmans-kyani.workers.dev`
+- Primary production origin: `https://crew-uptilldawn.be`
+- Worker fallback origin: `https://uptilldawn-crew.steegmans-kyani.workers.dev`
 - Deployment source: GitHub `main`
 - Runtime: Next.js 16 through OpenNext on Cloudflare Workers
 - Supabase project: `eakoavcieossazqzplke`

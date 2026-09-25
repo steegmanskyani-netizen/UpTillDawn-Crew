@@ -731,3 +731,22 @@ test('non-admin role views filter admin-broad event reads to real role visibilit
   assert.match(dashboard, /assignedEventIds/)
   assert.match(dashboard, /Date\.parse\(event\.start_at\)>nowMs\|\|assignedEventIds\.has\(event\.id\)/)
 })
+
+
+test('custom production domain exposes public SEO surface without indexing private app routes', async () => {
+  const layout = await read('app/layout.tsx')
+  const authLayout = await read('app/(auth)/layout.tsx')
+  const robots = await read('app/robots.ts')
+  const sitemap = await read('app/sitemap.ts')
+  const edge = await read('supabase/functions/push-notification/index.ts')
+
+  assert.match(layout, /https:\/\/crew-uptilldawn\.be/)
+  assert.match(layout, /metadataBase/)
+  assert.match(authLayout, /robots: \{ index: true, follow: true \}/)
+  assert.match(robots, /crew-uptilldawn\.be\/sitemap\.xml/)
+  assert.match(robots, /'\/admin'/)
+  assert.match(robots, /'\/api\/'/)
+  assert.match(sitemap, /crew-uptilldawn\.be/)
+  assert.match(sitemap, /\/login/)
+  assert.match(edge, /https:\/\/crew-uptilldawn\.be/)
+})

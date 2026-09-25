@@ -94,7 +94,7 @@ Deno.serve(async(req)=>{
   if(!subscriptions?.length)return json({sent:0,removed:0,failed:0})
 
   webpush.setVapidDetails(
-    "https://uptilldawn-crew.steegmans-kyani.workers.dev",
+    "https://crew-uptilldawn.be",
     config.vapid_public_key,
     config.vapid_private_key,
   )

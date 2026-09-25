@@ -2,7 +2,7 @@
 
 ## Current production baseline
 
-Uptilldawn is deployed from `main` to the Cloudflare Worker at `https://uptilldawn-crew.steegmans-kyani.workers.dev`, using Supabase project `eakoavcieossazqzplke`.
+Uptilldawn is deployed from `main` to the Cloudflare Worker at `https://crew-uptilldawn.be`, using Supabase project `eakoavcieossazqzplke`.
 
 The current desktop/web view and installed mobile PWA view are the canonical defaults. The live `role_ui_rules` rows have been checked against `ROLE_UI_DEFAULTS` in `lib/role-ui.ts` and match the repository baseline.
 

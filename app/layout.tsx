@@ -9,9 +9,21 @@ import './globals.css'
 
 
 export const metadata: Metadata = {
-  title: 'UP TILL DAWN Personeel',
-  description: 'Evenementen- en personeelsbeheer voor Up Till Dawn',
+  metadataBase: new URL('https://crew-uptilldawn.be'),
+  title: {
+    default: 'UP TILL DAWN Crew',
+    template: '%s | UP TILL DAWN Crew',
+  },
+  description: 'Crew- en personeelsbeheer voor Up Till Dawn-evenementen.',
+  applicationName: 'UP TILL DAWN Crew',
   manifest: '/manifest.webmanifest',
+  openGraph: {
+    type: 'website',
+    siteName: 'UP TILL DAWN Crew',
+    title: 'UP TILL DAWN Crew',
+    description: 'Crew- en personeelsbeheer voor Up Till Dawn-evenementen.',
+    url: 'https://crew-uptilldawn.be',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

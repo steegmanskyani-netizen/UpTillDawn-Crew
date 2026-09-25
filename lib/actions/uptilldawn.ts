@@ -307,6 +307,7 @@ export async function assignAvailableCrewShift(fd:FormData){
   p_start:start,
   p_end:end,
   p_overlap_allowed:fd.get('overlap_allowed')==='on',
+  p_shift_kind:z.enum(['event','setup','breakdown']).parse(fd.get('shift_kind')||'event'),
  })
  check(error)
  revalidatePath('/events');revalidatePath('/shifts');revalidatePath('/workplaces');revalidatePath('/operations');revalidatePath('/tasks');revalidatePath('/briefings')
@@ -429,6 +430,7 @@ export async function createShift(fd:FormData){
   p_start:start,
   p_end:end,
   p_overlap_allowed:fd.get('overlap_allowed')==='on',
+  p_shift_kind:z.enum(['event','setup','breakdown']).parse(fd.get('shift_kind')||'event'),
  })
  check(error);revalidatePath('/shifts');revalidatePath('/operations')
 }
@@ -441,6 +443,7 @@ export async function updateShift(fd:FormData){
   p_start:start,
   p_end:end,
   p_overlap_allowed:fd.get('overlap_allowed')==='on',
+  p_shift_kind:z.enum(['event','setup','breakdown']).parse(fd.get('shift_kind')||'event'),
  })
  check(error);revalidatePath('/shifts');revalidatePath('/operations')
 }

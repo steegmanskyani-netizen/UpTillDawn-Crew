@@ -7,7 +7,6 @@ import { AppSidebar } from "@/components/layout/sidebar"
 import { Topbar } from "@/components/layout/topbar"
 import { MobileBottomNav } from "@/components/layout/mobile-nav"
 import { FloatingChatButton } from "@/components/layout/floating-chat-button"
-import { EditModeEditor } from "@/components/layout/edit-mode-editor"
 import { QueueStatus } from "@/components/crew/queue-status"
 import { createClient } from "@/lib/supabase/crew-client"
 import { useAuth } from "@/lib/providers"
@@ -22,7 +21,7 @@ const emptyContext:RoleUiContext={assignedEvent:false,assignedWorkplaceRole:fals
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname=usePathname()
-  const {user,roles,isAdmin,realIsAdmin,editMode}=useAuth()
+  const {user,roles,isAdmin}=useAuth()
   const supabase=useMemo(()=>createClient(),[])
   const [chatMissed,setChatMissed]=useState(0)
   const [incidentMissed,setIncidentMissed]=useState(0)
@@ -44,7 +43,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const effectiveRules=rules.length?rules:defaultRules
   const ruleMap=useMemo(()=>new Map(effectiveRules.map(rule=>[rule.feature_key,rule])),[effectiveRules])
-  const previewAll=Boolean(realIsAdmin&&editMode)
+  const previewAll=false
   const feature=(key:string,fallback:boolean)=>{
     const rule=ruleMap.get(key)
     return rule?ruleMatches(rule,context,previewAll):fallback
@@ -69,10 +68,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     null
   const currentRule=currentFeature?ruleMap.get(currentFeature):undefined
   const rulesReady=!roleKey||effectiveRules.length>0
-  const adminOperationsRoute=Boolean(isAdmin&&!editMode&&pathname.startsWith("/operations"))
+  const adminOperationsRoute=Boolean(isAdmin&&pathname.startsWith("/operations"))
   const currentVisible=adminOperationsRoute||!currentFeature||!roleKey||!rulesReady||previewAll||ruleMatches(currentRule,context,false)
   const currentUsable=adminOperationsRoute||!currentFeature||!roleKey||!rulesReady||ruleUsable(currentRule,context,false)
-  const contentLocked=Boolean(editMode||(currentVisible&&!currentUsable))
+  const contentLocked=Boolean(currentVisible&&!currentUsable)
 
   const refresh=useCallback(async()=>{
     if(!user)return
@@ -197,21 +196,21 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   const showOverview=feature("overview",true)
   const showEvents=feature("events",true)
-  const showShifts=feature("shifts",Boolean(isAdmin&&!editMode)||context.assignedEvent)
-  const showBriefings=feature("briefings",Boolean(isAdmin&&!editMode)||context.assignedEvent)
+  const showShifts=feature("shifts",Boolean(isAdmin)||context.assignedEvent)
+  const showBriefings=feature("briefings",Boolean(isAdmin)||context.assignedEvent)
   const showOperations=feature("operations",isAdmin?true:context.shiftActive)
-  const showWorkplaces=feature("workplaces",Boolean(isAdmin&&!editMode)||context.assignedWorkplaceRole)
-  const showTasks=feature("tasks",Boolean(isAdmin&&!editMode)||context.shiftActive)
+  const showWorkplaces=feature("workplaces",Boolean(isAdmin)||context.assignedWorkplaceRole)
+  const showTasks=feature("tasks",Boolean(isAdmin)||context.shiftActive)
   const showIncidents=feature("incidents",isAdmin?true:context.shiftActive)
   const showChat=feature("chat",true)
   const showCrew=feature("crew",true)
-  const showExports=feature("exports",Boolean(isAdmin&&!editMode))
-  const showPersonnel=feature("personnel",Boolean(isAdmin&&!editMode))
+  const showExports=feature("exports",Boolean(isAdmin))
+  const showPersonnel=feature("personnel",Boolean(isAdmin))
   const showSettings=feature("settings",true)
   const featureVisibility={overview:showOverview,events:showEvents,operations:showOperations,workplaces:showWorkplaces,shifts:showShifts,briefings:showBriefings,tasks:showTasks,chat:showChat,crew:showCrew,incidents:showIncidents,exports:showExports,personnel:showPersonnel,settings:showSettings}
-  const operationalMode=context.eventActive||previewAll
+  const operationalMode=context.eventActive
   const showUrgent=!pathname.startsWith("/chat")&&!isAdmin&&showIncidents&&context.shiftActive
-  const showFloatingChat=(isAdmin&&!editMode)||operationalMode
+  const showFloatingChat=isAdmin||operationalMode
 
   return <div className="flex h-dvh overflow-hidden bg-background print:block print:h-auto print:overflow-visible">
     <div className="print:hidden"><AppSidebar chatMissed={chatMissed} incidentMissed={incidentMissed} taskMissed={taskMissed} showOperations={showOperations} showEvents={showEvents} showTasks={showTasks} showBriefings={showBriefings} showShifts={showShifts} showWorkplaces={showWorkplaces} showIncidents={showIncidents} featureOrder={order} featureLabels={labels} featureVisibility={featureVisibility}/></div>
@@ -219,11 +218,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       <div className="print:hidden"><Topbar/><QueueStatus/></div>
       <div id="app-scroll" className="flex-1 overflow-y-auto bg-background scroll-smooth print:overflow-visible">
         <main className="min-h-[calc(100dvh-theme(spacing.16)-theme(spacing.12))] pb-20 md:pb-0 print:min-h-0 print:pb-0">
-          {editMode&&<p className="m-3 rounded-xl border border-amber-500/50 bg-amber-500/10 p-3 text-sm font-semibold">Edit mode actief: operationele interacties zijn geblokkeerd. Pas volgorde, labels, zichtbaarheid, bruikbaarheid en voorwaarden aan in de editor.</p>}
           {!currentVisible&&!previewAll
             ? <div className="m-4 rounded-2xl border p-6 text-muted-foreground">Deze functie is verborgen voor jouw rol of huidige context.</div>
             : <>
-                {!editMode&&!currentUsable&&<p className="m-3 rounded-xl border p-3 text-sm text-muted-foreground">Alleen-lezen: deze functie is zichtbaar, maar momenteel niet bruikbaar voor jouw rol.</p>}
+                {!currentUsable&&<p className="m-3 rounded-xl border p-3 text-sm text-muted-foreground">Alleen-lezen: deze functie is zichtbaar, maar momenteel niet bruikbaar voor jouw rol.</p>}
                 <div inert={contentLocked}>{children}</div>
               </>}
         </main>
@@ -234,6 +232,5 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       {showUrgent&&<Link href="/incidents" className="fixed bottom-20 left-4 z-50 rounded-full bg-red-600 px-5 py-4 font-black text-white print:hidden md:hidden">URGENT<CountBadge count={incidentMissed}/></Link>}
       {showFloatingChat&&<FloatingChatButton count={chatMissed}/>} 
     </>}
-    <EditModeEditor/>
   </div>
 }

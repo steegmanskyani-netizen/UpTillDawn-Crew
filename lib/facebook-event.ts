@@ -23,8 +23,8 @@ function escapeRegex(value:string){
 function meta(html:string,key:string){
   const escaped=escapeRegex(key)
   const patterns=[
-    new RegExp('<meta[^>]+(?:property|name)=["\\']'+escaped+'["\\'][^>]+content=["\\']([^"\\']*)["\\'][^>]*>',"i"),
-    new RegExp('<meta[^>]+content=["\\']([^"\\']*)["\\'][^>]+(?:property|name)=["\\']'+escaped+'["\\'][^>]*>',"i"),
+    new RegExp("<meta[^>]+(?:property|name)=[\\\"']"+escaped+"[\\\"'][^>]+content=[\\\"']([^\\\"']*)[\\\"'][^>]*>","i"),
+    new RegExp("<meta[^>]+content=[\\\"']([^\\\"']*)[\\\"'][^>]+(?:property|name)=[\\\"']"+escaped+"[\\\"'][^>]*>","i"),
   ]
   for(const pattern of patterns){
     const match=html.match(pattern)
@@ -89,7 +89,7 @@ function locationParts(value:unknown){
 function timestampFromHtml(html:string,keys:string[]){
   for(const key of keys){
     const escaped=escapeRegex(key)
-    const match=html.match(new RegExp('["\\']'+escaped+'["\\']\\s*:\\s*["\\']?(\\d{10,13})["\\']?',"i"))
+    const match=html.match(new RegExp("[\\\"']"+escaped+"[\\\"']\\\\s*:\\\\s*[\\\"']?(\\\\d{10,13})[\\\"']?","i"))
     if(match?.[1]){
       const parsed=iso(match[1])
       if(parsed)return parsed

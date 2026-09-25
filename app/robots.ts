@@ -28,7 +28,7 @@ export default function robots(): MetadataRoute.Robots {
         ],
       },
     ],
-    sitemap: 'https://crew-uptilldawn.be/sitemap.xml',
-    host: 'https://crew-uptilldawn.be',
+    sitemap: 'https://crew.uptilldawn.workers.dev/sitemap.xml',
+    host: 'https://crew.uptilldawn.workers.dev',
   }
 }

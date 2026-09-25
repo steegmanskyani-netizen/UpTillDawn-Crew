@@ -10,7 +10,7 @@ export async function configureGodMode(formData:FormData){
   const login=String(formData.get('login')||'').trim().toLowerCase()
   const password=String(formData.get('password')||'')
   const confirm=String(formData.get('confirm_password')||'')
-  if(login!=='edit@uptilldown')throw new Error('God Mode login moet edit@uptilldown zijn.')
+  if(login!=='godmode@uptilldawn')throw new Error('God Mode login moet godmode@uptilldawn zijn.')
   if(password.length<10)throw new Error('God Mode wachtwoord moet minstens 10 tekens bevatten.')
   if(password!==confirm)throw new Error('Wachtwoorden komen niet overeen.')
 

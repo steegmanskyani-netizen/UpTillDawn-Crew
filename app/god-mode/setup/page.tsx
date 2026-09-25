@@ -19,7 +19,7 @@ export default async function GodModeSetupPage(){
       <p className="mt-2 text-sm text-zinc-400">Deze setup is alleen bereikbaar voor het permanente maker-account. Het wachtwoord wordt uitsluitend gehasht in de private database opgeslagen.</p>
       <form action={configureGodMode} className="mt-6 space-y-4">
         <label className="grid gap-1 text-sm">Login
-          <input name="login" readOnly value="edit@uptilldown" className="rounded-xl border border-white/15 bg-black p-3"/>
+          <input name="login" readOnly value="godmode@uptilldawn" className="rounded-xl border border-white/15 bg-black p-3"/>
         </label>
         <label className="grid gap-1 text-sm">God Mode wachtwoord
           <input name="password" type="password" minLength={10} required autoComplete="new-password" className="rounded-xl border border-white/15 bg-black p-3"/>

@@ -103,11 +103,10 @@ END $$;
 RESET ROLE;
 SELECT set_config('request.jwt.claim.sub','',true);
 SET LOCAL ROLE anon;
-DO $$ BEGIN
+DO $ BEGIN
  IF has_function_privilege('anon','public.upt_start_work(uuid,uuid)','EXECUTE') THEN RAISE EXCEPTION 'FAIL anonymous RPC privilege'; END IF;
  IF has_table_privilege('anon','public.profiles','TRUNCATE') OR has_table_privilege('authenticated','public.profiles','TRUNCATE') THEN RAISE EXCEPTION 'FAIL truncate privilege'; END IF;
-END
-$copy$;
+END $;
 RESET ROLE;
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_test_ids WHERE name='staff'),true);
 SET LOCAL ROLE authenticated;
@@ -131,7 +130,8 @@ DO $copy$ DECLARE copy_id uuid; BEGIN
  copy_id:=public.upt_duplicate_event((SELECT id FROM upt_test_ids WHERE name='event'),'Configuration copy',now()+interval '2 days',now()+interval '3 days');
  IF EXISTS(SELECT 1 FROM public.work_sessions WHERE event_id=copy_id) OR EXISTS(SELECT 1 FROM public.check_ins WHERE event_id=copy_id) OR EXISTS(SELECT 1 FROM public.incidents WHERE event_id=copy_id) THEN RAISE EXCEPTION 'FAIL historical data copied'; END IF;
  IF NOT EXISTS(SELECT 1 FROM public.briefings WHERE event_id=copy_id) THEN RAISE EXCEPTION 'FAIL briefing configuration not copied'; END IF;
-END $$;
+END
+$copy$;
 RESET ROLE;
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_test_ids WHERE name='staff'),true);
 SET LOCAL ROLE authenticated;

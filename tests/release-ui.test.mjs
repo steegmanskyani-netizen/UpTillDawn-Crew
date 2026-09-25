@@ -707,3 +707,12 @@ test('Edit-mode database writes require a verified temporary unlock', async () =
   assert.match(editor, /upt_revoke_admin_edit_unlock/)
   assert.match(controls, /upt_revoke_admin_edit_unlock/)
 })
+
+
+test('AI editor rejects cross-site POST requests', async () => {
+  const route = await read('app/api/edit-assistant/route.ts')
+  assert.match(route, /sec-fetch-site/)
+  assert.match(route, /fetchSite==="cross-site"/)
+  assert.match(route, /origin&&origin!==new URL\(request\.url\)\.origin/)
+  assert.match(route, /Ongeldige oorsprong/)
+})

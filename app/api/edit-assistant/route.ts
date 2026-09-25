@@ -78,6 +78,13 @@ type WorkersAiBinding={
 
 type AiResult=z.infer<typeof aiResultSchema>
 
+function crossSite(request:Request){
+  const fetchSite=request.headers.get("sec-fetch-site")
+  if(fetchSite==="cross-site")return true
+  const origin=request.headers.get("origin")
+  return Boolean(origin&&origin!==new URL(request.url).origin)
+}
+
 function normalizeAiResult(payload:unknown):AiResult|null{
   if(!payload||typeof payload!=="object")return null
   const response=(payload as {response?:unknown}).response
@@ -91,6 +98,8 @@ function normalizeAiResult(payload:unknown):AiResult|null{
 }
 
 export async function POST(request:Request){
+  if(crossSite(request))return Response.json({error:"Ongeldige oorsprong."},{status:403})
+
   const supabase=await createClient()
   const {data:{user}}=await supabase.auth.getUser()
   if(!user)return Response.json({error:"Aanmelden vereist."},{status:401})

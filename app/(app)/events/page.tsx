@@ -53,7 +53,7 @@ export default async function Page(){
     ...(shiftResult.data||[]).map(row=>row.event_id),
     ...(user.role==='responsible_lead'?(responsibleResult.data||[]).map(row=>row.event_id):[]),
   ])
-  const nowMs=Date.now()
+  const nowMs=new Date().getTime()
   const visibleEvents=user.isAdmin
     ? events
     : events.filter(event=>{

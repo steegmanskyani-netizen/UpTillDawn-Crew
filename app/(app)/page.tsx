@@ -53,7 +53,7 @@ export default async function Dashboard() {
     ...shifts.map(shift=>shift.event_id),
     ...(current.role==='responsible_lead'?responsibleAssignments.map(row=>row.event_id):[]),
   ])
-  const nowMs=Date.now()
+  const nowMs=new Date().getTime()
   const events=rawEvents.filter(event=>
     event.status!=='archived'
     && (Date.parse(event.start_at)>nowMs||assignedEventIds.has(event.id))

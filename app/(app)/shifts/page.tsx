@@ -16,18 +16,19 @@ export default async function Page() {
   const current = await getCurrentUser()
   if (!current) return null
   const user = { id: current.id }
-  const shiftWindowStart = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
 
   const [
     { data: shifts, error: shiftsError },
     { data: memberships },
     { data: openEvents },
     { data: responsibleAssignments },
+    { data: currentOrFutureOwnShifts },
   ] = await Promise.all([
     s.from('shifts').select('*,workplaces(name),events(name)').order('scheduled_start'),
     s.from('event_members').select('event_id').eq('user_id', user.id),
-    s.from('events').select('id').gte('end_at', shiftWindowStart),
+    s.from('events').select('id').gte('end_at', 'now'),
     s.from('responsible_assignments').select('event_id,workplace_id').eq('user_id', user.id),
+    s.from('shifts').select('event_id').eq('user_id',user.id).neq('status','cancelled').gte('scheduled_end','now'),
   ])
 
   const isAdmin = current.role === 'admin'
@@ -39,6 +40,7 @@ export default async function Page() {
     ...(responsibleAssignments || []).map(row => row.event_id),
   ])
   const hasOpenAssignedEvent = [...assignedEventIds].some(eventId => openEventIds.has(eventId))
+    || Boolean(currentOrFutureOwnShifts?.length)
   const visibleShifts = isAdmin
     ? (shifts || [])
     : isResponsible

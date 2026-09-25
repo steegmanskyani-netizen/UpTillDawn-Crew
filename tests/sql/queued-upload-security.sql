@@ -2,7 +2,7 @@
 -- Run in one connection. All synthetic fixtures are rolled back.
 BEGIN;
 CREATE TEMP TABLE upt_upload_ids(name text primary key, id uuid default gen_random_uuid());
-INSERT INTO upt_upload_ids(name) VALUES ('staff'),('other'),('event'),('bar'),('channel'),('attach_op'),('message_op');
+INSERT INTO upt_upload_ids(name) VALUES ('staff'),('other'),('event'),('bar'),('attach_op'),('message_op');
 GRANT SELECT ON upt_upload_ids TO authenticated;
 
 INSERT INTO auth.users(id,email)
@@ -23,14 +23,6 @@ INSERT INTO public.event_members(event_id,user_id)
 SELECT (SELECT id FROM upt_upload_ids WHERE name='event'),id
 FROM upt_upload_ids WHERE name IN ('staff','other');
 
-INSERT INTO public.chat_channels(id,kind,event_id,workplace_id,name)
-VALUES(
- (SELECT id FROM upt_upload_ids WHERE name='channel'),
- 'workplace',
- (SELECT id FROM upt_upload_ids WHERE name='event'),
- (SELECT id FROM upt_upload_ids WHERE name='bar'),
- 'Rollback workplace chat'
-);
 INSERT INTO public.shifts(event_id,workplace_id,user_id,start_time,end_time,scheduled_start,scheduled_end)
 VALUES(
  (SELECT id FROM upt_upload_ids WHERE name='event'),
@@ -81,7 +73,13 @@ SELECT public.upt_attach_incident_photo(
 
 SELECT set_config(
  'upt.upload.chat',
- (SELECT id::text FROM upt_upload_ids WHERE name='channel'),
+ (
+  SELECT id::text
+  FROM public.chat_channels
+  WHERE kind='workplace'
+    AND workplace_id=(SELECT id FROM upt_upload_ids WHERE name='bar')
+  LIMIT 1
+ ),
  true
 );
 SELECT set_config(

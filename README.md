@@ -61,7 +61,7 @@ Database regression suites are in `tests/sql/`. They use synthetic fixtures and 
 
 ## Database
 
-The production project is tracked through 107 ordered SQL migration files in `supabase/migrations/`. Historical StaffPortal migrations are retained because they are part of migration history, not because the old modules are active.
+The production project is tracked through 108 ordered SQL migration files in `supabase/migrations/`. Historical StaffPortal migrations are retained because they are part of migration history, not because the old modules are active.
 
 Do not reset or blindly replay migrations against production. A complete from-zero replay belongs on an isolated Supabase project.
 

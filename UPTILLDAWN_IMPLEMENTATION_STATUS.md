@@ -59,6 +59,30 @@ The corrected SQL suites pass, including privilege/RLS, SECURITY DEFINER surface
 
 Repository CI is expected to remain the release gate for lint, TypeScript, Node tests, production builds and Wrangler dry-run.
 
+## Full option/function audit
+
+A full option/function audit was run against the current production baseline. Coverage included all role views, auth portals, event/workplace/shift flows, work and break timing, task/instruction acknowledgement, chat/media, incidents/help, profile/settings, notifications, export/audit, offline sync, PWA/Web Push, Edit mode and server API routes.
+
+The audit also checked the database attack surface rather than only the visible UI:
+- all 13 SQL regression suites pass against production using rollback fixtures;
+- every public application table has RLS enabled;
+- anonymous table CRUD grants are absent;
+- anonymous/PUBLIC execute access to `upt_*` RPCs is absent;
+- retired private-chat creation/peer discovery remains revoked;
+- generated Supabase TypeScript types exactly match the production schema;
+- repository and production migration histories match 108/108.
+
+Issues found and corrected during this audit:
+- permanent-admin server routes now use the central admin privilege check;
+- initial language selection follows the device/browser language until the user explicitly chooses another language;
+- Admin login through Personnel/Responsible selects the matching visible role mode;
+- Push subscriptions are removed on logout/auth loss and unsafe/private-network push endpoints are rejected;
+- notification links cannot escape the app origin;
+- private Storage writes require approved-account/user-folder scope;
+- Responsible/Staff preview data is restricted to the effective role for chat, operations, shifts, tasks, workplaces, incidents, badges, events and overview;
+- Edit-mode code is no longer in source and database writes require a temporary verified unlock with failed-attempt rate limiting;
+- AI Edit-assistant POSTs reject cross-site origins.
+
 ## Supabase advisor state
 
 Known remaining advisor findings are reviewed rather than blindly removed:
@@ -74,7 +98,7 @@ Known remaining advisor findings are reviewed rather than blindly removed:
 These are not regressions in the current web/mobile baseline:
 
 1. Define an explicit overtime/pay-period policy before presenting overtime as payroll truth.
-2. Replay all 107 migrations from zero on an isolated project before claiming a fresh-install proof.
+2. Replay all 108 migrations from zero on an isolated project before claiming a fresh-install proof.
 3. Expand offline browsing beyond the operational workflows if full offline parity is ever required.
 4. Continue physical-device regression testing after major browser/OS updates.
 5. Enable Supabase leaked-password protection when the project setting is approved.

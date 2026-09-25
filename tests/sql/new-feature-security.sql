@@ -169,7 +169,7 @@ BEGIN
  BEGIN
    PERFORM public.upt_create_shift(
      (SELECT id FROM upt_new_ids WHERE name='bar'),
-     (SELECT id FROM upt_new_ids WHERE name='staff'),
+     (SELECT id FROM upt_new_ids WHERE name='other'),
      'Overlap',
      now()+interval '3 hours',
      now()+interval '5 hours',

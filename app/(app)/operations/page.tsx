@@ -16,6 +16,7 @@ export default async function Page(){
   const manager=isAdmin||role==='responsible_lead'
   const nowDate=new Date()
   const now=nowDate.toISOString()
+  const startWindowEnd=new Date(nowDate.getTime()+60*60*1000).toISOString()
   const windowStart=new Date(nowDate.getTime()-3*24*60*60*1000).toISOString()
   const windowEnd=new Date(nowDate.getTime()+3*24*60*60*1000).toISOString()
 
@@ -35,7 +36,7 @@ export default async function Page(){
         .eq('user_id',current.id)
         .in('event_id',candidateEventIds)
         .neq('status','cancelled')
-        .lte('scheduled_start',now)
+        .lte('scheduled_start',startWindowEnd)
         .gte('scheduled_end',now)
         .order('scheduled_start')
     : {data:[],error:null}
@@ -102,6 +103,14 @@ export default async function Page(){
     ? await s.rpc('upt_work_session_time_summary',{p_work_session:session.data.id})
     : null
 
+  const timeReviews=isAdmin
+    ? await s.from('time_review_requests').select('*').eq('status','pending').order('created_at')
+    : {data:[],error:null}
+
+  if(timeReviews.error){
+    return <main className="p-8">Tijdcorrecties konden niet worden geladen. Probeer opnieuw.</main>
+  }
+
   let liveSessions:Tables<'work_sessions'>[]=[]
   let liveBreaks:Tables<'break_sessions'>[]=[]
   let liveShifts:Tables<'shifts'>[]=[]
@@ -152,5 +161,6 @@ export default async function Page(){
     liveBreaks={liveBreaks}
     liveShifts={liveShifts}
     crewDirectory={crewDirectory}
+    timeReviews={timeReviews.data||[]}
   />
 }

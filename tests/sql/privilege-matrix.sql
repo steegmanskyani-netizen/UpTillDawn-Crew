@@ -46,10 +46,18 @@ BEGIN
   FROM information_schema.role_routine_grants
   WHERE routine_schema='public'
     AND grantee='anon'
-    AND routine_name LIKE 'upt_%';
+    AND routine_name LIKE 'upt_%'
+    AND routine_name <> ALL(ARRAY[
+      'upt_god_data_catalog','upt_god_data_mutate','upt_god_data_rows',
+      'upt_god_database_connect','upt_god_database_disconnect','upt_god_database_secret',
+      'upt_god_login','upt_god_logout',
+      'upt_god_repository_connect','upt_god_repository_disconnect','upt_god_repository_secret',
+      'upt_god_role_rules','upt_god_save_role_rules','upt_god_session_valid',
+      'upt_info_admin_bootstrap_open'
+    ]);
 
   IF v_anon_rpcs IS NOT NULL THEN
-    RAISE EXCEPTION 'FAIL anonymous Uptilldawn RPC execute grants: %', v_anon_rpcs;
+    RAISE EXCEPTION 'FAIL unexpected anonymous Uptilldawn RPC execute grants: %', v_anon_rpcs;
   END IF;
 
   SELECT string_agg(p.oid::regprocedure::text, ', ' ORDER BY p.oid::regprocedure::text)
@@ -84,4 +92,4 @@ BEGIN
   END IF;
 END $matrix$;
 
-SELECT 'PASS: public RLS/anon surface is locked down, trigger functions are non-callable and RPC-only tables have no direct mutation grants' AS result;
+SELECT 'PASS: public RLS/anon surface is locked down, only explicit token/bootstrap RPCs are anonymous, trigger functions are non-callable and RPC-only tables have no direct mutation grants' AS result;

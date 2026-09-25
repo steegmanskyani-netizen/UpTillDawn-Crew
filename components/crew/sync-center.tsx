@@ -139,6 +139,6 @@ export function SyncCenter() {
     </article>)}
 
     {message && <p role="status" className="rounded-xl border p-4">{message}</p>}
-    <p className="text-xs text-muted-foreground">Tijdacties blijven geordend. URGENT- en chatfoto&apos;s blijven als Blob in IndexedDB bewaard tot upload en serverbewerking bevestigd zijn.</p>
+    <p className="text-xs text-muted-foreground">Pauze- en werkplekacties blijven geordend. Start- en stopuren verlopen via QR. URGENT- en chatmedia blijven als Blob in IndexedDB bewaard tot upload en serverbewerking bevestigd zijn.</p>
   </div>
 }

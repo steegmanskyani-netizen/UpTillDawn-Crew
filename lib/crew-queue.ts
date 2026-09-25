@@ -248,6 +248,8 @@ async function synchronizeUploads(userId: string) {
   }
 }
 
+const RETIRED_CLOCK_ERROR = 'Deze oude offline start/stopactie kan niet meer automatisch worden verwerkt. Start- en stopuren verlopen via de QR-workflow. Dien de uren opnieuw via QR in en verwijder daarna deze oude wachtrijactie.'
+
 let running: Promise<void> | null = null
 
 export async function synchronize(userId: string) {
@@ -258,12 +260,20 @@ export async function synchronize(userId: string) {
     const { data: { user } } = await s.auth.getUser()
     if (user?.id !== userId) return
 
-    const ordered = new Set(['start_work', 'start_break', 'stop_break', 'stop_work', 'transition'])
+    const ordered = new Set(['start_break', 'stop_break', 'transition'])
     let timeConflict = false
 
     for (const op of await queued(userId)) {
-      if (timeConflict && ordered.has(op.type)) continue
       if (!navigator.onLine) break
+
+      if (op.type === 'start_work' || op.type === 'stop_work') {
+        if (op.error !== RETIRED_CLOCK_ERROR) {
+          await writeOperation({ ...op, error: RETIRED_CLOCK_ERROR })
+        }
+        continue
+      }
+
+      if (timeConflict && ordered.has(op.type)) continue
 
       try {
         const { error } = await s.rpc('upt_sync_operation', {
@@ -301,6 +311,10 @@ export async function synchronize(userId: string) {
 }
 
 export async function enqueue(userId: string, type: string, payload: Record<string, Json>) {
+  if (type === 'start_work' || type === 'stop_work') {
+    throw new Error('Start- en stopuren kunnen niet offline worden gestart. Gebruik de QR-workflow.')
+  }
+
   const op: QueuedOperation = {
     id: crypto.randomUUID(),
     userId,

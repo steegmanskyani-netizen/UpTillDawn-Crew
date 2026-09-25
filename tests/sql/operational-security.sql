@@ -1,7 +1,7 @@
 -- Run in one connection. All synthetic fixtures are rolled back.
 BEGIN;
 CREATE TEMP TABLE upt_test_ids (name text primary key, id uuid default gen_random_uuid());
-INSERT INTO upt_test_ids(name) VALUES ('admin'),('staff'),('lead'),('other'),('pending'),('event'),('bar'),('ticket'),('shift'),('session1'),('session2'),('ticket_session'),('checkin'),('briefing');
+INSERT INTO upt_test_ids(name) VALUES ('admin'),('staff'),('lead'),('other'),('pending'),('event'),('bar'),('ticket'),('shift'),('session1'),('session2'),('live_session'),('ticket_session'),('checkin'),('briefing');
 GRANT SELECT ON upt_test_ids TO authenticated,anon;
 INSERT INTO auth.users(id) SELECT id FROM upt_test_ids WHERE name IN ('admin','staff','lead','other','pending');
 UPDATE public.profiles SET approved=true,role=CASE WHEN id=(SELECT id FROM upt_test_ids WHERE name='admin') THEN 'admin' WHEN id=(SELECT id FROM upt_test_ids WHERE name='lead') THEN 'responsible_lead' ELSE 'staff' END
@@ -42,10 +42,9 @@ DO $$ DECLARE a record; b record; BEGIN
  PERFORM public.upt_decide_check_in((SELECT id FROM upt_test_ids WHERE name='checkin'),true,null);
  RAISE EXCEPTION 'FAIL staff approved check-in';
  EXCEPTION WHEN raise_exception THEN IF SQLERRM='FAIL staff approved check-in' THEN RAISE; END IF; END;
- BEGIN
- PERFORM public.upt_start_work((SELECT id FROM upt_test_ids WHERE name='event'),(SELECT id FROM upt_test_ids WHERE name='shift'));
- RAISE EXCEPTION 'FAIL work started without approval';
- EXCEPTION WHEN raise_exception THEN IF SQLERRM='FAIL work started without approval' THEN RAISE; END IF; END;
+ IF has_function_privilege('authenticated','public.upt_start_work(uuid,uuid)','EXECUTE') THEN
+   RAISE EXCEPTION 'FAIL direct work-start RPC still executable';
+ END IF;
 END $$;
 DO $$ DECLARE operation uuid:=gen_random_uuid(); payload jsonb; first_result jsonb; second_result jsonb; BEGIN
  payload:=jsonb_build_object('event_id',(SELECT id FROM upt_test_ids WHERE name='event'),'message','Rollback incident');
@@ -81,9 +80,12 @@ SET LOCAL ROLE authenticated;
 DO $$ BEGIN
  IF EXISTS(SELECT 1 FROM public.events) THEN RAISE EXCEPTION 'FAIL unapproved reads events'; END IF;
  BEGIN
- PERFORM public.upt_start_work((SELECT id FROM upt_test_ids WHERE name='event'),null);
- RAISE EXCEPTION 'FAIL unapproved starts work';
- EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'ACCOUNT NOT APPROVED' THEN RAISE; END IF; END;
+ PERFORM public.upt_qr_request();
+ RAISE EXCEPTION 'FAIL unapproved QR request';
+ EXCEPTION WHEN raise_exception THEN
+   IF SQLERRM='FAIL unapproved QR request' THEN RAISE; END IF;
+   IF SQLERRM<>'ACCOUNT NOT APPROVED' THEN RAISE; END IF;
+ END;
 END $$;
 RESET ROLE;
 SELECT set_config('request.jwt.claim.sub','',true);
@@ -106,17 +108,50 @@ DO $$ DECLARE copy_id uuid; BEGIN
  IF NOT EXISTS(SELECT 1 FROM public.briefings WHERE event_id=copy_id) THEN RAISE EXCEPTION 'FAIL briefing configuration not copied'; END IF;
 END $$;
 RESET ROLE;
+INSERT INTO public.work_sessions(id,event_id,user_id,shift_id,start_time,started_at,status)
+VALUES(
+ (SELECT id FROM upt_test_ids WHERE name='live_session'),
+ (SELECT id FROM upt_test_ids WHERE name='event'),
+ (SELECT id FROM upt_test_ids WHERE name='staff'),
+ (SELECT id FROM upt_test_ids WHERE name='shift'),
+ now()-interval '5 minutes',
+ now()-interval '5 minutes',
+ 'active'
+);
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_test_ids WHERE name='staff'),true);
 SET LOCAL ROLE authenticated;
-DO $$ DECLARE operation uuid:=gen_random_uuid(); payload jsonb; answer jsonb; session_id uuid; pause_id uuid; BEGIN
- payload:=jsonb_build_object('event_id',(SELECT id FROM upt_test_ids WHERE name='event'),'shift_id',(SELECT id FROM upt_test_ids WHERE name='shift'),'latitude',50,'longitude',4,'accuracy',5);
- answer:=public.upt_sync_operation(operation,'start_work',payload); session_id:=(answer->>'id')::uuid;
- IF public.upt_sync_operation(operation,'start_work',payload)<>answer THEN RAISE EXCEPTION 'FAIL repeated work action'; END IF;
- IF NOT EXISTS(SELECT 1 FROM public.work_sessions WHERE id=session_id AND start_gps_status='verified') THEN RAISE EXCEPTION 'FAIL GPS evidence not stored'; END IF;
- pause_id:=(public.upt_sync_operation(gen_random_uuid(),'start_break',jsonb_build_object('session_id',session_id))->>'id')::uuid;
+DO $ DECLARE operation uuid:=gen_random_uuid(); pause_id uuid; BEGIN
+ BEGIN
+   PERFORM public.upt_sync_operation(
+     operation,
+     'start_work',
+     jsonb_build_object('event_id',(SELECT id FROM upt_test_ids WHERE name='event'),'shift_id',(SELECT id FROM upt_test_ids WHERE name='shift'))
+   );
+   RAISE EXCEPTION 'FAIL offline start bypass';
+ EXCEPTION WHEN OTHERS THEN
+   IF SQLERRM='FAIL offline start bypass' THEN RAISE; END IF;
+   IF SQLERRM NOT LIKE 'Direct werk starten is uitgeschakeld.%' THEN RAISE; END IF;
+ END;
+ pause_id:=(public.upt_sync_operation(
+   gen_random_uuid(),
+   'start_break',
+   jsonb_build_object('session_id',(SELECT id FROM upt_test_ids WHERE name='live_session'))
+ )->>'id')::uuid;
  PERFORM public.upt_sync_operation(gen_random_uuid(),'stop_break',jsonb_build_object('break_id',pause_id));
- PERFORM public.upt_sync_operation(gen_random_uuid(),'stop_work',jsonb_build_object('session_id',session_id,'gps_status','denied'));
- IF NOT EXISTS(SELECT 1 FROM public.work_sessions WHERE id=session_id AND ended_at IS NOT NULL AND stop_gps_status='denied') THEN RAISE EXCEPTION 'FAIL stop work'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM public.break_sessions WHERE id=pause_id AND ended_at IS NOT NULL) THEN
+   RAISE EXCEPTION 'FAIL queued break lifecycle';
+ END IF;
+ BEGIN
+   PERFORM public.upt_sync_operation(
+     gen_random_uuid(),
+     'stop_work',
+     jsonb_build_object('session_id',(SELECT id FROM upt_test_ids WHERE name='live_session'))
+   );
+   RAISE EXCEPTION 'FAIL offline stop bypass';
+ EXCEPTION WHEN OTHERS THEN
+   IF SQLERRM='FAIL offline stop bypass' THEN RAISE; END IF;
+   IF SQLERRM NOT LIKE 'Direct werk stoppen is uitgeschakeld.%' THEN RAISE; END IF;
+ END;
 END $$;
 RESET ROLE;
 SELECT set_config('request.jwt.claim.sub','',true);
@@ -127,5 +162,5 @@ SELECT upt_private.notify_break_allowance();
 DO $$ BEGIN
  IF (SELECT count(*) FROM upt_private.break_warning_receipts WHERE user_id=(SELECT id FROM upt_test_ids WHERE name='other'))<>2 THEN RAISE EXCEPTION 'FAIL break warning deduplication'; END IF;
 END $$;
-SELECT 'PASS: profile isolation, self-promotion denial, 10h/75min=9h45 across sessions, staff approval denial, work approval gate, lead session isolation, lead check-in isolation, cross-workplace approval denial, pending read/mutation denial, anonymous RPC denial, truncate denial, idempotent replay, operation ID conflict, GPS radius/accuracy, sensitive column denial, briefing acknowledgement, event duplication without history, successful work/break lifecycle, GPS evidence storage, scheduled warning deduplication' AS result;
+SELECT 'PASS: profile isolation, self-promotion denial, 10h/75min=9h45 across sessions, staff approval denial, direct clock bypass denial, QR approval gate, lead session isolation, lead check-in isolation, cross-workplace approval denial, pending read/mutation denial, anonymous RPC denial, truncate denial, idempotent replay, operation ID conflict, GPS radius/accuracy, sensitive column denial, briefing acknowledgement, event duplication without history, QR-owned work start/stop, queued break lifecycle, scheduled warning deduplication' AS result;
 ROLLBACK;

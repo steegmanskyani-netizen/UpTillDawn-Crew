@@ -787,3 +787,18 @@ test('canonical production origin exposes public SEO surface without indexing pr
   assert.match(sitemap, /\/login/)
   assert.match(edge, /https:\/\/crew\.uptilldawn\.workers\.dev/)
 })
+
+
+test('QR attendance owns start and stop while offline queue keeps only supported time actions', async () => {
+  const queue = await read('lib/crew-queue.ts')
+  const operations = await read('app/(app)/operations/operations-client.tsx')
+  const syncCenter = await read('components/crew/sync-center.tsx')
+
+  assert.match(queue, /RETIRED_CLOCK_ERROR/)
+  assert.match(queue, /op\.type === 'start_work' \|\| op\.type === 'stop_work'/)
+  assert.match(queue, /Start- en stopuren kunnen niet offline worden gestart/)
+  assert.doesNotMatch(operations, /work\('start_work'/)
+  assert.doesNotMatch(operations, /work\('stop_work'/)
+  assert.match(operations, /href="\/qr"/)
+  assert.match(syncCenter, /Start- en stopuren verlopen via QR/)
+})

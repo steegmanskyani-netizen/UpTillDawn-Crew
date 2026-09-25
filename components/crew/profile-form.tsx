@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/crew-client'
+import { AddressAutocomplete } from '@/components/crew/address-autocomplete'
 
 type ProfileValues = {
   full_name?: string | null
@@ -84,7 +85,7 @@ export function ProfileForm({
       <img src={photoUrl} alt="Profielfoto" className="max-h-72 w-full object-contain bg-black/20"/>
     </div>}
     <label className="block">Naam<input name="name" required maxLength={200} defaultValue={initial.full_name || ''} className="mt-1 block w-full rounded-xl border bg-background p-3"/></label>
-    <label className="block">Adres<textarea name="address" maxLength={500} defaultValue={initial.home_address || ''} className="mt-1 block min-h-20 w-full rounded-xl border bg-background p-3"/></label>
+    <AddressAutocomplete name="address" label="Adres" defaultValue={initial.home_address || ''}/>
     <label className="block">Telefoon<input name="phone" type="tel" maxLength={40} defaultValue={initial.phone_number || ''} className="mt-1 block w-full rounded-xl border bg-background p-3"/></label>
     <label className="block">Geboortedatum<input name="dob" type="date" defaultValue={initial.date_of_birth || ''} className="mt-1 block w-full rounded-xl border bg-background p-3"/></label>
     <label className="block">Rijksregisternummer<input name="national_register" autoComplete="off" maxLength={32} defaultValue={initial.national_register_number || ''} className="mt-1 block w-full rounded-xl border bg-background p-3"/></label>

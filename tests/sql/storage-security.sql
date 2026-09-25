@@ -47,6 +47,20 @@ VALUES(
  (SELECT id FROM upt_storage_ids WHERE name='lead')
 );
 
+INSERT INTO public.shifts(
+ event_id,workplace_id,user_id,role_name,
+ start_time,end_time,scheduled_start,scheduled_end,status
+)
+VALUES(
+ (SELECT id FROM upt_storage_ids WHERE name='event'),
+ (SELECT id FROM upt_storage_ids WHERE name='bar'),
+ (SELECT id FROM upt_storage_ids WHERE name='lead'),
+ 'Verantwoordelijke',
+ now()-interval '30 minutes',now()+interval '2 hours',
+ now()-interval '30 minutes',now()+interval '2 hours',
+ 'scheduled'
+);
+
 UPDATE public.profiles
 SET profile_photo_url=(SELECT id::text FROM upt_storage_ids WHERE name='staff')||'/profile.jpg'
 WHERE id=(SELECT id FROM upt_storage_ids WHERE name='staff');

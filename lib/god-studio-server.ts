@@ -39,7 +39,7 @@ export async function github<T>(path: string, credential?: string, method = 'GET
     },
     ...(body === undefined ? {} : {body: JSON.stringify(body)}),
     cache: 'no-store',
-    redirect: 'error',
+    redirect: 'manual',
     signal: AbortSignal.timeout(25_000),
   })
   if (!response.ok) {

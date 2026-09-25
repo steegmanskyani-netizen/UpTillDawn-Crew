@@ -6,7 +6,7 @@ const PROJECT = 'eakoavcieossazqzplke'
 async function queryDatabase(credential: string, query: string, readOnly: boolean) {
   const response = await fetch(`https://api.supabase.com/v1/projects/${PROJECT}/database/query`, {
     method:'POST', headers:{Authorization:`Bearer ${credential}`,'Content-Type':'application/json'},
-    body:JSON.stringify({query,read_only:readOnly}), cache:'no-store', redirect:'error', signal:AbortSignal.timeout(30_000),
+    body:JSON.stringify({query,read_only:readOnly}), cache:'no-store', redirect:'manual', signal:AbortSignal.timeout(30_000),
   })
   const data = await response.json().catch(()=>null)
   if(!response.ok)throw new StudioError(response.status===401||response.status===403?'De Supabase-sleutel mist de benodigde databasebevoegdheid.':`SQL mislukt: ${String(data?.message||data?.error||response.status).slice(0,1500)}`,400)

@@ -1,4 +1,6 @@
-import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare'\n\n/** @type {import('next').NextConfig} */
+import { initOpenNextCloudflareForDev } from '@opennextjs/cloudflare'
+
+/** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
     serverActions: process.env.NODE_ENV === 'development'
@@ -24,4 +26,5 @@ const nextConfig = {
 }
 
 export default nextConfig
-\ninitOpenNextCloudflareForDev()\n
+
+initOpenNextCloudflareForDev()

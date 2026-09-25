@@ -107,7 +107,8 @@ test('staff can see only own incidents while managers can manage active-shift in
   assert.match(incidents, /'Mijn help oproepen'/)
   assert.match(incidents, /incident\.reporter_id===user\.id\|\|incident\.user_id===user\.id/)
   assert.match(incidents, /if\(!isAdmin&&!activeShifts\.length\)redirect\('\/events'\)/)
-  assert.match(layout, /profile\?\.role==="staff"\) query=query\.eq\("reporter_id",user\.id\)/)
+  assert.match(layout, /activeUiRole==="employee"/)
+  assert.match(layout, /\.eq\("reporter_id",user\.id\)/)
   assert.match(layout, /showUrgent=.*context\.shiftActive/)
 })
 
@@ -698,7 +699,7 @@ test('Edit-mode database writes require a verified temporary unlock', async () =
 
   assert.match(migration, /admin_edit_unlocks/)
   assert.match(migration, /admin_edit_attempts/)
-  assert.match(migration, /failed_attempts>=5/)
+  assert.match(migration, /v_failed\s*>=\s*5/)
   assert.match(migration, /interval '15 minutes'/)
   assert.match(migration, /interval '60 minutes'/)
   assert.match(migration, /role_ui_rules_admin_update/)

@@ -746,7 +746,7 @@ test('God Mode database writes require a private expiring session token', async 
   assert.match(exclusive, /drop function if exists public\.upt_verify_admin_edit_code/)
   assert.match(actions, /httpOnly:true/)
   assert.match(actions, /sameSite:'strict'/)
-  assert.match(api, /p_token:session/)
+  assert.match(api, /p_token:token/)
 })
 
 test('AI editor rejects cross-site POST requests', async () => {

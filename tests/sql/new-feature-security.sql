@@ -30,8 +30,11 @@ SELECT w.id,e.id,w.name
 FROM upt_new_ids w, upt_new_ids e
 WHERE w.name IN ('bar','ticket') AND e.name='event';
 
-INSERT INTO public.event_members(event_id,user_id)
-SELECT (SELECT id FROM upt_new_ids WHERE name='event'), id
+INSERT INTO public.event_members(event_id,user_id,event_role)
+SELECT
+ (SELECT id FROM upt_new_ids WHERE name='event'),
+ id,
+ CASE WHEN name='lead' THEN 'responsible_lead' ELSE 'employee' END
 FROM upt_new_ids
 WHERE name IN ('staff','lead','other');
 
@@ -42,15 +45,39 @@ VALUES(
  (SELECT id FROM upt_new_ids WHERE name='lead')
 );
 
+INSERT INTO public.shifts(
+ event_id,workplace_id,user_id,role_name,
+ start_time,end_time,scheduled_start,scheduled_end,status
+)
+VALUES
+(
+ (SELECT id FROM upt_new_ids WHERE name='event'),
+ (SELECT id FROM upt_new_ids WHERE name='bar'),
+ (SELECT id FROM upt_new_ids WHERE name='staff'),
+ 'Personeel',
+ now()-interval '30 minutes',now()+interval '90 minutes',
+ now()-interval '30 minutes',now()+interval '90 minutes',
+ 'scheduled'
+),
+(
+ (SELECT id FROM upt_new_ids WHERE name='event'),
+ (SELECT id FROM upt_new_ids WHERE name='bar'),
+ (SELECT id FROM upt_new_ids WHERE name='lead'),
+ 'Verantwoordelijke',
+ now()-interval '30 minutes',now()+interval '90 minutes',
+ now()-interval '30 minutes',now()+interval '90 minutes',
+ 'scheduled'
+);
+
 SELECT set_config('request.jwt.claim.sub',(SELECT id::text FROM upt_new_ids WHERE name='staff'),true);
 SET LOCAL ROLE authenticated;
 SELECT public.upt_update_own_profile(
  'Staff Test',
- 'Rollbackstraat 1',
- '+3200000000',
+ 'TEST-ADDRESS',
+ 'TEST-PHONE',
  DATE '2000-01-02',
- '00.01.02-123.45',
- 'BE68539007547034',
+ 'TEST-NRN-001',
+ 'TESTIBAN000000001',
  NULL
 );
 DO $$
@@ -58,8 +85,8 @@ DECLARE p record;
 BEGIN
  SELECT * INTO p FROM public.upt_own_profile_details();
  IF p.full_name <> 'Staff Test'
-    OR p.home_address <> 'Rollbackstraat 1'
-    OR p.iban <> 'BE68539007547034'
+    OR p.home_address <> 'TEST-ADDRESS'
+    OR p.iban <> 'TESTIBAN000000001'
  THEN RAISE EXCEPTION 'FAIL own profile RPC'; END IF;
  BEGIN
    PERFORM home_address FROM public.profiles WHERE id=auth.uid();
@@ -68,18 +95,26 @@ BEGIN
  END;
 END $$;
 
-SELECT set_config('upt.test.private_chat',
-  public.upt_create_private_chat((SELECT id FROM upt_new_ids WHERE name='other'))::text,
-  true
+SELECT set_config(
+ 'upt.test.channel',
+ (
+  SELECT id::text
+  FROM public.chat_channels
+  WHERE kind='workplace'
+    AND workplace_id=(SELECT id FROM upt_new_ids WHERE name='bar')
+  LIMIT 1
+ ),
+ true
 );
-SELECT set_config('upt.test.message',
-  public.upt_send_message(current_setting('upt.test.private_chat')::uuid,'hello rollback',NULL)::text,
-  true
+SELECT set_config(
+ 'upt.test.message',
+ public.upt_send_message(current_setting('upt.test.channel')::uuid,'hello rollback',NULL)::text,
+ true
 );
 DO $$
 BEGIN
- IF NOT public.upt_can_read_channel(current_setting('upt.test.private_chat')::uuid) THEN
-   RAISE EXCEPTION 'FAIL private chat membership';
+ IF NOT public.upt_can_read_channel(current_setting('upt.test.channel')::uuid) THEN
+   RAISE EXCEPTION 'FAIL workplace chat access';
  END IF;
  BEGIN
    PERFORM public.upt_moderate_message(current_setting('upt.test.message')::uuid,'staff should fail');
@@ -97,10 +132,10 @@ BEGIN
  BEGIN
    PERFORM public.upt_create_shift(
      (SELECT id FROM upt_new_ids WHERE name='bar'),
-     (SELECT id FROM upt_new_ids WHERE name='staff'),
-     'Bar crew',
-     now()+interval '2 hours',
-     now()+interval '4 hours',
+     (SELECT id FROM upt_new_ids WHERE name='other'),
+     'Other crew',
+     now()+interval '5 hours',
+     now()+interval '6 hours',
      false
    );
    RAISE EXCEPTION 'FAIL responsible created shift';
@@ -115,8 +150,8 @@ SET LOCAL ROLE authenticated;
 SELECT set_config('upt.test.shift',
   public.upt_create_shift(
     (SELECT id FROM upt_new_ids WHERE name='bar'),
-    (SELECT id FROM upt_new_ids WHERE name='staff'),
-    'Bar crew',
+    (SELECT id FROM upt_new_ids WHERE name='other'),
+    'Other crew',
     now()+interval '2 hours',
     now()+interval '4 hours',
     false
@@ -197,5 +232,5 @@ BEGIN
 END $$;
 RESET ROLE;
 
-SELECT 'PASS: own profile privacy, private chat, moderation audit, admin-only scheduling, overlap prevention and urgent incident resolution' AS result;
+SELECT 'PASS: own profile privacy, workplace chat, moderation audit, admin-only scheduling, overlap prevention and urgent incident resolution' AS result;
 ROLLBACK;

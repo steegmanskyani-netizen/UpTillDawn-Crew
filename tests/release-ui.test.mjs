@@ -241,6 +241,26 @@ test('responsible workplace access is read-only and QR requests enforce routed a
 
 
 
+test('QR attendance cannot be bypassed by legacy direct clock actions', async () => {
+  const operations = await read('app/(app)/operations/operations-client.tsx')
+  const hardening = await read('supabase/migrations/20260925182046_qr_direct_clock_bypass_hardening.sql')
+  const qrPage = await read('app/qr/page.tsx')
+  const qrClient = await read('components/crew/qr-shift-request.tsx')
+  const qrAsset = await read('public/uptilldawn-crew-qr.svg')
+
+  assert.match(qrPage, /redirect\('\/login\?next=\/qr'\)/)
+  assert.match(qrPage, /profile\?\.approved/)
+  assert.match(qrClient, /upt_qr_request/)
+  assert.match(qrClient, /REMOTE AANVRAAG/)
+  assert.match(operations, /href="\/qr"/)
+  assert.doesNotMatch(operations, /stop_work/)
+  assert.doesNotMatch(operations, /start_work/)
+  assert.match(hardening, /Direct werk starten is uitgeschakeld/)
+  assert.match(hardening, /Direct werk stoppen is uitgeschakeld/)
+  assert.match(hardening, /revoke all on function public\.upt_start_work/)
+  assert.match(qrAsset, /viewBox="0 0 37 37"/)
+})
+
 test('admin approvals and work-hours navigation remain accessible', async () => {
   const layout = await read('components/layout/app-layout.tsx')
   const admin = await read('app/(app)/admin/page.tsx')

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/crew-server'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { geocodeGeoapify } from '@/lib/geoapify'
+import { fetchFacebookEventInfo } from '@/lib/facebook-event'
 
 const uuid=z.string().uuid()
 const text=z.string().trim().min(1).max(200)
@@ -134,11 +135,11 @@ function dates(fd:FormData,start:string,end:string){
  if(Date.parse(b)<=Date.parse(a)) throw new Error('Einde moet na begin liggen.')
  return [a,b]
 }
-async function eventLocation(fd:FormData){
- let venue=String(fd.get('venue')||'').trim().slice(0,200)
- let address=String(fd.get('address')||'').trim().slice(0,500)
- const rawLatitude=String(fd.get('latitude')||'').trim()
- const rawLongitude=String(fd.get('longitude')||'').trim()
+async function eventLocation(fd:FormData,override?:{venue?:string|null;address?:string|null}){
+ let venue=String(override?.venue??fd.get('venue')??'').trim().slice(0,200)
+ let address=String(override?.address??fd.get('address')??'').trim().slice(0,500)
+ const rawLatitude=override?.address||override?.venue?'':String(fd.get('latitude')||'').trim()
+ const rawLongitude=override?.address||override?.venue?'':String(fd.get('longitude')||'').trim()
  let latitude=rawLatitude?z.coerce.number().min(-90).max(90).parse(rawLatitude):null
  let longitude=rawLongitude?z.coerce.number().min(-180).max(180).parse(rawLongitude):null
 
@@ -157,15 +158,31 @@ async function eventLocation(fd:FormData){
 
  return {venue,address,latitude,longitude}
 }
+function optionalIso(fd:FormData,name:string){
+ const raw=String(fd.get(name)||'').trim()
+ return raw?z.string().datetime({offset:true}).parse(raw):null
+}
 export async function createEvent(fd:FormData){
- const {s,user}=await adminClient(); const [start,end]=dates(fd,'start_at','end_at')
- const location=await eventLocation(fd)
+ const {s,user}=await adminClient()
+ const facebookUrl=String(fd.get('facebook_event_url')||'').trim()
+ const imported=facebookUrl?await fetchFacebookEventInfo(facebookUrl):null
+ const manualName=String(fd.get('name')||'').trim()
+ const name=text.parse(imported?.name||manualName)
+ const start=imported?.startAt||optionalIso(fd,'start_at')
+ const end=imported?.endAt||optionalIso(fd,'end_at')
+ if(!start||!end)throw new Error('Vul start- en einduur in wanneer Facebook deze niet openbaar meegeeft.')
+ if(Date.parse(end)<=Date.parse(start))throw new Error('Einde moet na begin liggen.')
+ const location=await eventLocation(fd,{
+  venue:imported?.venue||undefined,
+  address:imported?.address||undefined,
+ })
  const {error}=await s.from('events').insert({
-  name:text.parse(fd.get('name')),
+  name,
   venue:location.venue,
   address:location.address,
   latitude:location.latitude,longitude:location.longitude,
   start_at:start,end_at:end,start_date:start,end_date:end,
+  facebook_event_url:facebookUrl?(imported?.sourceUrl||facebookUrl):null,
   checkin_radius_m:z.coerce.number().int().min(10).max(10000).parse(fd.get('radius')||100),
   created_by:user.id,
  })

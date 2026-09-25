@@ -76,10 +76,7 @@ type WorkersAiBinding={
   run:(model:string,input:Record<string,unknown>)=>Promise<unknown>
 }
 
-type AiResult={
-  answer:string
-  patches:unknown[]
-}
+type AiResult=z.infer<typeof aiResultSchema>
 
 function normalizeAiResult(payload:unknown):AiResult|null{
   if(!payload||typeof payload!=="object")return null

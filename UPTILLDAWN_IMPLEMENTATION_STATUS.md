@@ -87,7 +87,7 @@ Issues found and corrected during this audit:
 
 Known remaining advisor findings are reviewed rather than blindly removed:
 
-- `push_subscriptions`, `admin_role_modes` and `upt_private.app_owners` have RLS with no browser policies intentionally; browser table grants are not the access path.
+- `admin_role_modes`, `push_subscriptions` and the private `app_owners` / Edit-code / Edit-unlock / Edit-attempt tables have RLS with no browser policies intentionally; browser table grants are not the access path.
 - Authenticated SECURITY DEFINER RPC warnings correspond to explicit application RPC boundaries and remain covered by the security regression suite.
 - `pg_net` is reported as installed in `public`; the installed extension is non-relocatable and creates/uses its own `net` schema.
 - Leaked-password protection remains a Supabase Auth project setting to enable.

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { DateInput } from '@/components/crew/date-input'
 import { AdminOnly } from '@/components/auth/admin-only'
 import { GeoapifyPlaceFields } from '@/components/events/geoapify-place-fields'
+import { FacebookEventField } from '@/components/events/facebook-event-field'
 import { DeleteEventButton } from '@/components/events/delete-event-button'
 import { nlStatus } from '@/lib/ui-nl'
 import { createClient } from '@/lib/supabase/crew-server'
@@ -37,7 +38,7 @@ export default async function Page(){
   const [workplacesResult,adminShiftsResult]=user.isAdmin
     ? await Promise.all([
         s.from('workplaces').select('id,event_id,name,is_active').order('sort_order'),
-        s.from('shifts').select('id,event_id,workplace_id,user_id,role_name,scheduled_start,scheduled_end,status').order('scheduled_start'),
+        s.from('shifts').select('id,event_id,workplace_id,user_id,role_name,scheduled_start,scheduled_end,status,shift_kind').order('scheduled_start'),
       ])
     : [{data:[],error:null},{data:[],error:null}]
 
@@ -70,13 +71,20 @@ export default async function Page(){
     <h1 className="text-3xl font-black">Evenementen</h1>
 
     {user.isAdmin&&<AdminOnly><form action={createEvent} className="grid gap-3 rounded-2xl border p-4">
-      <input name="name" required maxLength={200} placeholder="Evenementnaam" className={input}/>
-      <GeoapifyPlaceFields/>
-      <div className="grid gap-3 md:grid-cols-3">
-        <DateInput name="start_at"/>
-        <DateInput name="end_at"/>
-        <label className="grid gap-1 text-sm">GPS-radius (m)<input name="radius" type="number" defaultValue="100" min="10" max="10000" className={input}/></label>
+      <FacebookEventField/>
+      <div className="rounded-xl border p-3">
+        <p className="mb-3 text-sm font-semibold">Handmatige gegevens / fallback</p>
+        <div className="grid gap-3">
+          <input name="name" maxLength={200} placeholder="Evenementnaam" className={input}/>
+          <GeoapifyPlaceFields/>
+          <div className="grid gap-3 md:grid-cols-3">
+            <DateInput name="start_at" required={false}/>
+            <DateInput name="end_at" required={false}/>
+            <label className="grid gap-1 text-sm">GPS-radius (m)<input name="radius" type="number" defaultValue="100" min="10" max="10000" className={input}/></label>
+          </div>
+        </div>
       </div>
+      <p className="text-xs text-muted-foreground">Bij een openbare Facebook-link worden gevonden naam, locatie en evenementuren automatisch gebruikt. Ontbrekende gegevens worden uit de handmatige velden genomen.</p>
       <button className="rounded-xl bg-violet-600 p-3 font-bold">EVENEMENT AANMAKEN</button>
     </form></AdminOnly>}
 
@@ -159,7 +167,7 @@ export default async function Page(){
                         {existingShifts.map(shift=>{
                           const workplace=eventWorkplaces.find(item=>item.id===shift.workplace_id)
                           return <p key={shift.id}>
-                            {workplace?.name||'Werkplek'} · {shift.role_name} · {new Date(shift.scheduled_start).toLocaleString('nl-BE')} → {new Date(shift.scheduled_end).toLocaleString('nl-BE')}
+                            {workplace?.name||'Werkplek'} · {shift.shift_kind==='setup'?'Opbouw':shift.shift_kind==='breakdown'?'Afbouw':'Evenement'} · {shift.role_name} · {new Date(shift.scheduled_start).toLocaleString('nl-BE')} → {new Date(shift.scheduled_end).toLocaleString('nl-BE')}
                           </p>
                         })}
                       </div>}
@@ -175,6 +183,13 @@ export default async function Page(){
                         </label>
                         <label className="grid gap-1 text-sm">Rol / functie
                           <input name="role_name" required maxLength={200} placeholder="bv. Ticket Scan, Bar, Artistbegeleiding" className={input}/>
+                        </label>
+                        <label className="grid gap-1 text-sm">Shift-type
+                          <select name="shift_kind" defaultValue="event" className={input}>
+                            <option value="event">Evenement</option>
+                            <option value="setup">Opbouw — max. 3 dagen vooraf</option>
+                            <option value="breakdown">Afbouw — max. 3 dagen nadien</option>
+                          </select>
                         </label>
                         <DateInput name="start" initial={event.start_at}/>
                         <DateInput name="end" initial={event.end_at}/>

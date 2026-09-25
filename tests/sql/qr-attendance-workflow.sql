@@ -53,7 +53,7 @@ WHERE i.name IN ('staff_early','staff_ten','staff_stop','staff_remote','staff_co
 
 INSERT INTO public.shifts(
  id,event_id,workplace_id,user_id,role_name,
- start_time,end_time,scheduled_start,scheduled_end,status,confirmed_at
+ start_time,end_time,scheduled_start,scheduled_end,status,confirmed_at,overlap_allowed
 )
 VALUES
 (
@@ -63,7 +63,7 @@ VALUES
  (SELECT id FROM qr_ids WHERE name='staff_early'),
  'Personeel',
  now()+interval '20 minutes',now()+interval '2 hours',
- now()+interval '20 minutes',now()+interval '2 hours','scheduled',now()
+ now()+interval '20 minutes',now()+interval '2 hours','scheduled',now(),true
 ),
 (
  (SELECT id FROM qr_ids WHERE name='shift_early_2'),
@@ -72,7 +72,7 @@ VALUES
  (SELECT id FROM qr_ids WHERE name='staff_early'),
  'Personeel',
  now()+interval '30 minutes',now()+interval '3 hours',
- now()+interval '30 minutes',now()+interval '3 hours','scheduled',now()
+ now()+interval '30 minutes',now()+interval '3 hours','scheduled',now(),true
 ),
 (
  (SELECT id FROM qr_ids WHERE name='shift_ten'),
@@ -81,7 +81,7 @@ VALUES
  (SELECT id FROM qr_ids WHERE name='staff_ten'),
  'Personeel',
  now()+interval '5 minutes',now()+interval '2 hours',
- now()+interval '5 minutes',now()+interval '2 hours','scheduled',now()
+ now()+interval '5 minutes',now()+interval '2 hours','scheduled',now(),false
 ),
 (
  (SELECT id FROM qr_ids WHERE name='shift_stop'),
@@ -90,7 +90,7 @@ VALUES
  (SELECT id FROM qr_ids WHERE name='staff_stop'),
  'Personeel',
  now()-interval '30 minutes',now()+interval '2 hours',
- now()-interval '30 minutes',now()+interval '2 hours','scheduled',now()
+ now()-interval '30 minutes',now()+interval '2 hours','scheduled',now(),false
 ),
 (
  (SELECT id FROM qr_ids WHERE name='shift_remote'),
@@ -99,7 +99,7 @@ VALUES
  (SELECT id FROM qr_ids WHERE name='staff_remote'),
  'Personeel',
  now()+interval '5 minutes',now()+interval '2 hours',
- now()+interval '5 minutes',now()+interval '2 hours','scheduled',now()
+ now()+interval '5 minutes',now()+interval '2 hours','scheduled',now(),false
 ),
 (
  (SELECT id FROM qr_ids WHERE name='shift_contact'),
@@ -108,7 +108,7 @@ VALUES
  (SELECT id FROM qr_ids WHERE name='staff_contact'),
  'Personeel',
  now()+interval '5 minutes',now()+interval '2 hours',
- now()+interval '5 minutes',now()+interval '2 hours','scheduled',now()
+ now()+interval '5 minutes',now()+interval '2 hours','scheduled',now(),false
 ),
 (
  (SELECT id FROM qr_ids WHERE name='shift_lead'),
@@ -117,7 +117,7 @@ VALUES
  (SELECT id FROM qr_ids WHERE name='lead'),
  'Verantwoordelijke',
  now()-interval '30 minutes',now()+interval '3 hours',
- now()-interval '30 minutes',now()+interval '3 hours','scheduled',now()
+ now()-interval '30 minutes',now()+interval '3 hours','scheduled',now(),false
 );
 
 INSERT INTO public.responsible_assignments(event_id,workplace_id,user_id)

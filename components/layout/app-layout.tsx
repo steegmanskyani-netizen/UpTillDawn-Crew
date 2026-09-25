@@ -108,7 +108,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
       memberIds.has(e.id)
       || (shifts||[]).some(shift=>shift.event_id===e.id)
       || (responsibleAssignments||[]).some(assignment=>assignment.event_id===e.id)
-    )
+    ) || (shifts||[]).some(shift=>Date.parse(shift.scheduled_end)>=now.getTime())
     const eventActive=eventRows.some(e=>
       (memberIds.has(e.id)||(shifts||[]).some(shift=>shift.event_id===e.id)||(responsibleAssignments||[]).some(assignment=>assignment.event_id===e.id))
       && Date.parse(e.start_at)<=now.getTime()
@@ -208,7 +208,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
   const showPersonnel=feature("personnel",Boolean(isAdmin))
   const showSettings=feature("settings",true)
   const featureVisibility={overview:showOverview,events:showEvents,operations:showOperations,workplaces:showWorkplaces,shifts:showShifts,briefings:showBriefings,tasks:showTasks,chat:showChat,crew:showCrew,incidents:showIncidents,exports:showExports,personnel:showPersonnel,settings:showSettings}
-  const operationalMode=context.eventActive
+  const operationalMode=context.eventActive||context.shiftActive
   const showUrgent=!pathname.startsWith("/chat")&&!isAdmin&&showIncidents&&context.shiftActive
   const showFloatingChat=isAdmin||operationalMode
 

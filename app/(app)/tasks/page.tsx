@@ -33,7 +33,7 @@ export default async function Page() {
     { data: ownActiveShifts },
   ] = await Promise.all([
     s.from('events').select('id,name').neq('status', 'archived').order('start_at'),
-    s.from('task_assignments').select('id,user_id,status,tasks(id,title,description,event_id,workplace_id)').order('created_at'),
+    s.from('task_assignments').select('id,user_id,status,confirmed_at,tasks(id,title,description,event_id,workplace_id,updated_at)').order('created_at'),
     s.from('events').select('id').lte('start_at', 'now').gte('end_at', 'now'),
     s.from('event_members').select('event_id').eq('user_id', user.id),
     s.from('event_availability').select('event_id,user_id').eq('response', 'can'),
@@ -228,9 +228,9 @@ export default async function Page() {
                     </a>
               })}
             </div>}
-            <p className="mt-2 text-sm text-muted-foreground">Voor: {t.user_id === user.id ? 'Jij' : people.find(p => p.id === t.user_id)?.full_name || 'Personeelslid'} · {nlStatus(t.status)}</p>
+            <p className="mt-2 text-sm text-muted-foreground">Voor: {t.user_id === user.id ? 'Jij' : people.find(p => p.id === t.user_id)?.full_name || 'Personeelslid'} · {t.confirmed_at ? nlStatus(t.status) : 'Wacht op bevestiging'}</p>
           </div>
-          {t.user_id === user.id && <TaskControls id={t.id} userId={user.id}/>}
+          {t.user_id === user.id && <TaskControls id={t.id} userId={user.id} confirmed={Boolean(t.confirmed_at)}/>}
         </div>
         {canManage && <ManagerOnly><form action={removeTaskAssignment} className="mt-3 border-t pt-3">
           <input type="hidden" name="assignment_id" value={t.id}/>

@@ -107,20 +107,65 @@ export function isFacebookEventUrl(raw:string){
   }catch{return false}
 }
 
+async function facebookFetch(raw:string){
+  let current=new URL(raw)
+  for(let redirectCount=0;redirectCount<=5;redirectCount++){
+    if(!isFacebookEventUrl(current.toString()))throw new Error("Facebook-redirect werd om veiligheidsredenen geweigerd.")
+    const response=await fetch(current.toString(),{
+      redirect:"manual",
+      cache:"no-store",
+      signal:AbortSignal.timeout(15_000),
+      headers:{
+        "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
+        "Accept":"text/html,application/xhtml+xml",
+        "Accept-Language":"nl-BE,nl;q=0.9,en;q=0.8",
+      },
+    })
+    if(response.status>=300&&response.status<400){
+      const location=response.headers.get("location")
+      if(!location)throw new Error("Facebook-evenement kon niet worden geopend.")
+      current=new URL(location,current)
+      continue
+    }
+    return response
+  }
+  throw new Error("Facebook-evenement bevat te veel redirects.")
+}
+
+async function readLimitedText(response:Response,maxBytes=4_000_000){
+  if(!response.body)return ""
+  const reader=response.body.getReader()
+  const decoder=new TextDecoder()
+  let size=0
+  let text=""
+  try{
+    while(true){
+      const {done,value}=await reader.read()
+      if(done)break
+      size+=value.byteLength
+      if(size>maxBytes){
+        await reader.cancel()
+        throw new Error("Facebook-evenement is te groot om veilig te verwerken.")
+      }
+      text+=decoder.decode(value,{stream:true})
+    }
+    text+=decoder.decode()
+    return text
+  }finally{
+    reader.releaseLock()
+  }
+}
+
 export async function fetchFacebookEventInfo(raw:string):Promise<FacebookEventInfo>{
   if(!isFacebookEventUrl(raw))throw new Error("Gebruik een geldige openbare Facebook-evenementlink.")
   const url=new URL(raw)
-  const response=await fetch(url.toString(),{
-    redirect:"follow",
-    cache:"no-store",
-    headers:{
-      "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
-      "Accept":"text/html,application/xhtml+xml",
-      "Accept-Language":"nl-BE,nl;q=0.9,en;q=0.8",
-    },
-  })
+  const response=await facebookFetch(url.toString())
   if(!response.ok)throw new Error("Facebook-evenement kon niet worden geopend.")
-  const html=(await response.text()).slice(0,4_000_000)
+  const contentType=(response.headers.get("content-type")||"").toLowerCase()
+  if(contentType&&!contentType.includes("text/html")&&!contentType.includes("application/xhtml+xml")){
+    throw new Error("Facebook gaf geen geldige evenementpagina terug.")
+  }
+  const html=await readLimitedText(response)
 
   let structured:Record<string,unknown>|null=null
   for(const match of html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)){

@@ -830,3 +830,17 @@ test('normal admin auth contains no public bootstrap credential', async () => {
   assert.match(migration, /select false/)
   assert.match(migration, /revoke all on function public\.upt_info_admin_bootstrap_open\(\) from public, anon, authenticated/i)
 })
+
+
+test('Facebook event import blocks cross-domain redirect SSRF and oversized responses', async () => {
+  const source = await read('lib/facebook-event.ts')
+  const route = await read('app/api/facebook-event/route.ts')
+
+  assert.match(source, /redirect:"manual"/)
+  assert.match(source, /isFacebookEventUrl\(current\.toString\(\)\)/)
+  assert.match(source, /redirectCount<=5/)
+  assert.match(source, /AbortSignal\.timeout\(15_000\)/)
+  assert.match(source, /maxBytes=4_000_000/)
+  assert.match(source, /content-type/)
+  assert.match(route, /upt_is_admin/)
+})

@@ -2,7 +2,7 @@ import { DateInput } from '@/components/crew/date-input'
 import { AdminOnly } from '@/components/auth/admin-only'
 import { StaffAvailability, StaffUnavailableMessage } from '@/components/auth/staff-availability'
 import { createClient } from '@/lib/supabase/crew-server'
-import { cancelShift, createShift, updateShift } from '@/lib/actions/uptilldawn'
+import { cancelShift, confirmShift, createShift, updateShift } from '@/lib/actions/uptilldawn'
 import { nlStatus } from '@/lib/ui-nl'
 import { redirect } from 'next/navigation'
 import { getCurrentUser } from '@/lib/actions/auth'
@@ -106,6 +106,15 @@ export default async function Page() {
             </div>
             <span className="rounded-full border px-2 py-1 text-xs font-bold">{nlStatus(x.status)}</span>
           </div>
+
+          {x.user_id===user.id&&x.status!=='cancelled'&&<div className="mt-3">
+            {x.confirmed_at
+              ? <p className="rounded-lg border border-emerald-500/40 bg-emerald-500/10 p-3 text-sm font-semibold">SHIFT BEVESTIGD</p>
+              : <form action={confirmShift}>
+                  <input type="hidden" name="shift_id" value={x.id}/>
+                  <button className="w-full rounded-lg bg-violet-600 p-3 font-bold text-white">SHIFT BEVESTIGEN</button>
+                </form>}
+          </div>}
 
           {canManage && x.status !== 'cancelled' && <AdminOnly><details className="mt-4 rounded-xl border p-3">
             <summary className="cursor-pointer font-semibold">Dienst beheren</summary>

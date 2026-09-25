@@ -852,3 +852,13 @@ test('God Mode rule editor uses the shared origin and session guard', async () =
   assert.match(route, /studioFailure/)
   assert.doesNotMatch(route, /cookies\(\)/)
 })
+
+
+test('post-login return path cannot escape the app origin', async () => {
+  const login = await read('app/(auth)/login/page.tsx')
+  const returning = await read('components/auth/return-after-login.tsx')
+  const callback = await read('app/auth/callback/route.ts')
+  assert.match(login, /!requestedNext\.includes\("\\\\"\)/)
+  assert.match(returning, /!target\.includes\('\\\\'\)/)
+  assert.match(callback, /!requested\.includes\('\\\\'\)/)
+})

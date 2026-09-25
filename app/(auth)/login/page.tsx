@@ -32,7 +32,7 @@ export default function LoginPage() {
     const formData = new FormData(e.currentTarget)
     formData.set("portal", portal)
     const requestedNext = new URLSearchParams(window.location.search).get("next")
-    if (requestedNext && requestedNext.startsWith("/") && !requestedNext.startsWith("//")) {
+    if (requestedNext && requestedNext.startsWith("/") && !requestedNext.startsWith("//") && !requestedNext.includes("\\")) {
       formData.set("next", requestedNext)
       window.sessionStorage.setItem("uptilldawn-return-after-login", requestedNext)
     }

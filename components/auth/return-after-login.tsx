@@ -11,7 +11,7 @@ export function ReturnAfterLogin() {
     const target = window.sessionStorage.getItem('uptilldawn-return-after-login')
     if (!target) return
     window.sessionStorage.removeItem('uptilldawn-return-after-login')
-    if (target.startsWith('/') && !target.startsWith('//') && target !== pathname) {
+    if (target.startsWith('/') && !target.startsWith('//') && !target.includes('\\') && target !== pathname) {
       router.replace(target)
     }
   }, [pathname, router])

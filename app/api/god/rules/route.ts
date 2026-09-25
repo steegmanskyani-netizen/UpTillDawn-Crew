@@ -1,6 +1,7 @@
 import { cookies } from "next/headers"
 import { z } from "zod"
 import { createClient } from "@/lib/supabase/crew-server"
+import type { Json } from "@/types/crew-database"
 
 const role=z.enum(["staff","responsible_lead","admin"])
 const condition=z.enum(["always","assigned_event","assigned_workplace_role","event_active","shift_active","never"])
@@ -13,7 +14,7 @@ const rule=z.object({
   enabled:z.boolean(),
   condition_key:condition,
   sort_order:z.number().int(),
-  settings:z.unknown().optional(),
+  settings:z.custom<Json>().optional(),
 })
 
 async function token(){

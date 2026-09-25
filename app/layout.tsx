@@ -1,5 +1,6 @@
 import { PwaRegister } from '@/components/pwa-register'
 import { PushPermissionPrompt } from '@/components/push-permission-prompt'
+import { FirstUseInstallPrompt } from '@/components/first-use-install-prompt'
 import { LocaleSync } from '@/components/locale-sync'
 import type { Metadata, Viewport } from 'next'
 import { ThemeProvider } from '@/components/theme-provider'
@@ -50,7 +51,7 @@ export default function RootLayout({
       <body className="font-sans antialiased" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <AuthProvider>
-            <LocaleSync /><PwaRegister /><PushPermissionPrompt />{children}
+            <LocaleSync /><PwaRegister /><FirstUseInstallPrompt /><PushPermissionPrompt />{children}
             <Toaster richColors position="top-right" />
           </AuthProvider>
         </ThemeProvider>

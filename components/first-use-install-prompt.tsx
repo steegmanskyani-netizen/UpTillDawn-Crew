@@ -19,7 +19,7 @@ function isIos(){
 }
 
 export function FirstUseInstallPrompt(){
-  const {user,profile,loading}=useAuth()
+  const {user,loading}=useAuth()
   const db=useMemo(()=>createClient(),[])
   const [deferred,setDeferred]=useState<InstallPromptEvent|null>(null)
   const [visible,setVisible]=useState(false)
@@ -38,13 +38,13 @@ export function FirstUseInstallPrompt(){
 
   useEffect(()=>{
     const timer=window.setTimeout(()=>{
-      if(loading||!user||!profile?.approved||isInstalledPwa()){setVisible(false);return}
+      if(loading||!user||isInstalledPwa()){setVisible(false);return}
       const pending=user.user_metadata?.pwa_install_prompt_pending===true
       const dismissed=Number(localStorage.getItem("upt-pwa-install-dismissed")||0)
       setVisible(Boolean(pending&&(!dismissed||Date.now()-dismissed>DISMISS_MS)))
     },0)
     return()=>window.clearTimeout(timer)
-  },[loading,profile?.approved,user])
+  },[loading,user])
 
   useEffect(()=>{
     const installed=()=>{

@@ -34,6 +34,7 @@ export default function LoginPage() {
     const requestedNext = new URLSearchParams(window.location.search).get("next")
     if (requestedNext && requestedNext.startsWith("/") && !requestedNext.startsWith("//")) {
       formData.set("next", requestedNext)
+      window.sessionStorage.setItem("uptilldawn-return-after-login", requestedNext)
     }
     startTransition(async () => {
       const result = await signIn(formData)

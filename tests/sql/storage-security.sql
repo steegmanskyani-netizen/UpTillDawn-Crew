@@ -162,7 +162,7 @@ END $$;
 RESET ROLE;
 
 -- Unapproved accounts must also be unable to write into user-owned private buckets.
-DO $
+DO $storage_gate$
 BEGIN
  IF (
    SELECT count(*)
@@ -181,7 +181,7 @@ BEGIN
  ) <> 6 THEN
    RAISE EXCEPTION 'FAIL unapproved storage write gate';
  END IF;
-END $;
+END $storage_gate$;
 
 -- Operational evidence must have no authenticated DELETE policy.
 DO $$

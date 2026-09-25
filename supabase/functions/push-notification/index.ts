@@ -1,4 +1,3 @@
-// @ts-nocheck -- Supabase Edge Runtime uses Deno npm: imports outside the Next.js TypeScript environment.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "npm:@supabase/supabase-js@2.106.2"
 import webpush from "npm:web-push@3.6.7"

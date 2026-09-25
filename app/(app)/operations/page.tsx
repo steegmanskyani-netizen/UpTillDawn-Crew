@@ -14,42 +14,71 @@ export default async function Page(){
   const role=current.role
   const isAdmin=role==='admin'
   const manager=isAdmin||role==='responsible_lead'
-  const now=new Date().toISOString()
+  const nowDate=new Date()
+  const now=nowDate.toISOString()
+  const windowStart=new Date(nowDate.getTime()-3*24*60*60*1000).toISOString()
+  const windowEnd=new Date(nowDate.getTime()+3*24*60*60*1000).toISOString()
 
-  const {data:activeEvents,error:eventError}=await s.from('events')
-    .select('*').lte('start_at',now).gte('end_at',now).neq('status','archived').order('start_at')
+  const {data:candidateEvents,error:eventError}=await s.from('events')
+    .select('*')
+    .lte('start_at',windowEnd)
+    .gte('end_at',windowStart)
+    .neq('status','archived')
+    .order('start_at')
 
-  const activeEventIds=(activeEvents||[]).map(event=>event.id)
   if(eventError)return <main className="p-8">Werkgegevens konden niet worden geladen. Probeer opnieuw.</main>
-  if(!activeEventIds.length){
-    if(!isAdmin)redirect('/events')
-    return <main className="p-8">Er is momenteel geen lopend evenement voor operationele status of goedkeuringen.</main>
-  }
 
-  const shiftsQuery=s.from('shifts')
+  const candidateEventIds=(candidateEvents||[]).map(event=>event.id)
+  const shifts=candidateEventIds.length
+    ? await s.from('shifts')
+        .select('*')
+        .eq('user_id',current.id)
+        .in('event_id',candidateEventIds)
+        .neq('status','cancelled')
+        .lte('scheduled_start',now)
+        .gte('scheduled_end',now)
+        .order('scheduled_start')
+    : {data:[],error:null}
+
+  const session=await s.from('work_sessions')
     .select('*')
     .eq('user_id',current.id)
-    .in('event_id',activeEventIds)
-    .neq('status','cancelled')
-    .lte('scheduled_start',now)
-    .gte('scheduled_end',now)
-    .order('scheduled_start')
+    .is('ended_at',null)
+    .maybeSingle()
 
-  const [shifts,workplaces,session,pause,checkins,checkouts]=await Promise.all([
-    shiftsQuery,
-    s.from('workplaces').select('*').in('event_id',activeEventIds),
-    s.from('work_sessions').select('*').eq('user_id',current.id).in('event_id',activeEventIds).is('ended_at',null).maybeSingle(),
-    s.from('break_sessions').select('*').eq('user_id',current.id).is('ended_at',null).maybeSingle(),
-    s.from('check_ins').select('*').in('event_id',activeEventIds).order('requested_at',{ascending:false}).limit(100),
-    s.from('check_outs').select('*').in('event_id',activeEventIds).order('requested_at',{ascending:false}).limit(100),
-  ])
-
-  if([shifts,workplaces,session,pause,checkins,checkouts].some(query=>query.error)){
+  if(shifts.error||session.error){
     return <main className="p-8">Werkgegevens konden niet worden geladen. Probeer opnieuw.</main>
   }
 
+  const operationalEventIds=isAdmin
+    ? candidateEventIds
+    : [...new Set([
+        ...(shifts.data||[]).map(shift=>shift.event_id),
+        ...(session.data?[session.data.event_id]:[]),
+      ])]
+
+  if(!operationalEventIds.length){
+    if(!isAdmin)redirect('/events')
+    return <main className="p-8">Er is momenteel geen actieve evenement-, opbouw- of afbouwshift.</main>
+  }
+
+  const operationalEvents=(candidateEvents||[]).filter(event=>operationalEventIds.includes(event.id))
+  const [workplaces,pause,checkins,checkouts]=await Promise.all([
+    s.from('workplaces').select('*').in('event_id',operationalEventIds),
+    s.from('break_sessions').select('*').eq('user_id',current.id).is('ended_at',null).maybeSingle(),
+    s.from('check_ins').select('*').in('event_id',operationalEventIds).order('requested_at',{ascending:false}).limit(100),
+    s.from('check_outs').select('*').in('event_id',operationalEventIds).order('requested_at',{ascending:false}).limit(100),
+  ])
+
+  if([workplaces,pause,checkins,checkouts].some(query=>query.error)){
+    return <main className="p-8">Werkgegevens konden niet worden geladen. Probeer opnieuw.</main>
+  }
+
+  const personalWork=!isAdmin&&Boolean(shifts.data?.length||session.data)
+  if(!isAdmin&&!personalWork&&!current.isEditMode)redirect('/events')
+
   const responsibleScope=!isAdmin&&manager
-    ? (await s.from('responsible_assignments').select('event_id,workplace_id').eq('user_id',current.id).in('event_id',activeEventIds)).data||[]
+    ? (await s.from('responsible_assignments').select('event_id,workplace_id').eq('user_id',current.id).in('event_id',operationalEventIds)).data||[]
     : []
   const scopedWorkplaceIds=new Set([
     ...(shifts.data||[]).map(shift=>shift.workplace_id),
@@ -69,11 +98,6 @@ export default async function Page(){
       ? (checkouts.data||[]).filter(row=>row.user_id===current.id||Boolean(row.workplace_id&&scopedWorkplaceIds.has(row.workplace_id)))
       : (checkouts.data||[]).filter(row=>row.user_id===current.id)
 
-  const personalWork=!isAdmin&&Boolean(shifts.data?.length)
-  if(!manager&&!personalWork&&!current.isEditMode){
-    return <main className="p-8">Werk &amp; pauze is zichtbaar vanaf de start van het evenement, maar acties worden bruikbaar vanaf de start van je toegewezen shift.</main>
-  }
-
   const summary=personalWork&&session.data
     ? await s.rpc('upt_work_session_time_summary',{p_work_session:session.data.id})
     : null
@@ -85,9 +109,9 @@ export default async function Page(){
 
   if(manager){
     const [sessionsResult,breaksResult,liveShiftsResult]=await Promise.all([
-      s.from('work_sessions').select('*').in('event_id',activeEventIds).is('ended_at',null).order('started_at'),
+      s.from('work_sessions').select('*').in('event_id',operationalEventIds).is('ended_at',null).order('started_at'),
       s.from('break_sessions').select('*').is('ended_at',null).order('started_at'),
-      s.from('shifts').select('*').in('event_id',activeEventIds).neq('status','cancelled'),
+      s.from('shifts').select('*').in('event_id',operationalEventIds).neq('status','cancelled'),
     ])
     liveShifts=isAdmin
       ? (liveShiftsResult.data||[])
@@ -113,7 +137,7 @@ export default async function Page(){
   return <OperationsClient
     userId={current.id}
     shifts={shifts.data||[]}
-    events={activeEvents||[]}
+    events={operationalEvents}
     workplaces={scopedWorkplaces}
     activeSession={personalWork?session.data:null}
     activeBreak={personalWork?pause.data:null}
@@ -123,7 +147,7 @@ export default async function Page(){
     isAdmin={isAdmin}
     personalWork={personalWork}
     summary={summary?.data?.[0]||null}
-    summaryAsOf={new Date(now).getTime()}
+    summaryAsOf={nowDate.getTime()}
     liveSessions={liveSessions}
     liveBreaks={liveBreaks}
     liveShifts={liveShifts}

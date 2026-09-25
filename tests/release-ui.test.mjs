@@ -733,7 +733,7 @@ test('non-admin role views filter admin-broad event reads to real role visibilit
 })
 
 
-test('custom production domain exposes public SEO surface without indexing private app routes', async () => {
+test('canonical production origin exposes public SEO surface without indexing private app routes', async () => {
   const layout = await read('app/layout.tsx')
   const authLayout = await read('app/(auth)/layout.tsx')
   const robots = await read('app/robots.ts')

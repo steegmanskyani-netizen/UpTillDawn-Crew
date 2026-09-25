@@ -29,7 +29,7 @@ export default async function Page(){
     s.from('event_members').select('event_id,user_id'),
     s.from('shifts').select('event_id').eq('user_id',user.id).neq('status','cancelled'),
     s.from('events').select('id').lte('start_at','now'),
-    s.from('event_availability').select('event_id,user_id,response,updated_at'),
+    s.from('event_availability').select('event_id,user_id,response,setup_available,breakdown_available,updated_at'),
     s.from('responsible_assignments').select('event_id').eq('user_id',user.id),
   ])
   const peopleResult=user.isAdmin
@@ -93,8 +93,9 @@ export default async function Page(){
 
     <div className="space-y-3">{visibleEvents.map(event=>{
       const started=startedEventIds.has(event.id)
-      const myResponse=availability.find(row=>row.event_id===event.id&&row.user_id===user.id)?.response
-      const canRows=user.isAdmin?availability.filter(row=>row.event_id===event.id&&row.response==='can'):[]
+      const myAvailability=availability.find(row=>row.event_id===event.id&&row.user_id===user.id)
+      const myResponse=myAvailability?.response
+      const canRows=user.isAdmin?availability.filter(row=>row.event_id===event.id&&(row.response==='can'||row.setup_available===true||row.breakdown_available===true)):[]
       const eventWorkplaces=user.isAdmin?workplaces.filter(workplace=>workplace.event_id===event.id&&workplace.is_active):[]
       const chatUntil=new Date(new Date(event.end_at).getTime()+3*24*60*60*1000)
       const assigned=assignedEventIds.has(event.id)
@@ -112,12 +113,27 @@ export default async function Page(){
         </summary>
 
         <div className="space-y-4 border-t p-4">
-          {!started&&event.status!=='archived'&&<section className="space-y-2">
-            <p className="font-semibold">Kan je op dit evenement werken?</p>
-            <div className="flex flex-wrap gap-2">
-              <form action={setEventAvailability}><input type="hidden" name="event_id" value={event.id}/><input type="hidden" name="response" value="can"/><button className={`rounded-xl border px-4 py-2 font-bold ${myResponse==='can'?'bg-emerald-600 text-white':''}`}>IK KAN</button></form>
-              <form action={setEventAvailability}><input type="hidden" name="event_id" value={event.id}/><input type="hidden" name="response" value="cannot"/><button className={`rounded-xl border px-4 py-2 font-bold ${myResponse==='cannot'?'bg-red-600 text-white':''}`}>IK KAN NIET</button></form>
-            </div>
+          {!started&&event.status!=='archived'&&<section className="space-y-3">
+            <p className="font-semibold">Beschikbaarheid bevestigen</p>
+            <form action={setEventAvailability} className="grid gap-3 rounded-xl border p-3 md:grid-cols-3">
+              <input type="hidden" name="event_id" value={event.id}/>
+              <fieldset className="space-y-2">
+                <legend className="text-sm font-semibold">Evenement</legend>
+                <label className="flex items-center gap-2"><input required type="radio" name="response" value="can" defaultChecked={myResponse==='can'}/> Ja</label>
+                <label className="flex items-center gap-2"><input required type="radio" name="response" value="cannot" defaultChecked={myResponse==='cannot'}/> Nee</label>
+              </fieldset>
+              <fieldset className="space-y-2">
+                <legend className="text-sm font-semibold">Opbouw</legend>
+                <label className="flex items-center gap-2"><input required type="radio" name="setup_available" value="yes" defaultChecked={myAvailability?.setup_available===true}/> Ja</label>
+                <label className="flex items-center gap-2"><input required type="radio" name="setup_available" value="no" defaultChecked={myAvailability?.setup_available===false}/> Nee</label>
+              </fieldset>
+              <fieldset className="space-y-2">
+                <legend className="text-sm font-semibold">Afbouw</legend>
+                <label className="flex items-center gap-2"><input required type="radio" name="breakdown_available" value="yes" defaultChecked={myAvailability?.breakdown_available===true}/> Ja</label>
+                <label className="flex items-center gap-2"><input required type="radio" name="breakdown_available" value="no" defaultChecked={myAvailability?.breakdown_available===false}/> Nee</label>
+              </fieldset>
+              <button className="rounded-xl bg-violet-600 p-3 font-bold text-white md:col-span-3">BESCHIKBAARHEID OPSLAAN</button>
+            </form>
           </section>}
 
           {!user.isAdmin&&started&&assigned&&<div className="rounded-xl border border-violet-500/30 bg-violet-500/5 p-3 text-sm">
@@ -129,7 +145,7 @@ export default async function Page(){
             <section className="space-y-3 rounded-xl border p-3">
               <div className="flex items-center justify-between gap-2">
                 <div>
-                  <h3 className="font-bold">Mensen die kunnen</h3>
+                  <h3 className="font-bold">Beschikbare mensen</h3>
                   <p className="text-sm text-muted-foreground">Wijs hier meteen een werkplek, diensturen en functie toe.</p>
                 </div>
                 <span className="text-sm text-muted-foreground">{canRows.length}</span>
@@ -160,7 +176,11 @@ export default async function Page(){
                             {existingShifts.length?` · ${existingShifts.length} dienst(en)`:''}
                           </p>
                         </div>
-                        <span className="rounded-full border border-emerald-500/50 px-2 py-1 text-xs font-bold text-emerald-600">KAN</span>
+                        <div className="flex flex-wrap gap-1 text-xs font-bold">
+                          {row.response==='can'&&<span className="rounded-full border border-emerald-500/50 px-2 py-1 text-emerald-600">EVENT</span>}
+                          {row.setup_available&&<span className="rounded-full border border-sky-500/50 px-2 py-1 text-sky-500">OPBOUW</span>}
+                          {row.breakdown_available&&<span className="rounded-full border border-amber-500/50 px-2 py-1 text-amber-500">AFBOUW</span>}
+                        </div>
                       </div>
 
                       {existingShifts.length>0&&<div className="mt-2 space-y-1 rounded-lg bg-muted/40 p-2 text-xs">
@@ -185,10 +205,10 @@ export default async function Page(){
                           <input name="role_name" required maxLength={200} placeholder="bv. Ticket Scan, Bar, Artistbegeleiding" className={input}/>
                         </label>
                         <label className="grid gap-1 text-sm">Shift-type
-                          <select name="shift_kind" defaultValue="event" className={input}>
-                            <option value="event">Evenement</option>
-                            <option value="setup">Opbouw — max. 3 dagen vooraf</option>
-                            <option value="breakdown">Afbouw — max. 3 dagen nadien</option>
+                          <select name="shift_kind" defaultValue={row.response==='can'?'event':row.setup_available?'setup':'breakdown'} className={input}>
+                            {row.response==='can'&&<option value="event">Evenement</option>}
+                            {row.setup_available&&<option value="setup">Opbouw — max. 3 dagen vooraf</option>}
+                            {row.breakdown_available&&<option value="breakdown">Afbouw — max. 3 dagen nadien</option>}
                           </select>
                         </label>
                         <DateInput name="start" initial={event.start_at}/>
@@ -202,7 +222,7 @@ export default async function Page(){
                       </form>}
                     </article>
                   })}</div>
-                : <p className="text-sm text-muted-foreground">Nog niemand heeft aangeduid dat die kan.</p>}
+                : <p className="text-sm text-muted-foreground">Nog niemand heeft beschikbaarheid bevestigd.</p>}
             </section>
 
             <details className="rounded-xl border p-3">

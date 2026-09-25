@@ -37,10 +37,13 @@ export function FirstUseInstallPrompt(){
   },[])
 
   useEffect(()=>{
-    if(loading||!user||!profile?.approved||isInstalledPwa()){setVisible(false);return}
-    const pending=user.user_metadata?.pwa_install_prompt_pending===true
-    const dismissed=Number(localStorage.getItem("upt-pwa-install-dismissed")||0)
-    if(pending&&(!dismissed||Date.now()-dismissed>DISMISS_MS))setVisible(true)
+    const timer=window.setTimeout(()=>{
+      if(loading||!user||!profile?.approved||isInstalledPwa()){setVisible(false);return}
+      const pending=user.user_metadata?.pwa_install_prompt_pending===true
+      const dismissed=Number(localStorage.getItem("upt-pwa-install-dismissed")||0)
+      setVisible(Boolean(pending&&(!dismissed||Date.now()-dismissed>DISMISS_MS)))
+    },0)
+    return()=>window.clearTimeout(timer)
   },[loading,profile?.approved,user])
 
   useEffect(()=>{

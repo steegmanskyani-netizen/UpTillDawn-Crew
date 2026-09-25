@@ -58,7 +58,7 @@ export function GodModeEditor(){
     finally{setLoading(false)}
   }
 
-  useEffect(()=>{void load(role)},[role])
+  useEffect(()=>{const timer=window.setTimeout(()=>void load(role),0);return()=>window.clearTimeout(timer)},[role])
 
   function patch(key:string,changes:Partial<RoleUiRule>){
     setRules(current=>current.map(item=>item.feature_key===key?{...item,...changes}:item))

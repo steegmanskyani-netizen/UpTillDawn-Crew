@@ -1976,6 +1976,7 @@ export type Database = {
         }
         Returns: Json
       }
+      upt_has_admin_edit_unlock: { Args: never; Returns: boolean }
       upt_is_admin: { Args: { uid?: string }; Returns: boolean }
       upt_is_approved: { Args: never; Returns: boolean }
       upt_is_responsible: {
@@ -2067,6 +2068,7 @@ export type Database = {
           profile_photo_url: string
         }[]
       }
+      upt_revoke_admin_edit_unlock: { Args: never; Returns: undefined }
       upt_save_push_subscription: {
         Args: {
           p_auth: string

@@ -191,7 +191,8 @@ export function EditModeEditor() {
     setAiReply(current=>current?{...current,patches:[]}:current)
   }
 
-  function closeEditMode() {
+  async function closeEditMode() {
+    await db.rpc("upt_revoke_admin_edit_unlock")
     setEditMode(false)
     router.push(roleMode === "admin" ? "/admin" : "/")
     router.refresh()
@@ -303,7 +304,7 @@ export function EditModeEditor() {
       </div>}
       <button
         type="button"
-        onClick={closeEditMode}
+        onClick={()=>void closeEditMode()}
         className="w-full rounded-xl border border-amber-500/60 bg-amber-500/10 p-3 font-black"
       >
         EDIT MODE AFSLUITEN

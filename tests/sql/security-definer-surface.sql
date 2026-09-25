@@ -52,7 +52,38 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'FAIL: authenticated Uptilldawn SECURITY DEFINER entry point lacks an explicit authorization primitive';
   END IF;
-END $$;
+END $;
 
-SELECT 'PASS: SECURITY DEFINER surface is authenticated-only, search_path-pinned and authorization-guarded' AS result;
+DO $
+DECLARE
+  v_policy_count integer;
+BEGIN
+  IF has_table_privilege('authenticated','upt_private.admin_edit_unlocks','SELECT')
+     OR has_table_privilege('authenticated','upt_private.admin_edit_attempts','SELECT') THEN
+    RAISE EXCEPTION 'FAIL: authenticated can read private Edit-mode gate state';
+  END IF;
+
+  IF has_function_privilege('anon','public.upt_has_admin_edit_unlock()','EXECUTE')
+     OR has_function_privilege('anon','public.upt_revoke_admin_edit_unlock()','EXECUTE')
+     OR has_function_privilege('anon','public.upt_verify_admin_edit_code(text)','EXECUTE') THEN
+    RAISE EXCEPTION 'FAIL: anonymous caller can access Edit-mode gate RPC';
+  END IF;
+
+  SELECT count(*) INTO v_policy_count
+  FROM pg_policies
+  WHERE schemaname='public'
+    AND tablename='role_ui_rules'
+    AND policyname IN (
+      'role_ui_rules_admin_insert',
+      'role_ui_rules_admin_update',
+      'role_ui_rules_admin_delete'
+    )
+    AND coalesce(qual,'')||' '||coalesce(with_check,'') LIKE '%upt_has_admin_edit_unlock%';
+
+  IF v_policy_count <> 3 THEN
+    RAISE EXCEPTION 'FAIL: Edit-mode unlock is not enforced on all role_ui_rules write policies';
+  END IF;
+END $;
+
+SELECT 'PASS: SECURITY DEFINER surface, Edit-mode gate and private state are locked down' AS result;
 ROLLBACK;

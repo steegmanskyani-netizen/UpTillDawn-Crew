@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
 import { verifyAdminSettingsCode } from "@/lib/actions/auth"
+import { createClient } from "@/lib/supabase/crew-client"
 import { useAuth, type UiRole } from "@/lib/providers"
 
 const roleLabel: Record<UiRole,string> = {
@@ -65,10 +66,11 @@ export function AdminEditControls() {
     router.refresh()
   }
 
-  function toggleEditMode() {
+  async function toggleEditMode() {
     const next = !editMode
     const role = editRole || roleMode || "admin"
     if (next) setEditRole(role)
+    else await createClient().rpc("upt_revoke_admin_edit_unlock")
     setEditMode(next)
     router.push(next ? (role === "admin" ? "/admin" : "/") : (roleMode === "admin" ? "/admin" : "/"))
     router.refresh()
@@ -111,7 +113,7 @@ export function AdminEditControls() {
       </label>
       <button
         type="button"
-        onClick={toggleEditMode}
+        onClick={()=>void toggleEditMode()}
         className="w-full rounded-xl border border-amber-500/50 px-4 py-3 font-black"
       >
         {editMode ? "EDIT MODE DEACTIVEREN" : "EDIT MODE ACTIVEREN"}

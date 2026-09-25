@@ -688,3 +688,22 @@ test('maker role previews scope incidents, overview and badges to the active rol
   assert.match(layout, /\.eq\("reporter_id",user\.id\)/)
   assert.doesNotMatch(layout, /profile\?\.role==="staff"/)
 })
+
+
+test('Edit-mode database writes require a verified temporary unlock', async () => {
+  const auth = await read('lib/actions/auth.ts')
+  const editor = await read('components/layout/edit-mode-editor.tsx')
+  const controls = await read('components/settings/admin-edit-controls.tsx')
+  const migration = await read('supabase/migrations/20260925084124_uptilldawn_edit_mode_database_unlock.sql')
+
+  assert.match(migration, /admin_edit_unlocks/)
+  assert.match(migration, /admin_edit_attempts/)
+  assert.match(migration, /failed_attempts>=5/)
+  assert.match(migration, /interval '15 minutes'/)
+  assert.match(migration, /interval '60 minutes'/)
+  assert.match(migration, /role_ui_rules_admin_update/)
+  assert.match(migration, /upt_has_admin_edit_unlock\(\)/)
+  assert.match(auth, /upt_revoke_admin_edit_unlock/)
+  assert.match(editor, /upt_revoke_admin_edit_unlock/)
+  assert.match(controls, /upt_revoke_admin_edit_unlock/)
+})

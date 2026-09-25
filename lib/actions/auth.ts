@@ -193,6 +193,8 @@ export async function signIn(formData: FormData) {
 
 export async function signOut() {
     const supabase = await createClient()
+    const { error: revokeError } = await supabase.rpc('upt_revoke_admin_edit_unlock')
+    if (revokeError) console.error('[Auth] Edit unlock revoke failed', { code: revokeError.code })
     await supabase.auth.signOut()
     redirect('/login')
 }

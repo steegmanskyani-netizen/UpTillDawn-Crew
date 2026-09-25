@@ -1,0 +1,20 @@
+'use client'
+import {useEffect,useMemo,useState} from 'react'
+import Link from 'next/link'
+import {createClient} from '@/lib/supabase/crew-client'
+
+type Result={action:string;kind?:string;shift_id?:string;event_id?:string;count?:number;next_start?:string;reviewer?:string}
+export default function QrShiftRequest(){
+ const s=useMemo(()=>createClient(),[]),[result,setResult]=useState<Result|null>(null),[reason,setReason]=useState(''),[busy,setBusy]=useState(true),[error,setError]=useState('')
+ async function call(contact?:boolean,remote=false){setBusy(true);setError('');const {data,error}=await s.rpc('upt_qr_request',{p_contact_confirmed:contact??null,p_remote:remote,p_early_reason:reason||null});if(error)setError(error.message);else setResult(data as Result);setBusy(false)}
+ useEffect(()=>{void call()},[])
+ if(busy)return <main className="mx-auto max-w-lg p-6"><p>QR-aanvraag wordt gecontroleerd…</p></main>
+ return <main className="mx-auto max-w-lg space-y-5 p-6 pb-28"><h1 className="text-3xl font-black">Mijn werkuren</h1>{error&&<p role="alert" className="rounded-xl border border-red-500 p-4">{error}</p>}
+ {result?.action==='outside_window'&&<section className="rounded-2xl border p-5"><h2 className="font-bold">Geen aanvraag mogelijk</h2><p className="mt-2">Je eerstvolgende shift valt nog buiten het startvenster van 60 minuten.</p>{result.next_start&&<p className="mt-2">Start: {new Date(result.next_start).toLocaleString('nl-BE')}</p>}<Link className="mt-4 inline-block underline" href="/operations">Mijn werkuren openen</Link></section>}
+ {result?.action==='confirm_required'&&<section className="rounded-2xl border border-amber-500 p-5"><h2 className="font-bold">Bevestiging vereist</h2><p className="mt-2">{result.kind==='shift'?'Bevestig eerst je toegewezen shift.':'Bevestig eerst alle beschikbare briefings voor deze shift.'}</p><Link className="mt-4 inline-block rounded-xl border p-3 font-bold" href={result.kind==='shift'?'/shifts':'/briefings'}>{result.kind==='shift'?'SHIFT OPENEN':'BRIEFINGS OPENEN'}</Link></section>}
+ {result?.action==='early_reason_required'&&<section className="space-y-3 rounded-2xl border p-5"><h2 className="font-bold">Reden vroegtijdige start</h2><p>Je aanvraag gebeurt meer dan 10 minuten voor de shift. Geef de reden op.</p><textarea className="min-h-28 w-full rounded-xl border bg-transparent p-3" value={reason} onChange={e=>setReason(e.target.value)} placeholder="Reden"/><button disabled={!reason.trim()} onClick={()=>call()} className="w-full rounded-xl bg-violet-600 p-4 font-bold text-white">VERDER</button></section>}
+ {result?.action==='contact'&&<section className="space-y-4 rounded-2xl border p-5"><h2 className="text-xl font-bold">Wend je tot de verantwoordelijke</h2><p>Vraag de verantwoordelijke om je {result.kind==='stop'?'stopuren':'starturen'} te bevestigen.</p><p className="font-bold">Heb je je kunnen wenden tot de verantwoordelijke?</p><div className="grid grid-cols-2 gap-3"><button onClick={()=>call(true)} className="rounded-xl bg-violet-600 p-4 font-bold text-white">JA</button><button onClick={()=>call(false)} className="rounded-xl border p-4 font-bold">NEE</button></div></section>}
+ {result?.action==='remote_required'&&<section className="space-y-4 rounded-2xl border p-5"><h2 className="font-bold">Remote aanvraag</h2><p>Je kon je niet wenden tot de verantwoordelijke. De remote aanvraag is nu beschikbaar.</p><button onClick={()=>call(false,true)} className="w-full rounded-xl bg-violet-600 p-4 font-bold text-white">REMOTE AANVRAAG</button></section>}
+ {result?.action==='requested'&&<section className="rounded-2xl border border-emerald-500 p-5"><h2 className="font-bold">Aanvraag verzonden</h2><p className="mt-2">Je {result.kind==='stop'?'stop':'start'}aanvraag wacht op goedkeuring door {result.reviewer==='admin'?'admin':'de verantwoordelijke'}.</p>{result.kind==='stop'&&<p className="mt-2">De timer blijft zichtbaar doorlopen. Na goedkeuring worden je uren gestopt op het aanvraagmoment.</p>}<Link className="mt-4 inline-block underline" href="/operations">Mijn werkuren</Link></section>}
+ </main>
+}

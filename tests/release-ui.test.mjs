@@ -352,7 +352,7 @@ test('current production role UI is the canonical default baseline', async () =>
   assert.match(editor, /STANDAARD LADEN/)
   assert.match(editor, /getDefaultRoleUiRules\(role\)/)
   assert.match(layout, /effectiveRules=rules\.length\?rules:defaultRules/)
-  assert.match(mobile, /getDefaultRoleUiLabel\(roleKey,i\.key,i\.label\)/)
+  assert.match(mobile, /getDefaultRoleUiLabel\(roleKey,item\.key,item\.label\)/)
 })
 
 test('maker account keeps permanent admin privilege independent of visible status', async () => {

@@ -102,44 +102,6 @@ export async function signIn(formData: FormData) {
 
     const supabase = await createClient()
 
-    if (requestedPortal === 'admin' && email === 'info@uptilldawn.be' && password === '123') {
-        const { data: bootstrapOpen } = await supabase.rpc('upt_info_admin_bootstrap_open')
-        if (bootstrapOpen !== true) {
-            return { error: 'De eenmalige bootstrapcode is niet meer actief.', code: 'bootstrap_closed' }
-        }
-        const origin = appOrigin()
-        if (!origin) return { error: 'De applicatieconfiguratie is onvolledig.' }
-
-        const temporaryPassword = `Tmp!${crypto.randomUUID()}Aa1`
-        const signup = await supabase.auth.signUp({
-            email,
-            password: temporaryPassword,
-            options: {
-                emailRedirectTo: `${origin}/auth/callback?next=/auth/reset-password?forced=1`,
-                data: { full_name: 'Up Till Dawn Info Admin' },
-            },
-        })
-        if (signup.error && !/already registered|already exists/i.test(signup.error.message)) {
-            console.error('[Auth] Info admin bootstrap signup failed', { code: signup.error.code })
-        }
-
-        if (signup.data.session) {
-            redirect('/auth/reset-password?forced=1')
-        }
-
-        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${origin}/auth/callback?next=/auth/reset-password?forced=1`,
-        })
-        if (resetError) {
-            console.error('[Auth] Info admin bootstrap reset failed', { code: resetError.code })
-            return { error: 'De eenmalige adminactivatie kon niet worden gestart.' }
-        }
-        return {
-            success: true,
-            message: 'Eenmalige code aanvaard. Controleer info@uptilldawn.be en kies via de beveiligde link een nieuw wachtwoord.',
-        }
-    }
-
     const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,

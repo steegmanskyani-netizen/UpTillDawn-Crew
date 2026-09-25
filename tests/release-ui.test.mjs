@@ -819,3 +819,14 @@ test('God Mode has one dedicated login path and role UI writes remain RPC-only',
   assert.match(migration, /revoke insert, update, delete, truncate, references, trigger/i)
   assert.match(migration, /grant select on table public\.role_ui_rules to authenticated/i)
 })
+
+
+test('normal admin auth contains no public bootstrap credential', async () => {
+  const auth = await read('lib/actions/auth.ts')
+  const migration = await read('supabase/migrations/20260925192448_uptilldawn_disable_info_admin_bootstrap.sql')
+  assert.doesNotMatch(auth, /info@uptilldawn\.be/)
+  assert.doesNotMatch(auth, /password\s*===\s*['"]123['"]/)
+  assert.doesNotMatch(auth, /upt_info_admin_bootstrap_open/)
+  assert.match(migration, /select false/)
+  assert.match(migration, /revoke all on function public\.upt_info_admin_bootstrap_open\(\) from public, anon, authenticated/i)
+})

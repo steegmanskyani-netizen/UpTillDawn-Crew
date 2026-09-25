@@ -40,6 +40,10 @@ The VAPID private key and internal push-webhook secret are private server config
 
 The Edit-mode access code is environment data. Its hash is stored in `upt_private.admin_edit_config`; the raw code is not committed to GitHub or exposed to the browser. Verification is restricted to approved permanent-admin callers through `upt_verify_admin_edit_code`.
 
+## Legacy bootstrap closure
+
+The former public info-admin bootstrap flow is permanently disabled. Its status RPC returns false and browser roles cannot execute it. Normal login contains no hard-coded bootstrap credential.
+
 ## Secrets never committed
 
 - Supabase secret/service-role keys

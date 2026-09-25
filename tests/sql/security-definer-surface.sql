@@ -30,8 +30,7 @@ BEGIN
       'upt_god_database_connect','upt_god_database_disconnect','upt_god_database_secret',
       'upt_god_login','upt_god_logout',
       'upt_god_repository_connect','upt_god_repository_disconnect','upt_god_repository_secret',
-      'upt_god_role_rules','upt_god_save_role_rules','upt_god_session_valid',
-      'upt_info_admin_bootstrap_open'
+      'upt_god_role_rules','upt_god_save_role_rules','upt_god_session_valid'
     ]);
 
   IF v_count <> 0 THEN
@@ -80,12 +79,24 @@ BEGIN
       AND position('upt_is_approved' in pg_get_functiondef(p.oid)) = 0
       AND position('upt_is_admin' in pg_get_functiondef(p.oid)) = 0
       AND position('god_session_valid' in pg_get_functiondef(p.oid)) = 0
-      AND p.proname NOT IN ('upt_god_login','upt_god_logout','upt_info_admin_bootstrap_open')
+      AND p.proname NOT IN ('upt_god_login','upt_god_logout')
   ) THEN
     RAISE EXCEPTION 'FAIL: authenticated Uptilldawn SECURITY DEFINER entry point lacks an explicit authorization primitive';
   END IF;
 END
 $surface$;
+
+DO $bootstrap_closed$
+BEGIN
+  IF public.upt_info_admin_bootstrap_open() THEN
+    RAISE EXCEPTION 'FAIL: info-admin bootstrap unexpectedly open';
+  END IF;
+  IF has_function_privilege('anon','public.upt_info_admin_bootstrap_open()','EXECUTE')
+     OR has_function_privilege('authenticated','public.upt_info_admin_bootstrap_open()','EXECUTE') THEN
+    RAISE EXCEPTION 'FAIL: bootstrap RPC is still callable by browser roles';
+  END IF;
+END
+$bootstrap_closed$;
 
 DO $god_gate$
 BEGIN

@@ -67,10 +67,10 @@ The audit also checked the database attack surface rather than only the visible 
 - all 15 SQL regression suites pass against production using rollback fixtures;
 - every public application table has RLS enabled;
 - anonymous table CRUD grants are absent;
-- anonymous table access is absent; anonymous RPC access is limited to the explicit token-gated God Mode surface and the read-only bootstrap-status probe;
+- anonymous table access is absent; anonymous RPC access is limited to the explicit token-gated God Mode surface; the former info-admin bootstrap RPC is closed and revoked from browser roles;
 - retired private-chat creation/peer discovery remains revoked;
 - generated Supabase TypeScript types exactly match the production schema;
-- repository and production migration histories match 121/121.
+- repository and production migration histories match 122/122.
 
 Issues found and corrected during this audit:
 - permanent-admin server routes now use the central admin privilege check;
@@ -85,6 +85,7 @@ Issues found and corrected during this audit:
 - QR attendance is the only supported start/stop entry path: direct clock RPCs and the retired pre-QR check-in/check-out RPCs are revoked, while old offline direct-clock queue items are quarantined instead of replayed.
 - authenticated users retain read-only access to `role_ui_rules`; direct table mutation privileges are removed and God Mode changes flow only through the token-validated RPC.
 - the obsolete `edit@uptilldown` shortcut was removed from normal admin login; God Mode uses only its dedicated login route.
+- the public `info@uptilldawn.be` / `123` one-time bootstrap path was permanently disabled after the audit found it still open.
 
 ## Supabase advisor state
 
@@ -101,7 +102,7 @@ Known remaining advisor findings are reviewed rather than blindly removed:
 These are not regressions in the current web/mobile baseline:
 
 1. Define an explicit overtime/pay-period policy before presenting overtime as payroll truth.
-2. Replay all 121 migrations from zero on an isolated project before claiming a fresh-install proof.
+2. Replay all 122 migrations from zero on an isolated project before claiming a fresh-install proof.
 3. Expand offline browsing beyond the operational workflows if full offline parity is ever required.
 4. Continue physical-device regression testing after major browser/OS updates.
 5. Enable Supabase leaked-password protection when the project setting is approved.

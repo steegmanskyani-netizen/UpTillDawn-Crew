@@ -4,64 +4,58 @@ import { readFile } from 'node:fs/promises'
 
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8')
 
-test('admin role switch and edit mode controls are gated inside settings', async () => {
-  const providers = await read('lib/providers.tsx')
+
+test('normal admin UI is separate from God Mode editing controls', async () => {
   const topbar = await read('components/layout/topbar.tsx')
-  const controls = await read('components/settings/admin-edit-controls.tsx')
+  const sidebar = await read('components/layout/sidebar.tsx')
   const settings = await read('app/(app)/settings/page.tsx')
   const auth = await read('lib/actions/auth.ts')
+  const godPage = await read('app/god-mode/page.tsx')
+  const godEditor = await read('components/god-mode/god-mode-editor.tsx')
 
-  assert.match(providers, /upt_set_admin_role_mode/)
-  assert.match(providers, /editMode/)
-  assert.match(controls, /verifyAdminSettingsCode/)
-  assert.match(controls, /aria-label="Actieve rol"/)
-  assert.match(controls, /<option value="admin">/)
-  assert.match(controls, /<option value="employee">/)
-  assert.match(controls, /<option value="responsible_lead">/)
-  assert.match(controls, /EDIT MODE ACTIVEREN/)
-  assert.match(settings, /<AdminEditControls \/>/)
-  assert.match(auth, /verifyAdminSettingsCode/)
-  assert.match(auth, /upt_verify_admin_edit_code/)
-  assert.doesNotMatch(auth, /2315/)
-  assert.doesNotMatch(controls, /2315/)
-  assert.doesNotMatch(topbar, /aria-label="Actieve rol"/)
-  assert.doesNotMatch(topbar, /EDIT MODE ACTIVEREN/)
-  assert.match(auth, /upt_current_effective_role/)
+  assert.doesNotMatch(settings, /AdminEditControls|EDIT MODE|Actieve rol/)
+  assert.doesNotMatch(topbar, /editMode|Actieve rol|EDIT MODE/)
+  assert.doesNotMatch(sidebar, /editMode|EDIT MODE/)
+  assert.match(auth, /email === 'edit@uptilldown'/)
+  assert.match(auth, /redirect\('\/god-mode'\)/)
+  assert.match(godPage, /GodModeEditor/)
+  assert.match(godEditor, /Admin/)
+  assert.match(godEditor, /Personeel/)
+  assert.match(godEditor, /Verantwoordelijke/)
+  assert.match(godEditor, /AI app-editor/)
 })
 
-test('role-driven release navigation uses saved conditions and ordering', async () => {
+
+test('role-driven release navigation uses saved conditions and God Mode ordering', async () => {
   const layout = await read('components/layout/app-layout.tsx')
   const sidebar = await read('components/layout/sidebar.tsx')
   const mobile = await read('components/layout/mobile-nav.tsx')
   const navigation = await read('components/layout/navigation-items.ts')
-  const editor = await read('components/layout/edit-mode-editor.tsx')
-  const controls = await read('components/settings/admin-edit-controls.tsx')
-  const providers = await read('lib/providers.tsx')
+  const editor = await read('components/god-mode/god-mode-editor.tsx')
+  const api = await read('app/api/god/rules/route.ts')
   const roleUi = await read('lib/role-ui.ts')
 
   assert.match(layout, /from\("role_ui_rules"\)/)
-  assert.match(layout, /feature\("workplaces",Boolean\(isAdmin&&!editMode\)\|\|context\.assignedWorkplaceRole\)/)
-  assert.match(layout, /feature\("tasks",Boolean\(isAdmin&&!editMode\)\|\|context\.shiftActive\)/)
+  assert.match(layout, /feature\("workplaces",Boolean\(isAdmin\)\|\|context\.assignedWorkplaceRole\)/)
+  assert.match(layout, /feature\("tasks",Boolean\(isAdmin\)\|\|context\.shiftActive\)/)
   assert.match(layout, /feature\("incidents",isAdmin\?true:context\.shiftActive\)/)
   assert.match(sidebar, /featureOrder/)
   assert.match(sidebar, /featureLabels/)
   assert.match(mobile, /NAV_ITEMS/)
   assert.match(mobile, /featureVisibility/)
   assert.match(navigation, /key:"incidents"/)
-  assert.match(editor, /EDITLAYOUT & ROLRECHTEN OPSLAAN/)
+  assert.match(editor, /GOD MODE WIJZIGINGEN OPSLAAN/)
   assert.match(editor, /draggable/)
   assert.match(editor, /Zichtbaar/)
   assert.match(editor, /Bruikbaar/)
-  assert.match(controls, /<option value="admin">/)
-  assert.match(providers, /type EditRole = UiRole \| null/)
+  assert.match(api, /upt_god_save_role_rules/)
   assert.match(roleUi, /"staff" \| "responsible_lead" \| "admin"/)
-  assert.match(editor, /editRole === "admin" \? "admin"/)
   assert.match(layout, /const activeUiRole=roles\[0\]/)
   assert.match(layout, /activeUiRole==="admin"\?"admin"/)
-  assert.match(sidebar, /featureVisibility/)
 })
 
-test('staff cannot see manager creation controls in edit mode', async () => {
+
+test('staff cannot see manager creation controls', async () => {
   const tasks = await read('app/(app)/tasks/page.tsx')
   const briefings = await read('app/(app)/briefings/page.tsx')
   const shifts = await read('app/(app)/shifts/page.tsx')
@@ -181,16 +175,21 @@ test('post-event app tools redirect back to events for non-admin roles', async (
   }
 })
 
-test('work and pause is visible from event start but actions require an active shift', async () => {
+
+test('work and pause follows active event setup or breakdown shifts', async () => {
   const layout = await read('components/layout/app-layout.tsx')
   const operations = await read('app/(app)/operations/page.tsx')
-  const migration = await read('supabase/migrations/20260924181844_uptilldawn_event_start_work_nav_and_shift_enforcement.sql')
+  const roleUi = await read('lib/role-ui.ts')
+  const migration = await read('supabase/migrations/20260925105232_god_mode_event_import_shift_windows.sql')
 
-  assert.match(layout, /operationalMode=context\.eventActive\|\|previewAll/)
+  assert.match(layout, /showOperations=feature\("operations",isAdmin\?true:context\.shiftActive\)/)
+  assert.match(operations, /windowStart/)
+  assert.match(operations, /windowEnd/)
   assert.match(operations, /\.lte\('scheduled_start',now\)/)
   assert.match(operations, /\.gte\('scheduled_end',now\)/)
-  assert.match(migration, /condition_key='event_active'/)
-  assert.match(migration, /Je dienst is nog niet gestart of is al afgelopen\./)
+  assert.match(roleUi, /navRule\("responsible_lead","operations","Mijn werkuren",20,"shift_active"\)/)
+  assert.match(migration, /shift_kind in \('event','setup','breakdown'\)/)
+  assert.match(migration, /interval '3 days'/)
 })
 
 test('chat includes organization, event and authorized workplace channels with button-only send', async () => {
@@ -235,10 +234,11 @@ test('responsible workplace access is read-only and own start approval requires 
 })
 
 
+
 test('admin approvals and work-hours navigation remain accessible', async () => {
   const layout = await read('components/layout/app-layout.tsx')
   const admin = await read('app/(app)/admin/page.tsx')
-  assert.match(layout, /adminOperationsRoute=Boolean\(isAdmin&&!editMode&&pathname\.startsWith\("\/operations"\)\)/)
+  assert.match(layout, /adminOperationsRoute=Boolean\(isAdmin&&pathname\.startsWith\("\/operations"\)\)/)
   assert.match(layout, /showOperations=feature\("operations",isAdmin\?true:context\.shiftActive\)/)
   assert.match(admin, /Goedkeuringen openen/)
   assert.match(admin, /Lopende diensten & pauzes/)
@@ -334,15 +334,16 @@ test('admin help navigation and help calls are accessible and consistently named
 })
 
 
+
 test('current production role UI is the canonical default baseline', async () => {
   const roleUi = await read('lib/role-ui.ts')
-  const editor = await read('components/layout/edit-mode-editor.tsx')
+  const editor = await read('components/god-mode/god-mode-editor.tsx')
   const layout = await read('components/layout/app-layout.tsx')
   const mobile = await read('components/layout/mobile-nav.tsx')
 
   assert.match(roleUi, /ROLE_UI_DEFAULTS/)
   assert.match(roleUi, /navRule\("admin","operations","Werkuren",30\)/)
-  assert.match(roleUi, /navRule\("responsible_lead","operations","Mijn werkuren",20,"event_active"\)/)
+  assert.match(roleUi, /navRule\("responsible_lead","operations","Mijn werkuren",20,"shift_active"\)/)
   assert.match(roleUi, /navRule\("staff","operations","Mijn werkuren",20,"shift_active"\)/)
   assert.match(roleUi, /navRule\("staff","shifts","Mijn shift's",40,"assigned_event"\)/)
   assert.match(roleUi, /navRule\("staff","workplaces","Werkplekken",60,"assigned_event"\)/)
@@ -351,7 +352,7 @@ test('current production role UI is the canonical default baseline', async () =>
   assert.match(roleUi, /navRule\("admin","chat","Chat's",90\)/)
   assert.match(roleUi, /navRule\("responsible_lead","incidents","Help",100,"shift_active"\)/)
   assert.match(roleUi, /navRule\("staff","chat","Chat's",80\)/)
-  assert.match(editor, /STANDAARD LADEN/)
+  assert.match(editor, /Standaard laden/)
   assert.match(editor, /getDefaultRoleUiRules\(role\)/)
   assert.match(layout, /effectiveRules=rules\.length\?rules:defaultRules/)
   assert.match(mobile, /getDefaultRoleUiLabel\(roleKey,item\.key,item\.label\)/)
@@ -380,23 +381,26 @@ test('maker account keeps permanent admin privilege independent of visible statu
 })
 
 
-test('edit mode contains role tabs, exit control and owner-only free AI app editor', async () => {
-  const editor = await read('components/layout/edit-mode-editor.tsx')
+
+test('God Mode contains isolated role tabs session exit and free AI app editor', async () => {
+  const editor = await read('components/god-mode/god-mode-editor.tsx')
+  const page = await read('app/god-mode/page.tsx')
   const route = await read('app/api/edit-assistant/route.ts')
+  const rulesApi = await read('app/api/god/rules/route.ts')
   const wrangler = await read('wrangler.jsonc')
   const env = await read('.env.example')
 
-  assert.match(editor, /aria-label="Edit rol"/)
   assert.match(editor, /Admin/)
   assert.match(editor, /Personeel/)
   assert.match(editor, /Verantwoordelijke/)
-  assert.match(editor, /setEditRole/)
-  assert.match(editor, /EDIT MODE AFSLUITEN/)
-  assert.match(editor, /setEditMode\(false\)/)
+  assert.match(editor, /God Mode afsluiten/)
   assert.match(editor, /AI app-editor/)
-  assert.match(editor, /isOwner&&/)
-  assert.match(editor, /WIJZIGING/)
-  assert.match(route, /upt_current_is_owner/)
+  assert.match(editor, /GOD MODE WIJZIGINGEN OPSLAAN/)
+  assert.match(page, /uptilldawn-god-session/)
+  assert.match(page, /upt_god_session_valid/)
+  assert.match(rulesApi, /upt_god_role_rules/)
+  assert.match(rulesApi, /upt_god_save_role_rules/)
+  assert.match(route, /uptilldawn-god-session/)
   assert.match(route, /getCloudflareContext/)
   assert.match(route, /@cf\/meta\/llama-3\.3-70b-instruct-fp8-fast/)
   assert.match(route, /response_format/)
@@ -404,9 +408,7 @@ test('edit mode contains role tabs, exit control and owner-only free AI app edit
   assert.match(wrangler, /"ai": \{ "binding": "AI" \}/)
   assert.doesNotMatch(route, /OPENAI_API_KEY|api\.openai\.com/)
   assert.doesNotMatch(env, /OPENAI_API_KEY/)
-  assert.doesNotMatch(editor, /OPENAI_API_KEY/)
 })
-
 
 test('mobile navigation uses role and shift specific quick tabs with expandable drawer', async () => {
   const navigation = await read('components/layout/navigation-items.ts')
@@ -670,7 +672,8 @@ test('notification links cannot escape the app origin', async () => {
 })
 
 
-test('maker role previews scope incidents, overview and badges to the active role', async () => {
+
+test('role-scoped incidents overview and badges follow the active login role', async () => {
   const incidents = await read('app/(app)/incidents/page.tsx')
   const overview = await read('app/(app)/page.tsx')
   const layout = await read('components/layout/app-layout.tsx')
@@ -691,24 +694,25 @@ test('maker role previews scope incidents, overview and badges to the active rol
 })
 
 
-test('Edit-mode database writes require a verified temporary unlock', async () => {
-  const auth = await read('lib/actions/auth.ts')
-  const editor = await read('components/layout/edit-mode-editor.tsx')
-  const controls = await read('components/settings/admin-edit-controls.tsx')
-  const migration = await read('supabase/migrations/20260925084124_uptilldawn_edit_mode_database_unlock.sql')
+test('God Mode database writes require a private expiring session token', async () => {
+  const actions = await read('lib/actions/god-mode.ts')
+  const api = await read('app/api/god/rules/route.ts')
+  const schema = await read('supabase/migrations/20260925105232_god_mode_event_import_shift_windows.sql')
+  const exclusive = await read('supabase/migrations/20260925105642_god_mode_exclusive_editor_and_info_admin_bootstrap.sql')
 
-  assert.match(migration, /admin_edit_unlocks/)
-  assert.match(migration, /admin_edit_attempts/)
-  assert.match(migration, /v_failed\s*>=\s*5/)
-  assert.match(migration, /interval '15 minutes'/)
-  assert.match(migration, /interval '60 minutes'/)
-  assert.match(migration, /role_ui_rules_admin_update/)
-  assert.match(migration, /upt_has_admin_edit_unlock\(\)/)
-  assert.match(auth, /upt_revoke_admin_edit_unlock/)
-  assert.match(editor, /upt_revoke_admin_edit_unlock/)
-  assert.match(controls, /upt_revoke_admin_edit_unlock/)
+  assert.match(schema, /god_mode_sessions/)
+  assert.match(schema, /token_hash bytea primary key/)
+  assert.match(schema, /interval '2 hours'/)
+  assert.match(schema, /failed_attempts/)
+  assert.match(schema, /v_failed>=5/)
+  assert.match(schema, /interval '15 minutes'/)
+  assert.match(schema, /upt_god_save_role_rules/)
+  assert.match(exclusive, /drop policy if exists role_ui_rules_admin_update/)
+  assert.match(exclusive, /drop function if exists public\.upt_verify_admin_edit_code/)
+  assert.match(actions, /httpOnly:true/)
+  assert.match(actions, /sameSite:'strict'/)
+  assert.match(api, /p_token:session/)
 })
-
 
 test('AI editor rejects cross-site POST requests', async () => {
   const route = await read('app/api/edit-assistant/route.ts')

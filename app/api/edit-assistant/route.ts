@@ -1,5 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare"
 import { z } from "zod"
+import { cookies } from "next/headers"
 import { createClient } from "@/lib/supabase/crew-server"
 
 export const runtime = "nodejs"
@@ -102,10 +103,19 @@ export async function POST(request:Request){
 
   const supabase=await createClient()
   const {data:{user}}=await supabase.auth.getUser()
-  if(!user)return Response.json({error:"Aanmelden vereist."},{status:401})
-
-  const {data:isOwner}=await supabase.rpc("upt_current_is_owner")
-  if(isOwner!==true)return Response.json({error:"Deze AI-editor is alleen beschikbaar voor de maker van de app."},{status:403})
+  let authorized=false
+  if(user){
+    const {data:isOwner}=await supabase.rpc("upt_current_is_owner")
+    authorized=isOwner===true
+  }
+  if(!authorized){
+    const token=(await cookies()).get("uptilldawn-god-session")?.value
+    if(token){
+      const {data:valid}=await supabase.rpc("upt_god_session_valid",{p_token:token})
+      authorized=valid===true
+    }
+  }
+  if(!authorized)return Response.json({error:"God Mode sessie vereist."},{status:403})
 
   const parsed=requestSchema.safeParse(await request.json().catch(()=>null))
   if(!parsed.success)return Response.json({error:"Ongeldige AI-aanvraag."},{status:400})

@@ -16,6 +16,7 @@ export default async function Page() {
   const current = await getCurrentUser()
   if (!current) return null
   const user = { id: current.id }
+  const shiftWindowStart = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString()
 
   const [
     { data: shifts, error: shiftsError },
@@ -25,7 +26,7 @@ export default async function Page() {
   ] = await Promise.all([
     s.from('shifts').select('*,workplaces(name),events(name)').order('scheduled_start'),
     s.from('event_members').select('event_id').eq('user_id', user.id),
-    s.from('events').select('id').gte('end_at', 'now'),
+    s.from('events').select('id').gte('end_at', shiftWindowStart),
     s.from('responsible_assignments').select('event_id,workplace_id').eq('user_id', user.id),
   ])
 
@@ -74,6 +75,11 @@ export default async function Page() {
         {people.map(x => <option key={x.id} value={x.id}>{x.full_name || 'Naam ontbreekt'}</option>)}
       </select>
       <input name="role_name" defaultValue="Personeel" maxLength={200} className="rounded-lg border bg-background p-3"/>
+      <select name="shift_kind" defaultValue="event" className="rounded-lg border bg-background p-3">
+        <option value="event">Evenement</option>
+        <option value="setup">Opbouw — max. 3 dagen vooraf</option>
+        <option value="breakdown">Afbouw — max. 3 dagen nadien</option>
+      </select>
       <DateInput name="start"/>
       <DateInput name="end"/>
       <label className="flex items-center gap-2"><input type="checkbox" name="overlap_allowed"/> Overlap expliciet toestaan</label>
@@ -94,7 +100,7 @@ export default async function Page() {
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <b>{people.find(q => q.id === x.user_id)?.full_name || (x.user_id === user.id ? 'Jij' : 'Personeelslid')}</b> · {x.events?.name} / {x.workplaces?.name}
-              <div className="text-sm text-muted-foreground">{new Date(x.scheduled_start).toLocaleString('nl-BE')} → {new Date(x.scheduled_end).toLocaleString('nl-BE')} · {x.role_name}</div>
+              <div className="text-sm text-muted-foreground">{new Date(x.scheduled_start).toLocaleString('nl-BE')} → {new Date(x.scheduled_end).toLocaleString('nl-BE')} · {x.shift_kind==='setup'?'Opbouw':x.shift_kind==='breakdown'?'Afbouw':'Evenement'} · {x.role_name}</div>
             </div>
             <span className="rounded-full border px-2 py-1 text-xs font-bold">{nlStatus(x.status)}</span>
           </div>
@@ -104,6 +110,13 @@ export default async function Page() {
             <form action={updateShift} className="mt-3 grid gap-2 md:grid-cols-2">
               <input type="hidden" name="shift_id" value={x.id}/>
               <label className="grid gap-1 text-sm">Rol<input name="role_name" required maxLength={200} defaultValue={x.role_name === 'Crew' ? 'Personeel' : x.role_name} className="rounded-lg border bg-background p-3"/></label>
+              <label className="grid gap-1 text-sm">Shift-type
+                <select name="shift_kind" defaultValue={x.shift_kind} className="rounded-lg border bg-background p-3">
+                  <option value="event">Evenement</option>
+                  <option value="setup">Opbouw</option>
+                  <option value="breakdown">Afbouw</option>
+                </select>
+              </label>
               <label className="flex items-center gap-2 self-end pb-3"><input type="checkbox" name="overlap_allowed" defaultChecked={x.overlap_allowed}/> Overlap expliciet toestaan</label>
               <DateInput name="start" initial={x.scheduled_start}/>
               <DateInput name="end" initial={x.scheduled_end}/>

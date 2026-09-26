@@ -19,8 +19,8 @@ export function BriefingAnalysisFields({defaultTitle='',defaultBody='',bodyPlace
  }
  return <>
   <div className="grid gap-2 rounded-xl border border-dashed p-4">
-   <div className="font-semibold">Voeg briefing document toe</div>
-   <div className="text-xs text-muted-foreground">Upload een briefingbestand. De titel en algemene instructies worden automatisch uitgelezen en ingevuld.</div>
+   <div className="font-semibold">Importeer briefing</div>
+   <div className="text-xs text-muted-foreground">Importeer een bestaand briefingbestand. De titel en algemene instructies worden automatisch uitgelezen en ingevuld.</div>
    <input name="briefing_document" type="file" accept={ACCEPT} disabled={busy} className="rounded-lg border bg-background p-2" onChange={event=>{const file=event.target.files?.[0];if(file)void analyze(file)}}/>
    <input ref={extractedRef} name="photos" type="file" multiple className="hidden" tabIndex={-1} aria-hidden="true"/>
    <span className="text-xs text-muted-foreground">PDF, DOCX, PPTX, XLSX, TXT, CSV, JPG, PNG of WEBP · maximaal 20 MB. Afbeeldingen in DOCX, PPTX en XLSX worden waar mogelijk automatisch als bijlage toegevoegd.</span>

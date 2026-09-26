@@ -702,6 +702,7 @@ test('notification links cannot escape the app origin', async () => {
   const notifications = await read('app/(app)/notifications/page.tsx')
   const sw = await read('public/sw.js')
   const edge = await read('supabase/functions/push-notification/index.ts')
+  const edgeSecurity = await read('supabase/functions/push-notification/security.ts')
 
   assert.match(notifications, /!value\.startsWith\('\/\/'\)/)
   assert.match(notifications, /safeLink && <Link href=\{safeLink\}/)

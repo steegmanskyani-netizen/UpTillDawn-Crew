@@ -11,7 +11,6 @@ export async function deletePersonnel(fd:FormData){
  const workPaths=(attachments||[]).map(row=>row.storage_path).filter(Boolean)
  if(workPaths.length){const {error}=await s.storage.from('work-media').remove(workPaths);if(error)throw new Error('Media van deze gebruiker kon niet veilig worden verwijderd.')}
  if(profile?.profile_photo_url){const {error}=await s.storage.from('profile-photos').remove([profile.profile_photo_url]);if(error)throw new Error('Profielfoto kon niet veilig worden verwijderd.')}
- const rpc=s.rpc as unknown as (fn:string,args:Record<string,string>)=>Promise<{error:{message?:string}|null}>
- const {error}=await rpc('upt_admin_delete_user',{p_user:target});if(error)throw new Error(error.message||'Gebruiker verwijderen mislukt.')
+ const {error}=await s.rpc('upt_admin_set_account',{p_user:target,p_approved:false,p_role:'__delete__'});if(error)throw new Error(error.message||'Gebruiker verwijderen mislukt.')
  revalidatePath('/personnel');revalidatePath('/chat');revalidatePath('/events');revalidatePath('/workplaces');revalidatePath('/shifts');revalidatePath('/tasks');revalidatePath('/briefings');revalidatePath('/')
 }

@@ -6,6 +6,31 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const PUBLIC_EXACT_PATHS = new Set([
+    '/login',
+    '/signup',
+    '/forgot-password',
+    '/auth/reset-password',
+    '/verify-email',
+    '/disabled',
+    '/unauthorized',
+    '/manifest.webmanifest',
+    '/robots.txt',
+    '/sitemap.xml',
+    '/icon.png',
+])
+
+const PUBLIC_PREFIXES = [
+    '/login/',
+    '/auth/callback',
+    '/api/',
+]
+
+function isPublicPath(pathname: string) {
+    return PUBLIC_EXACT_PATHS.has(pathname) ||
+        PUBLIC_PREFIXES.some(prefix => pathname.startsWith(prefix))
+}
+
 export async function updateSession(request: NextRequest) {
     let supabaseResponse = NextResponse.next({ request })
 
@@ -24,52 +49,34 @@ export async function updateSession(request: NextRequest) {
                 )
             },
         },
-    }
-    )
+    })
 
-    // Refresh the session (extends expiry if still valid)
+    // Refresh and validate the session server-side.
     const { data: { user } } = await supabase.auth.getUser()
+    const pathname = request.nextUrl.pathname
 
-    // Protected routes — redirect to login if unauthenticated
-    const protectedPaths = [
-        '/admin',
-        '/settings',
-        '/notifications',
-        '/events',
-        '/workplaces',
-        '/shifts',
-        '/operations',
-        '/incidents',
-        '/personnel',
-        '/audit',
-        '/briefings',
-        '/tasks',
-        '/chat',
-        '/crew',
-        '/exports',
-        '/sync',
-    ]
-
-    const isProtected = request.nextUrl.pathname === '/' ||
-        protectedPaths.some(p => request.nextUrl.pathname.startsWith(p))
-
-    if (isProtected && !user) {
+    // Application pages are private by default. API routes remain responsible
+    // for their own authentication/authorization so public auth/support APIs
+    // can continue to operate without being accidentally hidden by middleware.
+    if (!isPublicPath(pathname) && !user) {
         const url = request.nextUrl.clone()
         url.pathname = '/login'
+        url.search = ''
         const response = NextResponse.redirect(url)
         supabaseResponse.cookies.getAll().forEach(cookie => response.cookies.set(cookie))
         return response
     }
 
-    // If user is authenticated and tries to access auth pages (including /login/{portal}), redirect to dashboard
+    // Auth entry pages should not be shown to an already authenticated user.
     const authPages = ['/login', '/signup', '/forgot-password']
-    const isAuthPage = authPages.some(p =>
-        request.nextUrl.pathname.startsWith(p)
+    const isAuthPage = authPages.some(path =>
+        pathname === path || pathname.startsWith(`${path}/`)
     )
 
     if (isAuthPage && user) {
         const url = request.nextUrl.clone()
         url.pathname = '/'
+        url.search = ''
         const response = NextResponse.redirect(url)
         supabaseResponse.cookies.getAll().forEach(cookie => response.cookies.set(cookie))
         return response

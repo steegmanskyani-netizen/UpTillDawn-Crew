@@ -4,23 +4,7 @@ import { autocompleteGeoapify } from "@/lib/geoapify"
 
 export const dynamic="force-dynamic"
 
-const WINDOW_MS=60_000
-const MAX_REQUESTS=60
-const buckets=new Map<string,{count:number;resetAt:number}>()
-
-function allowRequest(userId:string){
-  const now=Date.now()
-  const current=buckets.get(userId)
-  if(!current||current.resetAt<=now){
-    buckets.set(userId,{count:1,resetAt:now+WINDOW_MS})
-    return {allowed:true,retryAfter:0}
-  }
-  if(current.count>=MAX_REQUESTS){
-    return {allowed:false,retryAfter:Math.max(1,Math.ceil((current.resetAt-now)/1000))}
-  }
-  current.count+=1
-  return {allowed:true,retryAfter:0}
-}
+type RateLimitResult={allowed?:boolean;retry_after?:number}
 
 export async function GET(request:NextRequest){
   const s=await createClient()
@@ -35,11 +19,19 @@ export async function GET(request:NextRequest){
     return NextResponse.json({error:"Geen toegang."},{status:403})
   }
 
-  const rate=allowRequest(user.id)
-  if(!rate.allowed){
+  const {data:rateData,error:rateError}=await s.rpc("upt_geoapify_rate_limit")
+  if(rateError){
+    return NextResponse.json(
+      {error:"Locatiezoeker tijdelijk niet beschikbaar."},
+      {status:503,headers:{"Cache-Control":"no-store"}},
+    )
+  }
+  const rate=(rateData||{}) as RateLimitResult
+  if(rate.allowed!==true){
+    const retryAfter=Math.max(1,Number(rate.retry_after)||60)
     return NextResponse.json(
       {error:"Te veel locatiezoekopdrachten. Probeer over enkele seconden opnieuw."},
-      {status:429,headers:{"Retry-After":String(rate.retryAfter),"Cache-Control":"no-store"}},
+      {status:429,headers:{"Retry-After":String(retryAfter),"Cache-Control":"no-store"}},
     )
   }
 

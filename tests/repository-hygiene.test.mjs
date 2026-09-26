@@ -31,10 +31,12 @@ test('active runtime has no service-role secret or retired StaffPortal schema re
   }
 })
 
-test('active runtime has no retired OpenAI billing integration', async () => {
+test('active runtime has no retired OpenAI billing integration outside the intentional briefing analyzer', async () => {
   for (const file of await sourceFiles()) {
+    const path = relative(root, file).replaceAll('\\', '/')
+    if (path === 'app/api/briefing-analyze/route.ts') continue
     const text = await readFile(file, 'utf8')
-    assert.doesNotMatch(text, /OPENAI_API_KEY|api\.openai\.com|gpt-5\.6/i, relative(root, file))
+    assert.doesNotMatch(text, /OPENAI_API_KEY|api\.openai\.com|gpt-5\.6/i, path)
   }
 })
 

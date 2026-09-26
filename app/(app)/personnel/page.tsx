@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { getCurrentUser } from '@/lib/actions/auth'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/crew-server'
@@ -25,8 +26,8 @@ export default async function Page() {
     <div className="grid gap-3">{data?.map(p =>
       <div key={p.id} className="rounded-2xl border p-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-start">
-          {photos.get(p.id) && <a href={photos.get(p.id)} target="_blank" rel="noreferrer" className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border">
-            {/* eslint-disable-next-line @next/next/no-img-element */}<img src={photos.get(p.id)} alt="" className="h-full w-full object-cover"/>
+          {photos.get(p.id) && <a href={photos.get(p.id)} target="_blank" rel="noreferrer" className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl border">
+            <Image src={photos.get(p.id)!} alt="" fill sizes="80px" unoptimized className="object-cover"/>
           </a>}
           <div className="min-w-0 flex-1">
             <b>{p.full_name || 'Naam ontbreekt'}</b>

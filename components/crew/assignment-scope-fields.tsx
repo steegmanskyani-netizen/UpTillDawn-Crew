@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 export type AssignmentEvent = { id: string; name: string }
 export type AssignmentWorkplace = { id: string; name: string; event_id: string }
@@ -18,6 +18,7 @@ export function AssignmentScopeFields({
   workplaceRequired = false,
   multiplePeople = false,
   availability = [],
+  defaultEventId = "",
 }: {
   events: AssignmentEvent[]
   workplaces: AssignmentWorkplace[]
@@ -29,10 +30,19 @@ export function AssignmentScopeFields({
   workplaceRequired?: boolean
   multiplePeople?: boolean
   availability?: Array<{ event_id: string; user_id: string }>
+  defaultEventId?: string
 }) {
-  const [eventId, setEventId] = useState("")
+  const validDefaultEventId = events.some(event => event.id === defaultEventId) ? defaultEventId : ""
+  const [eventId, setEventId] = useState(validDefaultEventId)
   const [workplaceId, setWorkplaceId] = useState("")
   const [personId, setPersonId] = useState("")
+
+  useEffect(() => {
+    if (!defaultEventId || !events.some(event => event.id === defaultEventId)) return
+    setEventId(defaultEventId)
+    setWorkplaceId("")
+    setPersonId("")
+  }, [defaultEventId, events])
 
   const visibleWorkplaces = useMemo(
     () => showEventSelect && eventId

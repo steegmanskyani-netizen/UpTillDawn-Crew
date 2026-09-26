@@ -603,6 +603,10 @@ test('installed PWA supports background updates and web push', async () => {
   assert.match(edge, /npm:web-push@3\.6\.7/)
   assert.match(edge, /webpush\.sendNotification/)
   assert.match(edge, /x-upt-push-secret/)
+  assert.match(edgeSecurity, /safePushEndpoint/)
+  assert.match(edgeSecurity, /url\.protocol!=="https:"/)
+  assert.match(edgeSecurity, /localhost/)
+  assert.match(edgeSecurity, /safeNotificationLink/)
 })
 
 

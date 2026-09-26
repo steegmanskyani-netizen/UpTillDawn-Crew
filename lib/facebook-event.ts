@@ -5,6 +5,7 @@ export type FacebookEventInfo = {
   address: string | null
   startAt: string | null
   endAt: string | null
+  imageUrl: string | null
 }
 
 function decodeHtml(value:string){
@@ -74,16 +75,29 @@ function locationParts(value:unknown){
   if(typeof raw==="string")return {venue,address:raw.trim()||null}
   if(raw&&typeof raw==="object"){
     const a=raw as Record<string,unknown>
-    const parts=[
-      a.streetAddress,
-      a.postalCode,
-      a.addressLocality,
-      a.addressRegion,
-      a.addressCountry,
-    ].filter((item):item is string=>typeof item==="string"&&Boolean(item.trim()))
+    const parts=[a.streetAddress,a.postalCode,a.addressLocality,a.addressRegion,a.addressCountry]
+      .filter((item):item is string=>typeof item==="string"&&Boolean(item.trim()))
     return {venue,address:parts.join(", ")||null}
   }
   return {venue,address:null}
+}
+
+function structuredImage(value:unknown){
+  const raw=Array.isArray(value)?value[0]:value
+  if(typeof raw==="string")return raw.trim()||null
+  if(raw&&typeof raw==="object"){
+    const url=(raw as Record<string,unknown>).url
+    return typeof url==="string"?url.trim()||null:null
+  }
+  return null
+}
+
+function safeImageUrl(value:string|null){
+  if(!value)return null
+  try{
+    const url=new URL(value)
+    return url.protocol==='https:'?url.toString():null
+  }catch{return null}
 }
 
 function timestampFromHtml(html:string,keys:string[]){
@@ -112,13 +126,10 @@ async function facebookFetch(raw:string){
   for(let redirectCount=0;redirectCount<=5;redirectCount++){
     if(!isFacebookEventUrl(current.toString()))throw new Error("Facebook-redirect werd om veiligheidsredenen geweigerd.")
     const response=await fetch(current.toString(),{
-      redirect:"manual",
-      cache:"no-store",
-      signal:AbortSignal.timeout(15_000),
+      redirect:"manual",cache:"no-store",signal:AbortSignal.timeout(15_000),
       headers:{
         "User-Agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/140 Safari/537.36",
-        "Accept":"text/html,application/xhtml+xml",
-        "Accept-Language":"nl-BE,nl;q=0.9,en;q=0.8",
+        "Accept":"text/html,application/xhtml+xml","Accept-Language":"nl-BE,nl;q=0.9,en;q=0.8",
       },
     })
     if(response.status>=300&&response.status<400){
@@ -134,26 +145,16 @@ async function facebookFetch(raw:string){
 
 async function readLimitedText(response:Response,maxBytes=4_000_000){
   if(!response.body)return ""
-  const reader=response.body.getReader()
-  const decoder=new TextDecoder()
-  let size=0
-  let text=""
+  const reader=response.body.getReader();const decoder=new TextDecoder();let size=0;let text=""
   try{
     while(true){
-      const {done,value}=await reader.read()
-      if(done)break
+      const {done,value}=await reader.read();if(done)break
       size+=value.byteLength
-      if(size>maxBytes){
-        await reader.cancel()
-        throw new Error("Facebook-evenement is te groot om veilig te verwerken.")
-      }
+      if(size>maxBytes){await reader.cancel();throw new Error("Facebook-evenement is te groot om veilig te verwerken.")}
       text+=decoder.decode(value,{stream:true})
     }
-    text+=decoder.decode()
-    return text
-  }finally{
-    reader.releaseLock()
-  }
+    text+=decoder.decode();return text
+  }finally{reader.releaseLock()}
 }
 
 export async function fetchFacebookEventInfo(raw:string):Promise<FacebookEventInfo>{
@@ -162,34 +163,20 @@ export async function fetchFacebookEventInfo(raw:string):Promise<FacebookEventIn
   const response=await facebookFetch(url.toString())
   if(!response.ok)throw new Error("Facebook-evenement kon niet worden geopend.")
   const contentType=(response.headers.get("content-type")||"").toLowerCase()
-  if(contentType&&!contentType.includes("text/html")&&!contentType.includes("application/xhtml+xml")){
-    throw new Error("Facebook gaf geen geldige evenementpagina terug.")
-  }
+  if(contentType&&!contentType.includes("text/html")&&!contentType.includes("application/xhtml+xml"))throw new Error("Facebook gaf geen geldige evenementpagina terug.")
   const html=await readLimitedText(response)
 
   let structured:Record<string,unknown>|null=null
   for(const match of html.matchAll(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)){
-    try{
-      const parsed=JSON.parse(decodeHtml(match[1]))
-      structured=findEvent(parsed)
-      if(structured)break
-    }catch{}
+    try{const parsed=JSON.parse(decodeHtml(match[1]));structured=findEvent(parsed);if(structured)break}catch{}
   }
 
   const loc=locationParts(structured?.location)
   const ogTitle=meta(html,"og:title")
   const name=(typeof structured?.name==="string"?structured.name:ogTitle)?.replace(/\s*\|\s*Facebook\s*$/i,"").trim()||null
-  const startAt=iso(structured?.startDate)
-    ||timestampFromHtml(html,["event_start_timestamp","start_timestamp","startTimestamp","start_time"])
-  const endAt=iso(structured?.endDate)
-    ||timestampFromHtml(html,["event_end_timestamp","end_timestamp","endTimestamp","end_time"])
+  const startAt=iso(structured?.startDate)||timestampFromHtml(html,["event_start_timestamp","start_timestamp","startTimestamp","start_time"])
+  const endAt=iso(structured?.endDate)||timestampFromHtml(html,["event_end_timestamp","end_timestamp","endTimestamp","end_time"])
+  const imageUrl=safeImageUrl(structuredImage(structured?.image)||meta(html,"og:image"))
 
-  return {
-    sourceUrl:response.url||url.toString(),
-    name,
-    venue:loc.venue,
-    address:loc.address,
-    startAt,
-    endAt,
-  }
+  return {sourceUrl:response.url||url.toString(),name,venue:loc.venue,address:loc.address,startAt,endAt,imageUrl}
 }

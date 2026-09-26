@@ -88,12 +88,22 @@ $surface$;
 
 DO $bootstrap_closed$
 BEGIN
-  IF public.upt_info_admin_bootstrap_open() THEN
-    RAISE EXCEPTION 'FAIL: info-admin bootstrap unexpectedly open';
-  END IF;
-  IF has_function_privilege('anon','public.upt_info_admin_bootstrap_open()','EXECUTE')
-     OR has_function_privilege('authenticated','public.upt_info_admin_bootstrap_open()','EXECUTE') THEN
-    RAISE EXCEPTION 'FAIL: bootstrap RPC is still callable by browser roles';
+  IF to_regprocedure('public.upt_promote_confirmed_info_admin()') IS NOT NULL
+     OR to_regprocedure('public.upt_info_admin_bootstrap_open()') IS NOT NULL
+     OR to_regprocedure('public.upt_password_change_required()') IS NOT NULL
+     OR to_regprocedure('public.upt_mark_password_changed()') IS NOT NULL
+     OR to_regclass('upt_private.password_change_required') IS NOT NULL
+     OR EXISTS(
+       SELECT 1
+       FROM pg_trigger t
+       JOIN pg_class c ON c.oid=t.tgrelid
+       JOIN pg_namespace n ON n.oid=c.relnamespace
+       WHERE NOT t.tgisinternal
+         AND n.nspname='auth'
+         AND c.relname='users'
+         AND t.tgname='upt_promote_confirmed_info_admin'
+     ) THEN
+    RAISE EXCEPTION 'FAIL: legacy info-admin bootstrap artifact remains';
   END IF;
 END
 $bootstrap_closed$;
@@ -147,5 +157,5 @@ BEGIN
 END
 $god_gate$;
 
-SELECT 'PASS: SECURITY DEFINER surface, token-gated God Mode and owner-only private setup are locked down' AS result;
+SELECT 'PASS: SECURITY DEFINER surface, token-gated God Mode, retired bootstrap and owner-only private setup are locked down' AS result;
 ROLLBACK;

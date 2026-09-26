@@ -34,7 +34,7 @@ export default async function Page() {
   ] = await Promise.all([
     s.from('events').select('id,name').neq('status', 'archived').order('start_at'),
     s.from('task_assignments').select('id,user_id,status,confirmed_at,tasks(id,title,description,event_id,workplace_id,updated_at)').order('created_at'),
-    s.from('events').select('id').lte('start_at', 'now').gte('end_at', 'now'),
+    s.from('events').select('id').lte('start_at', 'now').gte('end_at', 'now').order('start_at'),
     s.from('event_members').select('event_id').eq('user_id', user.id),
     s.from('event_availability').select('event_id,user_id').eq('response', 'can'),
     s.from('events').select('id').gte('end_at', 'now'),
@@ -51,6 +51,7 @@ export default async function Page() {
   const manager = isAdmin || isResponsible
   const hasActiveShift = Boolean(ownActiveShifts?.length)
   const activeShiftEventIds = new Set((ownActiveShifts || []).map(shift => shift.event_id))
+  const runningEventId = ownActiveShifts?.[0]?.event_id || activeEvents?.[0]?.id || ''
 
   const activeEventIds = new Set((activeEvents || []).map(event => event.id))
   const openEventIds = new Set((openEvents || []).map(event => event.id))
@@ -193,6 +194,7 @@ export default async function Page() {
         workplaceRequired={!isAdmin}
         multiplePeople
         availability={availabilityRows || []}
+        defaultEventId={runningEventId}
       />
       <input name="title" required maxLength={200} placeholder="Taaknaam" className="border bg-background p-3"/>
       <textarea name="description" maxLength={4000} placeholder="Omschrijving" className="border bg-background p-3 md:col-span-2"/>

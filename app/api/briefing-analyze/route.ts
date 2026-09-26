@@ -1,0 +1,1 @@
+export { POST, runtime } from '../../../api/briefing-analyze/route'

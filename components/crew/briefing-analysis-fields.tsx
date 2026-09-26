@@ -18,11 +18,14 @@ export function BriefingAnalysisFields({defaultTitle='',defaultBody='',bodyPlace
   }catch(error){setMessage(error instanceof Error?error.message:'Analyse mislukt.')}finally{setBusy(false)}
  }
  return <>
-  <label className="grid gap-1 rounded-xl border border-dashed p-3 text-sm">Briefingbestand automatisch uitlezen
+  <div className="grid gap-2 rounded-xl border border-dashed p-4">
+   <div className="font-semibold">Voeg briefing document toe</div>
+   <div className="text-xs text-muted-foreground">Upload een briefingbestand. De titel en algemene instructies worden automatisch uitgelezen en ingevuld.</div>
    <input name="briefing_document" type="file" accept={ACCEPT} disabled={busy} className="rounded-lg border bg-background p-2" onChange={event=>{const file=event.target.files?.[0];if(file)void analyze(file)}}/>
    <input ref={extractedRef} name="photos" type="file" multiple className="hidden" tabIndex={-1} aria-hidden="true"/>
-   <span className="text-xs text-muted-foreground">PDF, DOCX, PPTX, XLSX, TXT, CSV, JPG, PNG of WEBP · maximaal 20 MB. Afbeeldingen in DOCX, PPTX en XLSX worden waar mogelijk automatisch als bijlage toegevoegd.</span>{message&&<span className="text-xs">{message}</span>}
-  </label>
+   <span className="text-xs text-muted-foreground">PDF, DOCX, PPTX, XLSX, TXT, CSV, JPG, PNG of WEBP · maximaal 20 MB. Afbeeldingen in DOCX, PPTX en XLSX worden waar mogelijk automatisch als bijlage toegevoegd.</span>
+   {message&&<span className="text-xs">{message}</span>}
+  </div>
   <input name="title" required placeholder="Titel" className="border bg-background p-3" value={title} onChange={event=>setTitle(event.target.value)}/>
   <textarea name="body" required placeholder={bodyPlaceholder} className="min-h-28 border bg-background p-3" value={body} onChange={event=>setBody(event.target.value)}/>
  </>

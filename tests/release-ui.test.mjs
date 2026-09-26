@@ -267,7 +267,8 @@ test('QR attendance cannot be bypassed by legacy direct clock actions', async ()
   assert.match(login, /uptilldawn-return-after-login/)
   assert.match(returnAfterLogin, /sessionStorage\.getItem\('uptilldawn-return-after-login'\)/)
   assert.match(returnAfterLogin, /router\.replace\(target\)/)
-  assert.match(appLayout, /<ReturnAfterLogin\/>/)
+  assert.match(appLayout, /<ReturnAfterLogin\s*\/>/)
+  assert.doesNotMatch(appLayout, /upt_password_change_required/)
 })
 
 test('admin approvals and work-hours navigation remain accessible', async () => {

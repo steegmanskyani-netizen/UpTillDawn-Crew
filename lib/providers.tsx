@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return()=>{alive=false;window.clearInterval(timer);window.removeEventListener("focus",focus);subscription.unsubscribe()}
   },[pathname,loadProfile,supabase,user])
 
-  const realIsAdmin=profile?.role==="admin"||isOwner
+  const realIsAdmin = profile?.role === "admin" || isOwner
   const effectiveRoles:UiRole[]=roles
   const effectiveIsAdmin=effectiveRoles.includes("admin")
 

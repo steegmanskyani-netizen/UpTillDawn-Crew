@@ -27,11 +27,13 @@ function deviceLanguage(): Language {
 }
 
 export function LanguageSwitcher({ dark = false }: { dark?: boolean }) {
-  const [language, setLanguage] = useState<Language>("nl")
+  const [language, setLanguage] = useState("nl")
 
   useEffect(() => {
     let cancelled = false
-    const next = parseLanguage(window.localStorage.getItem("uptilldawn-language")) || deviceLanguage()
+    const stored = window.localStorage.getItem("uptilldawn-language")
+    const storedLanguage: Language | null = stored === "nl" || stored === "fr" || stored === "en" || stored === "de" ? stored : null
+    const next: Language = storedLanguage || deviceLanguage()
     queueMicrotask(() => { if (!cancelled) setLanguage(next) })
     return () => { cancelled = true }
   }, [])

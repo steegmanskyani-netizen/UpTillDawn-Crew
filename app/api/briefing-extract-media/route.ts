@@ -5,7 +5,9 @@ import { createClient } from '@/lib/supabase/crew-server'
 export const runtime = 'nodejs'
 const MAX_FILE_SIZE = 20 * 1024 * 1024
 const MAX_IMAGES = 5
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024
 const MAX_TOTAL_IMAGE_BYTES = 20 * 1024 * 1024
+const MAX_ZIP_ENTRIES = 5000
 const OFFICE_TYPES = new Map([
  ['application/vnd.openxmlformats-officedocument.wordprocessingml.document','word/media/'],
  ['application/vnd.openxmlformats-officedocument.presentationml.presentation','ppt/media/'],
@@ -20,19 +22,30 @@ function zipEntries(buffer:Buffer){
  const entries:ZipEntry[]=[];let eocd=-1
  for(let i=buffer.length-22;i>=Math.max(0,buffer.length-65557);i--){if(u32(buffer,i)===0x06054b50){eocd=i;break}}
  if(eocd<0)throw new Error('ZIP directory ontbreekt.')
- const count=u16(buffer,eocd+10),centralOffset=u32(buffer,eocd+16);let offset=centralOffset
+ const count=u16(buffer,eocd+10),centralOffset=u32(buffer,eocd+16)
+ if(count>MAX_ZIP_ENTRIES)throw new Error('ZIP bevat te veel onderdelen.')
+ if(centralOffset>=buffer.length)throw new Error('Ongeldige ZIP directory.')
+ let offset=centralOffset
  for(let index=0;index<count;index++){
   if(offset+46>buffer.length||u32(buffer,offset)!==0x02014b50)throw new Error('Ongeldige ZIP directory.')
   const method=u16(buffer,offset+10),compressedSize=u32(buffer,offset+20),uncompressedSize=u32(buffer,offset+24),nameLength=u16(buffer,offset+28),extraLength=u16(buffer,offset+30),commentLength=u16(buffer,offset+32),localOffset=u32(buffer,offset+42)
-  const name=buffer.subarray(offset+46,offset+46+nameLength).toString('utf8');entries.push({name,method,compressedSize,uncompressedSize,localOffset});offset+=46+nameLength+extraLength+commentLength
+  const next=offset+46+nameLength+extraLength+commentLength
+  if(next>buffer.length)throw new Error('Ongeldige ZIP directory.')
+  const name=buffer.subarray(offset+46,offset+46+nameLength).toString('utf8');entries.push({name,method,compressedSize,uncompressedSize,localOffset});offset=next
  }
  return entries
 }
 function extract(buffer:Buffer,entry:ZipEntry){
+ if(entry.uncompressedSize>MAX_IMAGE_BYTES)throw new Error('ZIP entry is te groot.')
  const offset=entry.localOffset;if(offset+30>buffer.length||u32(buffer,offset)!==0x04034b50)throw new Error('Ongeldige ZIP entry.')
- const nameLength=u16(buffer,offset+26),extraLength=u16(buffer,offset+28),start=offset+30+nameLength+extraLength,end=start+entry.compressedSize;if(end>buffer.length)throw new Error('Onvolledige ZIP entry.')
- const compressed=buffer.subarray(start,end),output=entry.method===0?Buffer.from(compressed):entry.method===8?inflateRawSync(compressed):null
- if(!output||output.length!==entry.uncompressedSize)throw new Error('Ongeldige ZIP entry.');return output
+ const nameLength=u16(buffer,offset+26),extraLength=u16(buffer,offset+28),start=offset+30+nameLength+extraLength,end=start+entry.compressedSize;if(start>buffer.length||end>buffer.length)throw new Error('Onvolledige ZIP entry.')
+ const compressed=buffer.subarray(start,end)
+ const output=entry.method===0
+  ? Buffer.from(compressed)
+  : entry.method===8
+    ? inflateRawSync(compressed,{maxOutputLength:Math.min(MAX_IMAGE_BYTES,entry.uncompressedSize)+1})
+    : null
+ if(!output||output.length!==entry.uncompressedSize||output.length>MAX_IMAGE_BYTES)throw new Error('Ongeldige ZIP entry.');return output
 }
 function safeName(name:string,index:number){const raw=name.split('/').pop()||`afbeelding-${index+1}`;return raw.replace(/[^a-zA-Z0-9._-]/g,'_').slice(-120)}
 
@@ -45,7 +58,7 @@ export async function POST(request:Request){
  if(file.size<=0||file.size>MAX_FILE_SIZE)return NextResponse.json({error:'Bestand is leeg of groter dan 20 MB.'},{status:400})
  try{
   const buffer=Buffer.from(await file.arrayBuffer()),entries=zipEntries(buffer).filter(entry=>entry.name.startsWith(prefix)&&!entry.name.endsWith('/')),images:Array<{name:string;mimeType:string;base64:string}>=[];let total=0
-  for(const entry of entries){if(images.length>=MAX_IMAGES)break;const ext=entry.name.split('.').pop()?.toLowerCase()||'',mimeType=IMAGE_TYPES[ext];if(!mimeType||entry.uncompressedSize>10*1024*1024||total+entry.uncompressedSize>MAX_TOTAL_IMAGE_BYTES)continue;const bytes=extract(buffer,entry);total+=bytes.length;images.push({name:safeName(entry.name,images.length),mimeType,base64:bytes.toString('base64')})}
+  for(const entry of entries){if(images.length>=MAX_IMAGES)break;const ext=entry.name.split('.').pop()?.toLowerCase()||'',mimeType=IMAGE_TYPES[ext];if(!mimeType||entry.uncompressedSize>MAX_IMAGE_BYTES||total+entry.uncompressedSize>MAX_TOTAL_IMAGE_BYTES)continue;const bytes=extract(buffer,entry);total+=bytes.length;images.push({name:safeName(entry.name,images.length),mimeType,base64:bytes.toString('base64')})}
   return NextResponse.json({images})
  }catch{return NextResponse.json({error:'Ingesloten afbeeldingen konden niet betrouwbaar worden uitgelezen.'},{status:422})}
 }

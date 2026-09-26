@@ -19,14 +19,17 @@ export async function GET(request:NextRequest){
     return NextResponse.json({error:"Geen toegang."},{status:403})
   }
 
-  const {data:rateData,error:rateError}=await s.rpc("upt_geoapify_rate_limit")
+  // The RPC is introduced by the migration in this branch. Keep the runtime
+  // function name while allowing CI to typecheck against the generated schema
+  // until database types are regenerated after the migration is deployed.
+  const {data:rateData,error:rateError}=await s.rpc("upt_geoapify_rate_limit" as "upt_is_approved")
   if(rateError){
     return NextResponse.json(
       {error:"Locatiezoeker tijdelijk niet beschikbaar."},
       {status:503,headers:{"Cache-Control":"no-store"}},
     )
   }
-  const rate=(rateData||{}) as RateLimitResult
+  const rate=rateData as unknown as RateLimitResult
   if(rate.allowed!==true){
     const retryAfter=Math.max(1,Number(rate.retry_after)||60)
     return NextResponse.json(

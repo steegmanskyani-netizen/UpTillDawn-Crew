@@ -6,7 +6,25 @@ const languages = [
   { value: "nl", label: "Nederlands" },
   { value: "fr", label: "Frans" },
   { value: "en", label: "Engels" },
+  { value: "de", label: "Duits" },
 ] as const
+
+type Language = typeof languages[number]["value"]
+const supported = new Set<Language>(languages.map(item => item.value))
+
+function parseLanguage(value: string | null | undefined): Language | null {
+  const locale = value?.trim().toLowerCase().split(/[-_]/)[0] as Language | undefined
+  return locale && supported.has(locale) ? locale : null
+}
+
+function deviceLanguage(): Language {
+  const candidates = window.navigator.languages?.length ? window.navigator.languages : [window.navigator.language]
+  for (const candidate of candidates) {
+    const locale = parseLanguage(candidate)
+    if (locale) return locale
+  }
+  return "nl"
+}
 
 export function LanguageSwitcher({ dark = false }: { dark?: boolean }) {
   const [language, setLanguage] = useState("nl")
@@ -14,22 +32,9 @@ export function LanguageSwitcher({ dark = false }: { dark?: boolean }) {
   useEffect(() => {
     let cancelled = false
     const stored = window.localStorage.getItem("uptilldawn-language")
-    let next = stored === "nl" || stored === "fr" || stored === "en" ? stored : "nl"
-    if (next === "nl" && stored !== "nl") {
-      const candidates = window.navigator.languages?.length
-        ? window.navigator.languages
-        : [window.navigator.language]
-      for (const candidate of candidates) {
-        const locale = candidate.trim().toLowerCase().split(/[-_]/)[0]
-        if (locale === "nl" || locale === "fr" || locale === "en") {
-          next = locale
-          break
-        }
-      }
-    }
-    queueMicrotask(() => {
-      if (!cancelled) setLanguage(next)
-    })
+    const storedLanguage: Language | null = stored === "nl" || stored === "fr" || stored === "en" || stored === "de" ? stored : null
+    const next: Language = storedLanguage || deviceLanguage()
+    queueMicrotask(() => { if (!cancelled) setLanguage(next) })
     return () => { cancelled = true }
   }, [])
 
@@ -39,7 +44,7 @@ export function LanguageSwitcher({ dark = false }: { dark?: boolean }) {
       aria-label="Taal wijzigen"
       value={language}
       onChange={event => {
-        const next = event.target.value
+        const next = parseLanguage(event.target.value) || "nl"
         setLanguage(next)
         window.localStorage.setItem("uptilldawn-language", next)
         document.documentElement.lang = next

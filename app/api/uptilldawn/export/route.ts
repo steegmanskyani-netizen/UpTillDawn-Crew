@@ -6,10 +6,14 @@ import type { Tables } from '@/types/crew-database'
 
 type PageResult<T> = { data: T[] | null; error: unknown }
 
-async function allPages<T>(
-  load: (from: number, to: number) => PromiseLike<PageResult<T>>,
-  pageSize = 1000,
-) {
+// Spreadsheet applications can interpret leading =, +, -, or @ as formulas.
+// Prefix untrusted text with an apostrophe so exported domain data always stays text.
+function safeSpreadsheetText(value: unknown): string {
+  const text = value == null ? '' : String(value)
+  return /^[=+\-@]/.test(text) ? `'${text}` : text
+}
+
+async function allPages<T>(load: (from: number, to: number) => PromiseLike<PageResult<T>>, pageSize = 1000) {
   const rows: T[] = []
   for (let from = 0; ; from += pageSize) {
     const { data, error } = await load(from, from + pageSize - 1)
@@ -47,21 +51,7 @@ export async function GET() {
   let assignments: Tables<'task_assignments'>[]
 
   try {
-    ;[
-      sessions,
-      breaks,
-      transitions,
-      events,
-      people,
-      shifts,
-      workplaces,
-      leads,
-      checkins,
-      briefings,
-      acks,
-      tasks,
-      assignments,
-    ] = await Promise.all([
+    ;[sessions, breaks, transitions, events, people, shifts, workplaces, leads, checkins, briefings, acks, tasks, assignments] = await Promise.all([
       allPages<Tables<'work_sessions'>>((from, to) => s.from('work_sessions').select('*').order('started_at').order('id').range(from, to)),
       allPages<Tables<'break_sessions'>>((from, to) => s.from('break_sessions').select('*').order('id').range(from, to)),
       allPages<Tables<'workplace_transitions'>>((from, to) => s.from('workplace_transitions').select('*').order('id').range(from, to)),
@@ -82,15 +72,7 @@ export async function GET() {
 
   let rows
   try {
-    rows = allocateTime(
-      sessions.map(x => ({
-        ...x,
-        workplace_id: shifts.find(y => y.id === x.shift_id)?.workplace_id || null,
-      })),
-      breaks,
-      transitions,
-      Date.now(),
-    )
+    rows = allocateTime(sessions.map(x => ({ ...x, workplace_id: shifts.find(y => y.id === x.shift_id)?.workplace_id || null })), breaks, transitions, Date.now())
   } catch {
     return new NextResponse('Tijdregistraties vereisen correctie voor export.', { status: 409 })
   }
@@ -107,14 +89,18 @@ export async function GET() {
     const date = (n: number) => new Intl.DateTimeFormat('nl-BE', { timeZone: zone, dateStyle: 'short', timeStyle: 'short' }).format(n)
     const required = briefings.filter(b => b.event_id === row.eventId && b.required && (!b.workplace_id || b.workplace_id === row.workplaceId))
     const own = assignments.filter(a => a.user_id === row.userId && tasks.some(t => t.id === a.task_id && t.event_id === row.eventId && (!t.workplace_id || t.workplace_id === row.workplaceId)))
+    const responsibleNames = leads
+      .filter(l => l.workplace_id === row.workplaceId)
+      .map(l => people.find(p => p.id === l.user_id)?.full_name || l.user_id)
+      .join(', ')
 
     ws.addRow({
       'Datum': date(row.start),
-      'Evenement': event?.name,
-      'Medewerker': people.find(p => p.id === row.userId)?.full_name,
-      'Werkplek': workplaces.find(w => w.id === row.workplaceId)?.name,
-      'Rol': shift?.role_name,
-      'Verantwoordelijke': leads.filter(l => l.workplace_id === row.workplaceId).map(l => people.find(p => p.id === l.user_id)?.full_name || l.user_id).join(', '),
+      'Evenement': safeSpreadsheetText(event?.name),
+      'Medewerker': safeSpreadsheetText(people.find(p => p.id === row.userId)?.full_name),
+      'Werkplek': safeSpreadsheetText(workplaces.find(w => w.id === row.workplaceId)?.name),
+      'Rol': safeSpreadsheetText(shift?.role_name),
+      'Verantwoordelijke': safeSpreadsheetText(responsibleNames),
       'Dienst start': shift ? date(Date.parse(shift.scheduled_start)) : '',
       'Dienst einde': shift ? date(Date.parse(shift.scheduled_end)) : '',
       'Brutoduur': row.grossSeconds / 3600,

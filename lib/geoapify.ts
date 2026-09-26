@@ -55,6 +55,7 @@ async function request(path:"autocomplete"|"search",text:string,lang:string,limi
   const response=await fetch(`https://api.geoapify.com/v1/geocode/${path}?${params.toString()}`,{
     headers:{Accept:"application/json"},
     cache:"no-store",
+    signal:AbortSignal.timeout(8_000),
   })
   if(!response.ok)throw new Error("Locaties konden niet worden opgezocht.")
   const payload=await response.json() as {results?:RawLocation[]}

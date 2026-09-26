@@ -120,224 +120,203 @@
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 26,
+    "line": 11,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 51,
+    "line": 24,
     "kind": "a",
     "label": "{/* eslint-disable-next-line @next/next/no-img-element */}",
     "handler": "href={url}"
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 59,
+    "line": 39,
+    "kind": "a",
+    "label": "{type} Document openen",
+    "handler": "href={url}"
+  },
+  {
+    "file": "app/(app)/briefings/page.tsx",
+    "line": 53,
     "kind": "functie",
     "label": "Page",
     "handler": "Page"
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 207,
+    "line": 70,
     "kind": "h1",
     "label": "Instructies",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 215,
+    "line": 71,
     "kind": "form",
     "label": "Nieuwe algemene instructie Instructie aanmaken",
     "handler": "action={createBriefing}"
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 216,
+    "line": 71,
     "kind": "h2",
     "label": "Nieuwe algemene instructie",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 227,
-    "kind": "input",
-    "label": "",
-    "handler": ""
-  },
-  {
-    "file": "app/(app)/briefings/page.tsx",
-    "line": 228,
-    "kind": "textarea",
-    "label": "",
-    "handler": ""
-  },
-  {
-    "file": "app/(app)/briefings/page.tsx",
-    "line": 230,
+    "line": 71,
     "kind": "button",
     "label": "Instructie aanmaken",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 233,
+    "line": 72,
     "kind": "form",
     "label": "Persoonlijke instructie Instructie toewijzen",
     "handler": "action={createPersonalInstruction}"
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 234,
+    "line": 72,
     "kind": "h2",
     "label": "Persoonlijke instructie",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 244,
-    "kind": "input",
-    "label": "",
-    "handler": ""
-  },
-  {
-    "file": "app/(app)/briefings/page.tsx",
-    "line": 245,
-    "kind": "textarea",
-    "label": "",
-    "handler": ""
-  },
-  {
-    "file": "app/(app)/briefings/page.tsx",
-    "line": 247,
+    "line": 72,
     "kind": "button",
     "label": "Instructie toewijzen",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 255,
+    "line": 74,
     "kind": "h2",
     "label": "{briefing.title} · v {briefing.version}",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 260,
+    "line": 74,
     "kind": "form",
     "label": "Wijzig instructie + nieuwe bevestiging",
     "handler": "action={updateBriefing}"
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 261,
+    "line": 74,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 262,
+    "line": 74,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 263,
+    "line": 74,
     "kind": "textarea",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 265,
+    "line": 74,
     "kind": "button",
     "label": "Wijzig instructie + nieuwe bevestiging",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 269,
+    "line": 74,
     "kind": "form",
     "label": "INSTRUCTIE GELEZEN",
     "handler": "action={acknowledgeBriefing}"
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 270,
+    "line": 74,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 271,
+    "line": 74,
     "kind": "button",
     "label": "INSTRUCTIE GELEZEN",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 276,
+    "line": 75,
     "kind": "h2",
     "label": "Persoonlijk: {instruction.title} · v {instruction.version}",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 281,
+    "line": 75,
     "kind": "form",
     "label": "Wijzig instructie + nieuwe bevestiging",
     "handler": "action={updatePersonalInstruction}"
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 282,
+    "line": 75,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 283,
+    "line": 75,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 284,
+    "line": 75,
     "kind": "textarea",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 286,
+    "line": 75,
     "kind": "button",
     "label": "Wijzig instructie + nieuwe bevestiging",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 290,
+    "line": 75,
     "kind": "form",
     "label": "Gelezen bevestigen",
     "handler": "action={acknowledgeInstruction}"
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 291,
+    "line": 75,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/briefings/page.tsx",
-    "line": 292,
+    "line": 75,
     "kind": "button",
     "label": "Gelezen bevestigen",
     "handler": ""
@@ -449,7 +428,7 @@
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 105,
+    "line": 106,
     "kind": "h2",
     "label": "{event.name}",
     "handler": ""
@@ -458,35 +437,7 @@
     "file": "app/(app)/events/page.tsx",
     "line": 118,
     "kind": "form",
-    "label": "IK KAN",
-    "handler": "action={setEventAvailability}"
-  },
-  {
-    "file": "app/(app)/events/page.tsx",
-    "line": 118,
-    "kind": "input",
-    "label": "",
-    "handler": ""
-  },
-  {
-    "file": "app/(app)/events/page.tsx",
-    "line": 118,
-    "kind": "input",
-    "label": "",
-    "handler": ""
-  },
-  {
-    "file": "app/(app)/events/page.tsx",
-    "line": 118,
-    "kind": "button",
-    "label": "IK KAN",
-    "handler": ""
-  },
-  {
-    "file": "app/(app)/events/page.tsx",
-    "line": 119,
-    "kind": "form",
-    "label": "IK KAN NIET",
+    "label": "Evenement Ja Nee Opbouw Ja Nee Afbouw Ja Nee BESCHIKBAARHEID OPSLAAN",
     "handler": "action={setEventAvailability}"
   },
   {
@@ -498,114 +449,121 @@
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 119,
+    "line": 122,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 119,
-    "kind": "button",
-    "label": "IK KAN NIET",
+    "line": 123,
+    "kind": "input",
+    "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 125,
+    "line": 127,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 128,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 132,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 133,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 135,
+    "kind": "button",
+    "label": "BESCHIKBAARHEID OPSLAAN",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 141,
     "kind": "Link",
     "label": "Chats openen",
     "handler": "href=\"/chat\""
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 132,
+    "line": 148,
     "kind": "h3",
-    "label": "Mensen die kunnen",
+    "label": "Beschikbare mensen",
     "handler": ""
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 140,
+    "line": 156,
     "kind": "form",
     "label": "WERKPLEK TOEVOEGEN",
     "handler": "action={addWorkplace}"
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 141,
+    "line": 157,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 142,
+    "line": 158,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 143,
+    "line": 159,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 144,
+    "line": 160,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 145,
+    "line": 161,
     "kind": "button",
     "label": "WERKPLEK TOEVOEGEN",
     "handler": ""
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 175,
+    "line": 195,
     "kind": "form",
-    "label": "Werkplek Werkplek kiezen… {eventWorkplaces.map(workplace=> {workplace.name} )} Rol / functie Shift-type Evenement Opbouw — max. 3 dagen vooraf Afbouw — max. 3 dagen nadien Overlapp",
+    "label": "Werkplek Werkplek kiezen… {eventWorkplaces.map(workplace=> {workplace.name} )} Rol / functie Shift-type {row.response==='can'&& Evenement } {row.setup_available&& Opbouw — max. 3 d",
     "handler": "action={assignAvailableCrewShift}"
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 176,
+    "line": 196,
     "kind": "input",
     "label": "",
-    "handler": ""
-  },
-  {
-    "file": "app/(app)/events/page.tsx",
-    "line": 177,
-    "kind": "input",
-    "label": "",
-    "handler": ""
-  },
-  {
-    "file": "app/(app)/events/page.tsx",
-    "line": 179,
-    "kind": "select",
-    "label": "Werkplek kiezen… {eventWorkplaces.map(workplace=> {workplace.name} )}",
-    "handler": ""
-  },
-  {
-    "file": "app/(app)/events/page.tsx",
-    "line": 185,
-    "kind": "input",
-    "label": "",
-    "handler": ""
-  },
-  {
-    "file": "app/(app)/events/page.tsx",
-    "line": 188,
-    "kind": "select",
-    "label": "Evenement Opbouw — max. 3 dagen vooraf Afbouw — max. 3 dagen nadien",
     "handler": ""
   },
   {
@@ -618,29 +576,22 @@
   {
     "file": "app/(app)/events/page.tsx",
     "line": 199,
-    "kind": "button",
-    "label": "{alreadyAdded?'DIENST TOEVOEGEN':'TOEWIJZEN + DIENST AANMAKEN'}",
+    "kind": "select",
+    "label": "Werkplek kiezen… {eventWorkplaces.map(workplace=> {workplace.name} )}",
     "handler": ""
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 210,
-    "kind": "form",
-    "label": "GPS-radius (m) WIJZIGINGEN OPSLAAN",
-    "handler": "action={updateEvent}"
-  },
-  {
-    "file": "app/(app)/events/page.tsx",
-    "line": 211,
+    "line": 205,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 212,
-    "kind": "input",
-    "label": "",
+    "line": 208,
+    "kind": "select",
+    "label": "{row.response==='can'&& Evenement } {row.setup_available&& Opbouw — max. 3 dagen vooraf } {row.breakdown_available&& Afbouw — max. 3 dagen nadien }",
     "handler": ""
   },
   {
@@ -654,33 +605,68 @@
     "file": "app/(app)/events/page.tsx",
     "line": 219,
     "kind": "button",
+    "label": "{alreadyAdded?'DIENST TOEVOEGEN':'TOEWIJZEN + DIENST AANMAKEN'}",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 230,
+    "kind": "form",
+    "label": "GPS-radius (m) WIJZIGINGEN OPSLAAN",
+    "handler": "action={updateEvent}"
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 231,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 232,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 237,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/events/page.tsx",
+    "line": 239,
+    "kind": "button",
     "label": "WIJZIGINGEN OPSLAAN",
     "handler": ""
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 225,
+    "line": 245,
     "kind": "form",
     "label": "Configuratie kopiëren",
     "handler": "action={duplicateEvent}"
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 226,
+    "line": 246,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 227,
+    "line": 247,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/events/page.tsx",
-    "line": 230,
+    "line": 250,
     "kind": "button",
     "label": "Configuratie kopiëren",
     "handler": ""
@@ -736,7 +722,7 @@
   },
   {
     "file": "app/(app)/layout.tsx",
-    "line": 4,
+    "line": 6,
     "kind": "functie",
     "label": "AuthenticatedLayout",
     "handler": "AuthenticatedLayout"
@@ -806,23 +792,9 @@
   },
   {
     "file": "app/(app)/operations/operations-client.tsx",
-    "line": 44,
+    "line": 45,
     "kind": "h1",
-    "label": "{p.personalWork?'Werk & pauze':'Operationele status & goedkeuringen'}",
-    "handler": ""
-  },
-  {
-    "file": "app/(app)/operations/operations-client.tsx",
-    "line": 45,
-    "kind": "input",
-    "label": "setRemote(e.target.checked)}/>",
-    "handler": ""
-  },
-  {
-    "file": "app/(app)/operations/operations-client.tsx",
-    "line": 45,
-    "kind": "input",
-    "label": "setFile(e.target.files?.[0]||null)}/>",
+    "label": "{p.personalWork?'Mijn werkuren':'Operationele status & goedkeuringen'}",
     "handler": ""
   },
   {
@@ -841,101 +813,108 @@
   },
   {
     "file": "app/(app)/operations/operations-client.tsx",
-    "line": 50,
-    "kind": "button",
-    "label": "WERK STOPPEN",
-    "handler": "onClick={()=>run(()=>work('stop_work',{session_id:p.activeSession!.id}))}"
+    "line": 52,
+    "kind": "Link",
+    "label": "STOPUREN AANVRAGEN",
+    "handler": "href=\"/qr\""
   },
   {
     "file": "app/(app)/operations/operations-client.tsx",
-    "line": 51,
-    "kind": "button",
-    "label": "UITKLOKKEN AANVRAGEN",
-    "handler": "onClick={()=>run(async()=>{const {error}=await s.rpc('upt_request_check_out',{p_event:p.activeSession!.event_id});if(error)throw error;setMsg('Uitklokken aangevraagd. WERK STOPPEN blijft een aparte actie.')})}"
-  },
-  {
-    "file": "app/(app)/operations/operations-client.tsx",
-    "line": 53,
+    "line": 54,
     "kind": "h2",
     "label": "Mijn diensten",
     "handler": ""
   },
   {
     "file": "app/(app)/operations/operations-client.tsx",
-    "line": 53,
+    "line": 54,
     "kind": "h3",
     "label": "{p.events.find(e=>e.id===shift.event_id)?.name} · {p.workplaces.find(w=>w.id===shift.workplace_id)?.name}",
     "handler": ""
   },
   {
     "file": "app/(app)/operations/operations-client.tsx",
-    "line": 54,
-    "kind": "button",
-    "label": "{p.manager&&!p.isAdmin?'UREN STARTEN AANVRAGEN':'INKLOKKEN AANVRAGEN'}",
-    "handler": "onClick={()=>run(()=>requestCheckin(shift))}"
-  },
-  {
-    "file": "app/(app)/operations/operations-client.tsx",
-    "line": 56,
-    "kind": "button",
-    "label": "WERK STARTEN",
-    "handler": "onClick={()=>run(()=>work('start_work',{event_id:shift.event_id,shift_id:shift.id}))}"
-  },
-  {
-    "file": "app/(app)/operations/operations-client.tsx",
     "line": 57,
-    "kind": "button",
-    "label": "UITKLOKKEN AANVRAGEN",
-    "handler": "onClick={()=>run(async()=>{const {error}=await s.rpc('upt_request_check_out',{p_event:shift.event_id});if(error)throw error;setMsg('Uitklokken aangevraagd.')})}"
+    "kind": "Link",
+    "label": "STARTUREN AANVRAGEN",
+    "handler": "href=\"/qr\""
   },
   {
     "file": "app/(app)/operations/operations-client.tsx",
-    "line": 58,
+    "line": 59,
     "kind": "button",
     "label": "NIEUWE WERKPLEK — OVERGANG BEVESTIGEN",
     "handler": "onClick={()=>run(()=>work('transition',{session_id:p.activeSession!.id,workplace_id:shift.workplace_id}))}"
   },
   {
     "file": "app/(app)/operations/operations-client.tsx",
-    "line": 60,
+    "line": 61,
     "kind": "h2",
     "label": "Actuele personeelstatus",
     "handler": ""
   },
   {
     "file": "app/(app)/operations/operations-client.tsx",
-    "line": 60,
+    "line": 61,
     "kind": "a",
     "label": "{crew.phone_number}",
     "handler": "href={`tel:${crew.phone_number}`}"
   },
   {
     "file": "app/(app)/operations/operations-client.tsx",
-    "line": 61,
+    "line": 62,
     "kind": "h2",
     "label": "Goedkeuringen",
     "handler": ""
   },
   {
     "file": "app/(app)/operations/operations-client.tsx",
-    "line": 61,
-    "kind": "button",
-    "label": "Selfie bekijken",
-    "handler": "onClick={()=>run(async()=>{const {data,error}=await s.storage.from('checkin-selfies').createSignedUrl(c.selfie_path!,60);if(error)throw error;window.open(data.signedUrl,'_blank','noopener,noreferrer')})}"
+    "line": 62,
+    "kind": "input",
+    "label": "setRejectionReasons(current=>({...current,[request.id]:event.target.value}))} maxLength={500} placeholder=\"Reden bij afwijzing (verplicht)\" className=\"w-full rounded-lg border bg-b",
+    "handler": ""
   },
   {
     "file": "app/(app)/operations/operations-client.tsx",
-    "line": 61,
+    "line": 62,
     "kind": "button",
-    "label": "Goedkeuren",
-    "handler": "onClick={()=>run(()=>decide(c.kind,c.id,true))}"
+    "label": "GOEDKEUREN",
+    "handler": "onClick={()=>run(()=>decide(request.kind,request.id,true))}"
   },
   {
     "file": "app/(app)/operations/operations-client.tsx",
-    "line": 61,
+    "line": 62,
     "kind": "button",
-    "label": "Afwijzen",
-    "handler": "onClick={()=>run(()=>decide(c.kind,c.id,false))}"
+    "label": "AFWIJZEN",
+    "handler": "onClick={()=>run(()=>decide(request.kind,request.id,false))}"
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 63,
+    "kind": "h2",
+    "label": "Tijdcorrectie — vroegstartcontrole",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 82,
+    "kind": "input",
+    "label": "setAdjusted(event.target.value)} className=\"rounded-lg border bg-background p-3\"/>",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 82,
+    "kind": "button",
+    "label": "GOEDKEUREN",
+    "handler": "onClick={()=>submit()}"
+  },
+  {
+    "file": "app/(app)/operations/operations-client.tsx",
+    "line": 82,
+    "kind": "button",
+    "label": "TIJD AANPASSEN",
+    "handler": "onClick={()=>submit(adjusted)}"
   },
   {
     "file": "app/(app)/operations/page.tsx",
@@ -1002,58 +981,79 @@
   },
   {
     "file": "app/(app)/personnel/page.tsx",
-    "line": 9,
+    "line": 10,
     "kind": "functie",
     "label": "Page",
     "handler": "Page"
   },
   {
     "file": "app/(app)/personnel/page.tsx",
-    "line": 21,
+    "line": 23,
     "kind": "h1",
     "label": "Personeel & goedkeuringen",
     "handler": ""
   },
   {
     "file": "app/(app)/personnel/page.tsx",
-    "line": 26,
+    "line": 28,
     "kind": "a",
     "label": "{/* eslint-disable-next-line @next/next/no-img-element */}",
     "handler": "href={photos.get(p.id)}"
   },
   {
     "file": "app/(app)/personnel/page.tsx",
-    "line": 45,
+    "line": 47,
     "kind": "form",
     "label": "In afwachting Goedgekeurd Personeel Verantwoordelijke Beheerder Opslaan",
     "handler": "action={setAccountStatus}"
   },
   {
     "file": "app/(app)/personnel/page.tsx",
-    "line": 46,
+    "line": 48,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/personnel/page.tsx",
-    "line": 47,
+    "line": 49,
     "kind": "select",
     "label": "In afwachting Goedgekeurd",
     "handler": ""
   },
   {
     "file": "app/(app)/personnel/page.tsx",
-    "line": 51,
+    "line": 50,
     "kind": "select",
     "label": "Personeel Verantwoordelijke Beheerder",
     "handler": ""
   },
   {
     "file": "app/(app)/personnel/page.tsx",
-    "line": 56,
+    "line": 51,
     "kind": "button",
     "label": "Opslaan",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/personnel/page.tsx",
+    "line": 53,
+    "kind": "form",
+    "label": "Definitief verwijderen Verwijdert account, persoonsgegevens, toewijzingen en gekoppelde gebruikersdata. Deze actie is definitief.",
+    "handler": "action={deletePersonnel}"
+  },
+  {
+    "file": "app/(app)/personnel/page.tsx",
+    "line": 54,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/personnel/page.tsx",
+    "line": 55,
+    "kind": "button",
+    "label": "Definitief verwijderen",
     "handler": ""
   },
   {
@@ -1142,17 +1142,10 @@
   },
   {
     "file": "app/(app)/shifts/page.tsx",
-    "line": 112,
-    "kind": "form",
-    "label": "Rol Shift-type Evenement Opbouw Afbouw Overlap expliciet toestaan WIJZIG DIENST",
-    "handler": "action={updateShift}"
-  },
-  {
-    "file": "app/(app)/shifts/page.tsx",
     "line": 113,
-    "kind": "input",
-    "label": "",
-    "handler": ""
+    "kind": "form",
+    "label": "SHIFT BEVESTIGEN",
+    "handler": "action={confirmShift}"
   },
   {
     "file": "app/(app)/shifts/page.tsx",
@@ -1163,10 +1156,17 @@
   },
   {
     "file": "app/(app)/shifts/page.tsx",
-    "line": 116,
-    "kind": "select",
-    "label": "Evenement Opbouw Afbouw",
+    "line": 115,
+    "kind": "button",
+    "label": "SHIFT BEVESTIGEN",
     "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 121,
+    "kind": "form",
+    "label": "Rol Shift-type Evenement Opbouw Afbouw Overlap expliciet toestaan WIJZIG DIENST",
+    "handler": "action={updateShift}"
   },
   {
     "file": "app/(app)/shifts/page.tsx",
@@ -1177,35 +1177,56 @@
   },
   {
     "file": "app/(app)/shifts/page.tsx",
+    "line": 123,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
     "line": 125,
+    "kind": "select",
+    "label": "Evenement Opbouw Afbouw",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 131,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/shifts/page.tsx",
+    "line": 134,
     "kind": "button",
     "label": "WIJZIG DIENST",
     "handler": ""
   },
   {
     "file": "app/(app)/shifts/page.tsx",
-    "line": 127,
+    "line": 136,
     "kind": "form",
     "label": "ANNULEER DIENST",
     "handler": "action={cancelShift}"
   },
   {
     "file": "app/(app)/shifts/page.tsx",
-    "line": 128,
+    "line": 137,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/shifts/page.tsx",
-    "line": 129,
+    "line": 138,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/shifts/page.tsx",
-    "line": 130,
+    "line": 139,
     "kind": "button",
     "label": "ANNULEER DIENST",
     "handler": ""
@@ -1233,84 +1254,84 @@
   },
   {
     "file": "app/(app)/tasks/page.tsx",
-    "line": 62,
+    "line": 63,
     "kind": "h1",
     "label": "Taken",
     "handler": ""
   },
   {
     "file": "app/(app)/tasks/page.tsx",
-    "line": 178,
+    "line": 179,
     "kind": "h1",
     "label": "Taken",
     "handler": ""
   },
   {
     "file": "app/(app)/tasks/page.tsx",
-    "line": 185,
+    "line": 186,
     "kind": "form",
     "label": "({ id: workplace.id, name: workplace.name, event_id: workplace.event_id }))} people={people} memberships={memberships} isAdmin={isAdmin} showEventSelect workplaceRequired={!isAdmin",
     "handler": "action={createTask}"
   },
   {
     "file": "app/(app)/tasks/page.tsx",
-    "line": 197,
+    "line": 199,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/tasks/page.tsx",
-    "line": 198,
+    "line": 200,
     "kind": "textarea",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/tasks/page.tsx",
-    "line": 201,
+    "line": 203,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/tasks/page.tsx",
-    "line": 204,
+    "line": 206,
     "kind": "button",
     "label": "TAAK AANMAKEN & TOEWIJZEN",
     "handler": ""
   },
   {
     "file": "app/(app)/tasks/page.tsx",
-    "line": 217,
+    "line": 219,
     "kind": "h2",
     "label": "{task?.title}",
     "handler": ""
   },
   {
     "file": "app/(app)/tasks/page.tsx",
-    "line": 225,
+    "line": 227,
     "kind": "a",
     "label": "{/* eslint-disable-next-line @next/next/no-img-element */}",
     "handler": "href={url}"
   },
   {
     "file": "app/(app)/tasks/page.tsx",
-    "line": 235,
+    "line": 237,
     "kind": "form",
     "label": "Toewijzing verwijderen",
     "handler": "action={removeTaskAssignment}"
   },
   {
     "file": "app/(app)/tasks/page.tsx",
-    "line": 236,
+    "line": 238,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/tasks/page.tsx",
-    "line": 237,
+    "line": 239,
     "kind": "button",
     "label": "Toewijzing verwijderen",
     "handler": ""
@@ -1576,70 +1597,70 @@
   },
   {
     "file": "app/(auth)/login/page.tsx",
-    "line": 42,
+    "line": 47,
     "kind": "button",
     "label": "{menuOpen ? : }",
     "handler": "onClick={() => setMenuOpen(v => !v)}"
   },
   {
     "file": "app/(auth)/login/page.tsx",
-    "line": 57,
+    "line": 62,
     "kind": "Link",
     "label": "{portals[key].label}",
     "handler": "href={`/login/${key}`} onClick={() => setMenuOpen(false)}"
   },
   {
     "file": "app/(auth)/login/page.tsx",
-    "line": 80,
+    "line": 85,
     "kind": "h1",
     "label": "{portals[portal].label}",
     "handler": ""
   },
   {
     "file": "app/(auth)/login/page.tsx",
-    "line": 91,
+    "line": 96,
     "kind": "form",
     "label": "E-mail Wachtwoord Wachtwoord vergeten? setShowPassword(v => !v)} className=\"absolute right-4 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white\"> {showPassword ? : } {isPendin",
     "handler": "onSubmit={handleSubmit}"
   },
   {
     "file": "app/(auth)/login/page.tsx",
-    "line": 94,
+    "line": 99,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(auth)/login/page.tsx",
-    "line": 99,
+    "line": 104,
     "kind": "Link",
     "label": "Wachtwoord vergeten?",
     "handler": "href=\"/forgot-password\""
   },
   {
     "file": "app/(auth)/login/page.tsx",
-    "line": 102,
+    "line": 107,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(auth)/login/page.tsx",
-    "line": 103,
+    "line": 108,
     "kind": "button",
     "label": "{showPassword ? : }",
     "handler": "onClick={() => setShowPassword(v => !v)}"
   },
   {
     "file": "app/(auth)/login/page.tsx",
-    "line": 108,
+    "line": 113,
     "kind": "button",
     "label": "{isPending ? Inloggen… : Inloggen }",
     "handler": ""
   },
   {
     "file": "app/(auth)/login/page.tsx",
-    "line": 114,
+    "line": 119,
     "kind": "Link",
     "label": "Account aanmaken",
     "handler": "href=\"/signup\""
@@ -1757,6 +1778,20 @@
     "handler": "href=\"/login\""
   },
   {
+    "file": "app/api/briefing-analyze/route.ts",
+    "line": 10,
+    "kind": "functie",
+    "label": "POST",
+    "handler": "POST"
+  },
+  {
+    "file": "app/api/briefing-extract-media/route.ts",
+    "line": 39,
+    "kind": "functie",
+    "label": "POST",
+    "handler": "POST"
+  },
+  {
     "file": "app/api/edit-assistant/route.ts",
     "line": 101,
     "kind": "functie",
@@ -1814,14 +1849,14 @@
   },
   {
     "file": "app/api/god/rules/route.ts",
-    "line": 24,
+    "line": 20,
     "kind": "functie",
     "label": "GET",
     "handler": "GET"
   },
   {
     "file": "app/api/god/rules/route.ts",
-    "line": 35,
+    "line": 31,
     "kind": "functie",
     "label": "POST",
     "handler": "POST"
@@ -1863,14 +1898,14 @@
   },
   {
     "file": "app/api/push/subscription/route.ts",
-    "line": 39,
+    "line": 21,
     "kind": "functie",
     "label": "POST",
     "handler": "POST"
   },
   {
     "file": "app/api/push/subscription/route.ts",
-    "line": 61,
+    "line": 43,
     "kind": "functie",
     "label": "DELETE",
     "handler": "DELETE"
@@ -2072,6 +2107,13 @@
     "handler": "manifest"
   },
   {
+    "file": "app/qr/page.tsx",
+    "line": 7,
+    "kind": "functie",
+    "label": "QrEntryPage",
+    "handler": "QrEntryPage"
+  },
+  {
     "file": "app/robots.ts",
     "line": 3,
     "kind": "functie",
@@ -2128,6 +2170,13 @@
     "handler": "ManagerOnly"
   },
   {
+    "file": "components/auth/return-after-login.tsx",
+    "line": 6,
+    "kind": "functie",
+    "label": "ReturnAfterLogin",
+    "handler": "ReturnAfterLogin"
+  },
+  {
     "file": "components/auth/staff-availability.tsx",
     "line": 5,
     "kind": "functie",
@@ -2171,31 +2220,80 @@
   },
   {
     "file": "components/crew/assignment-scope-fields.tsx",
-    "line": 78,
+    "line": 88,
     "kind": "select",
     "label": "Evenement… {events.map(event => {event.name} )}",
     "handler": ""
   },
   {
     "file": "components/crew/assignment-scope-fields.tsx",
-    "line": 93,
+    "line": 103,
     "kind": "select",
     "label": "{showEventSelect ? {workplaceRequired?'Werkplek…':'Geheel evenement'} : Werkplek… } {visibleWorkplaces.map(workplace => { const eventName = events.find(event => event.id === workpl",
     "handler": ""
   },
   {
     "file": "components/crew/assignment-scope-fields.tsx",
-    "line": 123,
+    "line": 133,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "components/crew/assignment-scope-fields.tsx",
-    "line": 128,
+    "line": 138,
     "kind": "select",
     "label": "Medewerker… {visiblePeople.map(person => {person.full_name || \"Naam ontbreekt\"} , )}",
     "handler": ""
+  },
+  {
+    "file": "components/crew/briefing-analysis-fields.tsx",
+    "line": 6,
+    "kind": "functie",
+    "label": "BriefingAnalysisFields",
+    "handler": "BriefingAnalysisFields"
+  },
+  {
+    "file": "components/crew/briefing-analysis-fields.tsx",
+    "line": 24,
+    "kind": "input",
+    "label": "{const file=event.target.files?.[0];if(file)void analyze(file)}}/>",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/briefing-analysis-fields.tsx",
+    "line": 25,
+    "kind": "input",
+    "label": "",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/briefing-analysis-fields.tsx",
+    "line": 29,
+    "kind": "input",
+    "label": "setTitle(event.target.value)}/>",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/briefing-analysis-fields.tsx",
+    "line": 30,
+    "kind": "textarea",
+    "label": "setBody(event.target.value)}/>",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/chat-client.tsx",
+    "line": 13,
+    "kind": "a",
+    "label": "",
+    "handler": "href={attachment.url}"
+  },
+  {
+    "file": "components/crew/chat-client.tsx",
+    "line": 13,
+    "kind": "a",
+    "label": "Document openen",
+    "handler": "href={attachment.url}"
   },
   {
     "file": "components/crew/chat-client.tsx",
@@ -2206,77 +2304,70 @@
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 128,
+    "line": 18,
     "kind": "h1",
     "label": "Chat",
     "handler": ""
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 133,
+    "line": 19,
     "kind": "button",
     "label": "{channelName(selectedChannel)} Tik om van chat te wisselen",
-    "handler": "onClick={()=>setPickerOpen(open=>!open)}"
+    "handler": "onClick={()=>setPickerOpen(o=>!o)}"
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 140,
+    "line": 19,
     "kind": "button",
     "label": "",
     "handler": "onClick={()=>setPickerOpen(false)}"
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 181,
-    "kind": "a",
-    "label": "",
-    "handler": "href={attachment.url}"
-  },
-  {
-    "file": "components/crew/chat-client.tsx",
-    "line": 188,
+    "line": 19,
     "kind": "button",
     "label": "Modereer",
     "handler": "onClick={()=>moderate(message.id)}"
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 200,
+    "line": 19,
     "kind": "button",
     "label": "",
-    "handler": "onClick={()=>{setFile(null);setFileKey(key=>key+1)}}"
+    "handler": "onClick={()=>{setFile(null);setFileKey(k=>k+1)}}"
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 202,
+    "line": 19,
     "kind": "form",
-    "label": "setFile(event.target.files?.[0]||null)} className=\"sr-only\"/> setBody(event.target.value)} placeholder=\"Typ een bericht…\" className=\"max-h-32 min-h-11 min-w-0 flex-1 resize-none ro",
-    "handler": "onSubmit={event=>{event.preventDefault();void sendMessage()}}"
+    "label": "setFile(e.target.files?.[0]||null)} className=\"sr-only\"/> setBody(e.target.value)} placeholder=\"Typ een bericht…\" className=\"max-h-32 min-h-11 min-w-0 flex-1 resize-none rounded-2x",
+    "handler": "onSubmit={e=>{e.preventDefault();void sendMessage()}}"
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 205,
+    "line": 19,
     "kind": "input",
-    "label": "setFile(event.target.files?.[0]||null)} className=\"sr-only\"/>",
+    "label": "setFile(e.target.files?.[0]||null)} className=\"sr-only\"/>",
     "handler": ""
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 207,
+    "line": 19,
     "kind": "textarea",
-    "label": "setBody(event.target.value)} placeholder=\"Typ een bericht…\" className=\"max-h-32 min-h-11 min-w-0 flex-1 resize-none rounded-2xl border bg-card px-4 py-3 text-sm outline-none focus:",
+    "label": "setBody(e.target.value)} placeholder=\"Typ een bericht…\" className=\"max-h-32 min-h-11 min-w-0 flex-1 resize-none rounded-2xl border bg-card px-4 py-3 text-sm\"/>",
     "handler": ""
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 216,
+    "line": 19,
     "kind": "button",
     "label": "",
     "handler": ""
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 227,
+    "line": 20,
     "kind": "button",
     "label": "{name}",
     "handler": "onClick={()=>onChoose(channel.id)}"
@@ -2443,6 +2534,139 @@
     "handler": ""
   },
   {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 28,
+    "kind": "functie",
+    "label": "QrShiftRequest",
+    "handler": "QrShiftRequest"
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 83,
+    "kind": "h1",
+    "label": "Mijn werkuren",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 88,
+    "kind": "h2",
+    "label": "Geen aanvraag mogelijk",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 91,
+    "kind": "Link",
+    "label": "Mijn werkuren openen",
+    "handler": "href=\"/operations\""
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 96,
+    "kind": "h2",
+    "label": "Bevestiging vereist",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 106,
+    "kind": "Link",
+    "label": "OPENEN",
+    "handler": "href={item.link}"
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 107,
+    "kind": "button",
+    "label": "BEVESTIGEN",
+    "handler": "onClick={() => confirmItem(item, result.kind)}"
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 118,
+    "kind": "h2",
+    "label": "Reden vroegtijdige start",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 120,
+    "kind": "textarea",
+    "label": "setReason(event.target.value)} placeholder=\"Reden\" />",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 126,
+    "kind": "button",
+    "label": "VERDER",
+    "handler": "onClick={() => perform()}"
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 136,
+    "kind": "h2",
+    "label": "Wend je tot de verantwoordelijke",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 140,
+    "kind": "button",
+    "label": "JA",
+    "handler": "onClick={() => perform(true)}"
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 141,
+    "kind": "button",
+    "label": "NEE",
+    "handler": "onClick={() => perform(false)}"
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 146,
+    "kind": "h2",
+    "label": "Remote aanvraag",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 152,
+    "kind": "button",
+    "label": "REMOTE AANVRAAG",
+    "handler": "onClick={() => perform(false, true)}"
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 161,
+    "kind": "h2",
+    "label": "Aanvraag in behandeling",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 166,
+    "kind": "Link",
+    "label": "Mijn werkuren",
+    "handler": "href=\"/operations\""
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 170,
+    "kind": "h2",
+    "label": "Aanvraag verzonden",
+    "handler": ""
+  },
+  {
+    "file": "components/crew/qr-shift-request.tsx",
+    "line": 176,
+    "kind": "Link",
+    "label": "Mijn werkuren",
+    "handler": "href=\"/operations\""
+  },
+  {
     "file": "components/crew/queue-status.tsx",
     "line": 7,
     "kind": "functie",
@@ -2521,17 +2745,24 @@
   },
   {
     "file": "components/crew/task-controls.tsx",
-    "line": 12,
+    "line": 14,
     "kind": "functie",
     "label": "TaskControls",
     "handler": "TaskControls"
   },
   {
     "file": "components/crew/task-controls.tsx",
-    "line": 12,
+    "line": 43,
+    "kind": "button",
+    "label": "TAAK BEVESTIGEN",
+    "handler": "onClick={confirm}"
+  },
+  {
+    "file": "components/crew/task-controls.tsx",
+    "line": 55,
     "kind": "button",
     "label": "{status.label}",
-    "handler": "onClick={async()=>{setBusy(true);setError(false);try{await enqueue(userId,'task',{assignment_id:id,status:status.value});router.refresh()}catch{setError(true)}finally{setBusy(false)}}}"
+    "handler": "onClick={async () => {\n        setBusy(true)\n        setError('')\n        try {\n          await enqueue(userId, 'task', { assignment_id: id, status: status.value })\n          router.refresh()\n        } catch {\n          "
   },
   {
     "file": "components/crew/time-correction-form.tsx",
@@ -2605,21 +2836,21 @@
   },
   {
     "file": "components/events/facebook-event-field.tsx",
-    "line": 20,
+    "line": 5,
     "kind": "functie",
     "label": "FacebookEventField",
     "handler": "FacebookEventField"
   },
   {
     "file": "components/events/facebook-event-field.tsx",
-    "line": 63,
+    "line": 8,
     "kind": "input",
-    "label": "{setUrl(e.target.value);setEvent(null);setMessage(\"\")}} placeholder=\"https://www.facebook.com/events/...\" className=\"min-w-0 flex-1 rounded-lg border bg-background p-3\" />",
+    "label": "{setUrl(e.target.value);setEvent(null);setMessage(\"\")}} placeholder=\"https://www.facebook.com/events/...\" className=\"min-w-0 flex-1 rounded-lg border bg-background p-3\"/>",
     "handler": ""
   },
   {
     "file": "components/events/facebook-event-field.tsx",
-    "line": 72,
+    "line": 8,
     "kind": "button",
     "label": "{busy?\"IMPORTEREN…\":\"IMPORTEREN\"}",
     "handler": "onClick={()=>void importEvent()}"
@@ -3606,45 +3837,52 @@
   },
   {
     "file": "lib/actions/auth.ts",
-    "line": 258,
+    "line": 195,
     "kind": "functie",
     "label": "signOut",
     "handler": "signOut"
   },
   {
     "file": "lib/actions/auth.ts",
-    "line": 269,
+    "line": 206,
     "kind": "functie",
     "label": "forgotPassword",
     "handler": "forgotPassword"
   },
   {
     "file": "lib/actions/auth.ts",
-    "line": 301,
+    "line": 238,
     "kind": "functie",
     "label": "updatePassword",
     "handler": "updatePassword"
   },
   {
     "file": "lib/actions/auth.ts",
-    "line": 329,
+    "line": 263,
     "kind": "functie",
     "label": "resendVerificationEmail",
     "handler": "resendVerificationEmail"
   },
   {
     "file": "lib/actions/auth.ts",
-    "line": 359,
+    "line": 293,
     "kind": "functie",
     "label": "getCurrentUser",
     "handler": "getCurrentUser"
   },
   {
     "file": "lib/actions/auth.ts",
-    "line": 406,
+    "line": 340,
     "kind": "functie",
     "label": "verifyAdminSettingsCode",
     "handler": "verifyAdminSettingsCode"
+  },
+  {
+    "file": "lib/actions/events.ts",
+    "line": 42,
+    "kind": "functie",
+    "label": "createEvent",
+    "handler": "createEvent"
   },
   {
     "file": "lib/actions/god-mode-login.ts",
@@ -3668,183 +3906,197 @@
     "handler": "godModeLogout"
   },
   {
+    "file": "lib/actions/personnel.ts",
+    "line": 6,
+    "kind": "functie",
+    "label": "deletePersonnel",
+    "handler": "deletePersonnel"
+  },
+  {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 165,
+    "line": 189,
     "kind": "functie",
     "label": "createEvent",
     "handler": "createEvent"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 191,
+    "line": 215,
     "kind": "functie",
     "label": "addWorkplace",
     "handler": "addWorkplace"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 204,
+    "line": 228,
     "kind": "functie",
     "label": "updateWorkplace",
     "handler": "updateWorkplace"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 217,
+    "line": 241,
     "kind": "functie",
     "label": "setEventAvailability",
     "handler": "setEventAvailability"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 232,
+    "line": 257,
     "kind": "functie",
     "label": "addEventMember",
     "handler": "addEventMember"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 248,
+    "line": 273,
     "kind": "functie",
     "label": "addAvailableEventMembers",
     "handler": "addAvailableEventMembers"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 273,
+    "line": 298,
     "kind": "functie",
     "label": "assignAvailableCrewShift",
     "handler": "assignAvailableCrewShift"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 316,
+    "line": 346,
     "kind": "functie",
     "label": "assignResponsible",
     "handler": "assignResponsible"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 360,
+    "line": 390,
     "kind": "functie",
     "label": "demoteResponsibleToStaff",
     "handler": "demoteResponsibleToStaff"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 423,
+    "line": 453,
     "kind": "functie",
     "label": "createShift",
     "handler": "createShift"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 437,
+    "line": 467,
     "kind": "functie",
     "label": "updateShift",
     "handler": "updateShift"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 450,
+    "line": 480,
+    "kind": "functie",
+    "label": "confirmShift",
+    "handler": "confirmShift"
+  },
+  {
+    "file": "lib/actions/uptilldawn.ts",
+    "line": 486,
     "kind": "functie",
     "label": "cancelShift",
     "handler": "cancelShift"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 456,
+    "line": 492,
     "kind": "functie",
     "label": "setAccountStatus",
     "handler": "setAccountStatus"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 462,
+    "line": 498,
     "kind": "functie",
     "label": "acknowledgeBriefing",
     "handler": "acknowledgeBriefing"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 463,
+    "line": 499,
     "kind": "functie",
     "label": "acknowledgeInstruction",
     "handler": "acknowledgeInstruction"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 464,
+    "line": 500,
     "kind": "functie",
     "label": "createBriefing",
     "handler": "createBriefing"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 492,
+    "line": 528,
     "kind": "functie",
     "label": "createPersonalInstruction",
     "handler": "createPersonalInstruction"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 528,
+    "line": 564,
     "kind": "functie",
     "label": "updateBriefing",
     "handler": "updateBriefing"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 544,
+    "line": 580,
     "kind": "functie",
     "label": "updatePersonalInstruction",
     "handler": "updatePersonalInstruction"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 560,
+    "line": 596,
     "kind": "functie",
     "label": "createTask",
     "handler": "createTask"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 638,
+    "line": 674,
     "kind": "functie",
     "label": "removeTaskAssignment",
     "handler": "removeTaskAssignment"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 650,
+    "line": 686,
     "kind": "functie",
     "label": "markNotificationRead",
     "handler": "markNotificationRead"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 655,
+    "line": 691,
     "kind": "functie",
     "label": "archiveEvent",
     "handler": "archiveEvent"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 656,
+    "line": 692,
     "kind": "functie",
     "label": "duplicateEvent",
     "handler": "duplicateEvent"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 657,
+    "line": 693,
     "kind": "functie",
     "label": "updateEvent",
     "handler": "updateEvent"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 671,
+    "line": 707,
     "kind": "functie",
     "label": "deleteEvent",
     "handler": "deleteEvent"
@@ -3872,56 +4124,56 @@
   },
   {
     "file": "lib/crew-queue.ts",
-    "line": 85,
+    "line": 13,
     "kind": "functie",
     "label": "queued",
     "handler": "queued"
   },
   {
     "file": "lib/crew-queue.ts",
-    "line": 102,
+    "line": 14,
     "kind": "functie",
     "label": "queuedUploads",
     "handler": "queuedUploads"
   },
   {
     "file": "lib/crew-queue.ts",
-    "line": 119,
+    "line": 15,
     "kind": "functie",
     "label": "discardQueuedOperation",
     "handler": "discardQueuedOperation"
   },
   {
     "file": "lib/crew-queue.ts",
-    "line": 127,
+    "line": 16,
     "kind": "functie",
     "label": "discardQueuedUpload",
     "handler": "discardQueuedUpload"
   },
   {
     "file": "lib/crew-queue.ts",
-    "line": 253,
+    "line": 25,
     "kind": "functie",
     "label": "synchronize",
     "handler": "synchronize"
   },
   {
     "file": "lib/crew-queue.ts",
-    "line": 303,
+    "line": 26,
     "kind": "functie",
     "label": "enqueue",
     "handler": "enqueue"
   },
   {
     "file": "lib/crew-queue.ts",
-    "line": 318,
+    "line": 27,
     "kind": "functie",
     "label": "enqueueIncidentPhoto",
     "handler": "enqueueIncidentPhoto"
   },
   {
     "file": "lib/crew-queue.ts",
-    "line": 345,
+    "line": 28,
     "kind": "functie",
     "label": "enqueueChatPhoto",
     "handler": "enqueueChatPhoto"
@@ -3935,14 +4187,14 @@
   },
   {
     "file": "lib/facebook-event.ts",
-    "line": 101,
+    "line": 11,
     "kind": "functie",
     "label": "isFacebookEventUrl",
     "handler": "isFacebookEventUrl"
   },
   {
     "file": "lib/facebook-event.ts",
-    "line": 110,
+    "line": 14,
     "kind": "functie",
     "label": "fetchFacebookEventInfo",
     "handler": "fetchFacebookEventInfo"
@@ -4019,21 +4271,21 @@
   },
   {
     "file": "lib/providers.tsx",
-    "line": 47,
+    "line": 35,
     "kind": "functie",
     "label": "AuthProvider",
     "handler": "AuthProvider"
   },
   {
     "file": "lib/providers.tsx",
-    "line": 181,
+    "line": 102,
     "kind": "functie",
     "label": "useAuth",
     "handler": "useAuth"
   },
   {
     "file": "lib/providers.tsx",
-    "line": 183,
+    "line": 103,
     "kind": "functie",
     "label": "useDisplayName",
     "handler": "useDisplayName"
@@ -4086,6 +4338,13 @@
     "kind": "functie",
     "label": "refreshPushBadge",
     "handler": "refreshPushBadge"
+  },
+  {
+    "file": "lib/push-security.ts",
+    "line": 1,
+    "kind": "functie",
+    "label": "safePushEndpoint",
+    "handler": "safePushEndpoint"
   },
   {
     "file": "lib/role-ui.ts",
@@ -4152,7 +4411,7 @@
   },
   {
     "file": "lib/ui-translations.ts",
-    "line": 501,
+    "line": 548,
     "kind": "functie",
     "label": "translateUiText",
     "handler": "translateUiText"

@@ -981,77 +981,77 @@
   },
   {
     "file": "app/(app)/personnel/page.tsx",
-    "line": 10,
+    "line": 11,
     "kind": "functie",
     "label": "Page",
     "handler": "Page"
   },
   {
     "file": "app/(app)/personnel/page.tsx",
-    "line": 23,
+    "line": 24,
     "kind": "h1",
     "label": "Personeel & goedkeuringen",
     "handler": ""
   },
   {
     "file": "app/(app)/personnel/page.tsx",
-    "line": 28,
+    "line": 29,
     "kind": "a",
-    "label": "{/* eslint-disable-next-line @next/next/no-img-element */}",
+    "label": "",
     "handler": "href={photos.get(p.id)}"
   },
   {
     "file": "app/(app)/personnel/page.tsx",
-    "line": 47,
+    "line": 48,
     "kind": "form",
     "label": "In afwachting Goedgekeurd Personeel Verantwoordelijke Beheerder Opslaan",
     "handler": "action={setAccountStatus}"
   },
   {
     "file": "app/(app)/personnel/page.tsx",
-    "line": 48,
+    "line": 49,
     "kind": "input",
     "label": "",
-    "handler": ""
-  },
-  {
-    "file": "app/(app)/personnel/page.tsx",
-    "line": 49,
-    "kind": "select",
-    "label": "In afwachting Goedgekeurd",
     "handler": ""
   },
   {
     "file": "app/(app)/personnel/page.tsx",
     "line": 50,
     "kind": "select",
-    "label": "Personeel Verantwoordelijke Beheerder",
+    "label": "In afwachting Goedgekeurd",
     "handler": ""
   },
   {
     "file": "app/(app)/personnel/page.tsx",
     "line": 51,
+    "kind": "select",
+    "label": "Personeel Verantwoordelijke Beheerder",
+    "handler": ""
+  },
+  {
+    "file": "app/(app)/personnel/page.tsx",
+    "line": 52,
     "kind": "button",
     "label": "Opslaan",
     "handler": ""
   },
   {
     "file": "app/(app)/personnel/page.tsx",
-    "line": 53,
+    "line": 54,
     "kind": "form",
     "label": "Definitief verwijderen Verwijdert account, persoonsgegevens, toewijzingen en gekoppelde gebruikersdata. Deze actie is definitief.",
     "handler": "action={deletePersonnel}"
   },
   {
     "file": "app/(app)/personnel/page.tsx",
-    "line": 54,
+    "line": 55,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "app/(app)/personnel/page.tsx",
-    "line": 55,
+    "line": 56,
     "kind": "button",
     "label": "Definitief verwijderen",
     "handler": ""
@@ -1786,7 +1786,7 @@
   },
   {
     "file": "app/api/briefing-extract-media/route.ts",
-    "line": 39,
+    "line": 52,
     "kind": "functie",
     "label": "POST",
     "handler": "POST"
@@ -2220,28 +2220,28 @@
   },
   {
     "file": "components/crew/assignment-scope-fields.tsx",
-    "line": 88,
+    "line": 81,
     "kind": "select",
     "label": "Evenement… {events.map(event => {event.name} )}",
     "handler": ""
   },
   {
     "file": "components/crew/assignment-scope-fields.tsx",
-    "line": 103,
+    "line": 96,
     "kind": "select",
     "label": "{showEventSelect ? {workplaceRequired?'Werkplek…':'Geheel evenement'} : Werkplek… } {visibleWorkplaces.map(workplace => { const eventName = events.find(event => event.id === workpl",
     "handler": ""
   },
   {
     "file": "components/crew/assignment-scope-fields.tsx",
-    "line": 133,
+    "line": 126,
     "kind": "input",
     "label": "",
     "handler": ""
   },
   {
     "file": "components/crew/assignment-scope-fields.tsx",
-    "line": 138,
+    "line": 131,
     "kind": "select",
     "label": "Medewerker… {visiblePeople.map(person => {person.full_name || \"Naam ontbreekt\"} , )}",
     "handler": ""
@@ -2283,91 +2283,91 @@
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 13,
+    "line": 14,
     "kind": "a",
     "label": "",
     "handler": "href={attachment.url}"
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 13,
+    "line": 14,
     "kind": "a",
     "label": "Document openen",
     "handler": "href={attachment.url}"
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 14,
+    "line": 15,
     "kind": "functie",
     "label": "ChatClient",
     "handler": "ChatClient"
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 18,
+    "line": 19,
     "kind": "h1",
     "label": "Chat",
     "handler": ""
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 19,
+    "line": 20,
     "kind": "button",
     "label": "{channelName(selectedChannel)} Tik om van chat te wisselen",
     "handler": "onClick={()=>setPickerOpen(o=>!o)}"
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 19,
+    "line": 20,
     "kind": "button",
     "label": "",
     "handler": "onClick={()=>setPickerOpen(false)}"
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 19,
+    "line": 20,
     "kind": "button",
     "label": "Modereer",
     "handler": "onClick={()=>moderate(message.id)}"
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 19,
+    "line": 20,
     "kind": "button",
     "label": "",
     "handler": "onClick={()=>{setFile(null);setFileKey(k=>k+1)}}"
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 19,
+    "line": 20,
     "kind": "form",
     "label": "setFile(e.target.files?.[0]||null)} className=\"sr-only\"/> setBody(e.target.value)} placeholder=\"Typ een bericht…\" className=\"max-h-32 min-h-11 min-w-0 flex-1 resize-none rounded-2x",
     "handler": "onSubmit={e=>{e.preventDefault();void sendMessage()}}"
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 19,
+    "line": 20,
     "kind": "input",
     "label": "setFile(e.target.files?.[0]||null)} className=\"sr-only\"/>",
     "handler": ""
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 19,
+    "line": 20,
     "kind": "textarea",
     "label": "setBody(e.target.value)} placeholder=\"Typ een bericht…\" className=\"max-h-32 min-h-11 min-w-0 flex-1 resize-none rounded-2xl border bg-card px-4 py-3 text-sm\"/>",
     "handler": ""
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 19,
+    "line": 20,
     "kind": "button",
     "label": "",
     "handler": ""
   },
   {
     "file": "components/crew/chat-client.tsx",
-    "line": 20,
+    "line": 21,
     "kind": "button",
     "label": "{name}",
     "handler": "onClick={()=>onChoose(channel.id)}"
@@ -2836,21 +2836,21 @@
   },
   {
     "file": "components/events/facebook-event-field.tsx",
-    "line": 5,
+    "line": 6,
     "kind": "functie",
     "label": "FacebookEventField",
     "handler": "FacebookEventField"
   },
   {
     "file": "components/events/facebook-event-field.tsx",
-    "line": 8,
+    "line": 9,
     "kind": "input",
     "label": "{setUrl(e.target.value);setEvent(null);setMessage(\"\")}} placeholder=\"https://www.facebook.com/events/...\" className=\"min-w-0 flex-1 rounded-lg border bg-background p-3\"/>",
     "handler": ""
   },
   {
     "file": "components/events/facebook-event-field.tsx",
-    "line": 8,
+    "line": 9,
     "kind": "button",
     "label": "{busy?\"IMPORTEREN…\":\"IMPORTEREN\"}",
     "handler": "onClick={()=>void importEvent()}"
@@ -3606,14 +3606,14 @@
   },
   {
     "file": "components/language-switcher.tsx",
-    "line": 11,
+    "line": 29,
     "kind": "functie",
     "label": "LanguageSwitcher",
     "handler": "LanguageSwitcher"
   },
   {
     "file": "components/language-switcher.tsx",
-    "line": 38,
+    "line": 43,
     "kind": "select",
     "label": "{languages.map(item => {item.label} )}",
     "handler": ""
@@ -3725,7 +3725,7 @@
   },
   {
     "file": "components/locale-sync.tsx",
-    "line": 116,
+    "line": 86,
     "kind": "functie",
     "label": "LocaleSync",
     "handler": "LocaleSync"
@@ -3914,189 +3914,189 @@
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 189,
+    "line": 175,
     "kind": "functie",
     "label": "createEvent",
     "handler": "createEvent"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 215,
+    "line": 201,
     "kind": "functie",
     "label": "addWorkplace",
     "handler": "addWorkplace"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 228,
+    "line": 213,
     "kind": "functie",
     "label": "updateWorkplace",
     "handler": "updateWorkplace"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 241,
+    "line": 226,
     "kind": "functie",
     "label": "setEventAvailability",
     "handler": "setEventAvailability"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 257,
+    "line": 241,
     "kind": "functie",
     "label": "addEventMember",
     "handler": "addEventMember"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 273,
+    "line": 256,
     "kind": "functie",
     "label": "addAvailableEventMembers",
     "handler": "addAvailableEventMembers"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 298,
+    "line": 281,
     "kind": "functie",
     "label": "assignAvailableCrewShift",
     "handler": "assignAvailableCrewShift"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 346,
+    "line": 326,
     "kind": "functie",
     "label": "assignResponsible",
     "handler": "assignResponsible"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 390,
+    "line": 367,
     "kind": "functie",
     "label": "demoteResponsibleToStaff",
     "handler": "demoteResponsibleToStaff"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 453,
+    "line": 422,
     "kind": "functie",
     "label": "createShift",
     "handler": "createShift"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 467,
+    "line": 436,
     "kind": "functie",
     "label": "updateShift",
     "handler": "updateShift"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 480,
+    "line": 449,
     "kind": "functie",
     "label": "confirmShift",
     "handler": "confirmShift"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 486,
+    "line": 455,
     "kind": "functie",
     "label": "cancelShift",
     "handler": "cancelShift"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 492,
+    "line": 461,
     "kind": "functie",
     "label": "setAccountStatus",
     "handler": "setAccountStatus"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 498,
+    "line": 467,
     "kind": "functie",
     "label": "acknowledgeBriefing",
     "handler": "acknowledgeBriefing"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 499,
+    "line": 468,
     "kind": "functie",
     "label": "acknowledgeInstruction",
     "handler": "acknowledgeInstruction"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 500,
+    "line": 469,
     "kind": "functie",
     "label": "createBriefing",
     "handler": "createBriefing"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 528,
+    "line": 497,
     "kind": "functie",
     "label": "createPersonalInstruction",
     "handler": "createPersonalInstruction"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 564,
+    "line": 533,
     "kind": "functie",
     "label": "updateBriefing",
     "handler": "updateBriefing"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 580,
+    "line": 550,
     "kind": "functie",
     "label": "updatePersonalInstruction",
     "handler": "updatePersonalInstruction"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 596,
+    "line": 567,
     "kind": "functie",
     "label": "createTask",
     "handler": "createTask"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 674,
+    "line": 638,
     "kind": "functie",
     "label": "removeTaskAssignment",
     "handler": "removeTaskAssignment"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 686,
+    "line": 676,
     "kind": "functie",
     "label": "markNotificationRead",
     "handler": "markNotificationRead"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 691,
+    "line": 681,
     "kind": "functie",
     "label": "archiveEvent",
     "handler": "archiveEvent"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 692,
+    "line": 682,
     "kind": "functie",
     "label": "duplicateEvent",
     "handler": "duplicateEvent"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 693,
+    "line": 683,
     "kind": "functie",
     "label": "updateEvent",
     "handler": "updateEvent"
   },
   {
     "file": "lib/actions/uptilldawn.ts",
-    "line": 707,
+    "line": 697,
     "kind": "functie",
     "label": "deleteEvent",
     "handler": "deleteEvent"
@@ -4408,6 +4408,13 @@
     "kind": "functie",
     "label": "nlRole",
     "handler": "nlRole"
+  },
+  {
+    "file": "lib/ui-translation-extensions.ts",
+    "line": 52,
+    "kind": "functie",
+    "label": "translateUiExtension",
+    "handler": "translateUiExtension"
   },
   {
     "file": "lib/ui-translations.ts",

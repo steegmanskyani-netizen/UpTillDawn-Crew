@@ -9,6 +9,7 @@ type ImportedEvent={
   address:string|null
   startAt:string|null
   endAt:string|null
+  imageUrl:string|null
 }
 
 function displayDate(value:string|null){
@@ -24,57 +25,29 @@ export function FacebookEventField(){
   const [busy,setBusy]=useState(false)
 
   async function importEvent(){
-    const value=url.trim()
-    setMessage("")
-    setEvent(null)
+    const value=url.trim();setMessage("");setEvent(null)
     if(!value){setMessage("Vul eerst een Facebook-evenementlink in.");return}
     setBusy(true)
     try{
       const response=await fetch("/api/facebook-event?url="+encodeURIComponent(value),{headers:{Accept:"application/json"}})
       const payload=await response.json().catch(()=>null) as {event?:ImportedEvent;error?:string}|null
-      if(!response.ok||!payload?.event){
-        setMessage(payload?.error||"Facebook-evenement kon niet worden geïmporteerd.")
-        return
-      }
-      setEvent(payload.event)
-      setUrl(payload.event.sourceUrl||value)
-      const missing=[
-        !payload.event.name&&"naam",
-        !payload.event.address&&!payload.event.venue&&"adres",
-        !payload.event.startAt&&"startuur",
-        !payload.event.endAt&&"einduur",
-      ].filter(Boolean)
-      setMessage(missing.length
-        ? "Import gelukt. Vul ontbrekend in: "+missing.join(", ")+"."
-        : "Import gelukt. Naam, adres en uren worden automatisch gebruikt.")
-    }catch{
-      setMessage("Facebook-evenement kon niet worden geïmporteerd.")
-    }finally{
-      setBusy(false)
-    }
+      if(!response.ok||!payload?.event){setMessage(payload?.error||"Facebook-evenement kon niet worden geïmporteerd.");return}
+      setEvent(payload.event);setUrl(payload.event.sourceUrl||value)
+      const missing=[!payload.event.name&&"naam",!payload.event.address&&!payload.event.venue&&"adres",!payload.event.startAt&&"startuur",!payload.event.endAt&&"einduur"].filter(Boolean)
+      setMessage(missing.length?"Import gelukt. Vul ontbrekend in: "+missing.join(", ")+".":"Import gelukt. Naam, adres, uren en beschikbare evenementfoto worden automatisch gebruikt.")
+    }catch{setMessage("Facebook-evenement kon niet worden geïmporteerd.")}
+    finally{setBusy(false)}
   }
 
   return <section className="space-y-3 rounded-xl border border-blue-500/30 bg-blue-500/5 p-3">
-    <div>
-      <p className="font-bold">Facebook-evenement importeren</p>
-      <p className="text-xs text-muted-foreground">Alleen openbare Facebook-evenementen kunnen automatisch worden uitgelezen. Handmatige velden blijven als fallback beschikbaar.</p>
-    </div>
+    <div><p className="font-bold">Facebook-evenement importeren</p><p className="text-xs text-muted-foreground">Alleen openbare Facebook-evenementen kunnen automatisch worden uitgelezen. Handmatige velden blijven als fallback beschikbaar.</p></div>
     <div className="flex flex-col gap-2 sm:flex-row">
-      <input
-        name="facebook_event_url"
-        type="url"
-        inputMode="url"
-        value={url}
-        onChange={e=>{setUrl(e.target.value);setEvent(null);setMessage("")}}
-        placeholder="https://www.facebook.com/events/..."
-        className="min-w-0 flex-1 rounded-lg border bg-background p-3"
-      />
-      <button type="button" disabled={busy||!url.trim()} onClick={()=>void importEvent()} className="rounded-lg border px-4 py-3 font-bold disabled:opacity-50">
-        {busy?"IMPORTEREN…":"IMPORTEREN"}
-      </button>
+      <input name="facebook_event_url" type="url" inputMode="url" value={url} onChange={e=>{setUrl(e.target.value);setEvent(null);setMessage("")}} placeholder="https://www.facebook.com/events/..." className="min-w-0 flex-1 rounded-lg border bg-background p-3"/>
+      <button type="button" disabled={busy||!url.trim()} onClick={()=>void importEvent()} className="rounded-lg border px-4 py-3 font-bold disabled:opacity-50">{busy?"IMPORTEREN…":"IMPORTEREN"}</button>
     </div>
     {message&&<p role="status" className="text-sm">{message}</p>}
-    {event&&<div className="grid gap-2 rounded-lg border bg-background p-3 text-sm sm:grid-cols-2">
+    {event&&<div className="grid gap-3 rounded-lg border bg-background p-3 text-sm sm:grid-cols-[7rem_1fr]">
+      {event.imageUrl&&<div className="h-24 w-28 overflow-hidden rounded-lg border bg-muted sm:row-span-4">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={event.imageUrl} alt="Facebook evenementfoto" className="h-full w-full object-cover"/></div>}
       <p><span className="text-muted-foreground">Naam:</span> {event.name||"Niet gevonden"}</p>
       <p><span className="text-muted-foreground">Locatie:</span> {event.address||event.venue||"Niet gevonden"}</p>
       <p><span className="text-muted-foreground">Start:</span> {displayDate(event.startAt)}</p>

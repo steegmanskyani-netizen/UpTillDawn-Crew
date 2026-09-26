@@ -9,7 +9,46 @@ import type { Tables } from '@/types/crew-database'
 import { redirect } from 'next/navigation'
 
 function MediaInput(){return <label className="grid gap-1 text-sm">Foto&apos;s of video&apos;s<input name="photos" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime" multiple className="rounded-lg border bg-background p-2"/><span className="text-xs text-muted-foreground">Maximaal 5 bestanden per instructie. Foto maximaal 10 MB, video maximaal 50 MB.</span></label>}
-function PhotoGallery({rows,urls}:{rows:Tables<'work_attachments'>[];urls:Map<string,string>}){if(!rows.length)return null;return <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{rows.map(row=>{const url=urls.get(row.storage_path);if(!url)return null;return row.mime_type?.startsWith('video/')?<video key={row.id} src={url} controls playsInline className="h-48 w-full rounded-xl border bg-black object-contain"/>:<a key={row.id} href={url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-xl border bg-black/10">{/* eslint-disable-next-line @next/next/no-img-element */}<img src={url} alt="Media bij instructie" className="h-36 w-full object-cover"/></a>})}</div>}
+function PhotoGallery({rows,urls}:{rows:Tables<'work_attachments'>[];urls:Map<string,string>}){
+ if(!rows.length)return null
+ return <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+  {rows.map(row=>{
+   const url=urls.get(row.storage_path)
+   if(!url)return null
+
+   if(row.mime_type?.startsWith('video/')){
+    return <video key={row.id} src={url} controls playsInline className="h-48 w-full rounded-xl border bg-black object-contain"/>
+   }
+
+   if(row.mime_type?.startsWith('image/')){
+    return <a key={row.id} href={url} target="_blank" rel="noreferrer" className="overflow-hidden rounded-xl border bg-black/10">
+     {/* eslint-disable-next-line @next/next/no-img-element */}
+     <img src={url} alt="Media bij instructie" className="h-36 w-full object-cover"/>
+    </a>
+   }
+
+   const type =
+    row.mime_type==='application/pdf'?'PDF':
+    row.mime_type?.includes('wordprocessingml')?'DOCX':
+    row.mime_type?.includes('presentationml')?'PPTX':
+    row.mime_type?.includes('spreadsheetml')?'XLSX':
+    row.mime_type==='text/csv'?'CSV':
+    row.mime_type==='text/plain'?'TXT':
+    'Document'
+
+   return <a
+    key={row.id}
+    href={url}
+    target="_blank"
+    rel="noreferrer"
+    className="flex min-h-28 flex-col justify-between rounded-xl border bg-card p-4 hover:bg-muted"
+   >
+    <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{type}</span>
+    <span className="font-bold">Document openen</span>
+   </a>
+  })}
+ </div>
+}
 
 export default async function Page(){
  const s=await createClient();const user=await getCurrentUser();if(!user)return null

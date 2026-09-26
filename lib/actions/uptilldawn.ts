@@ -70,16 +70,40 @@ const photoTypes = new Map([
  ['video/mp4','mp4'],
  ['video/webm','webm'],
  ['video/quicktime','mov'],
+ ['application/pdf','pdf'],
+ ['text/plain','txt'],
+ ['text/csv','csv'],
+ ['application/vnd.openxmlformats-officedocument.wordprocessingml.document','docx'],
+ ['application/vnd.openxmlformats-officedocument.presentationml.presentation','pptx'],
+ ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','xlsx'],
 ])
 
 function workPhotoFiles(fd: FormData) {
- const files=fd.getAll('photos').filter((value): value is File => value instanceof File && value.size > 0)
- if(files.length>5) throw new Error('Je kunt maximaal 5 foto’s of video’s toevoegen.')
+ const files=[
+  ...fd.getAll('photos'),
+  fd.get('briefing_document'),
+ ].filter((value): value is File => value instanceof File && value.size > 0)
+
+ if(files.length>6) throw new Error('Je kunt maximaal 6 bijlagen toevoegen.')
+
  for(const file of files){
   const isVideo=file.type.startsWith('video/')
-  const max=isVideo?50*1024*1024:10*1024*1024
-  if(file.size>max) throw new Error(isVideo?'Elke video mag maximaal 50 MB zijn.':'Elke foto mag maximaal 10 MB zijn.')
-  if(!photoTypes.has(file.type)) throw new Error('Gebruik alleen JPG-, PNG-, WEBP-, MP4-, WEBM- of MOV-bestanden.')
+  const isImage=file.type.startsWith('image/')
+  const max=isVideo?50*1024*1024:isImage?10*1024*1024:20*1024*1024
+
+  if(file.size>max){
+   throw new Error(
+    isVideo
+     ? 'Elke video mag maximaal 50 MB zijn.'
+     : isImage
+       ? 'Elke afbeelding mag maximaal 10 MB zijn.'
+       : 'Elk document mag maximaal 20 MB zijn.'
+   )
+  }
+
+  if(!photoTypes.has(file.type)){
+   throw new Error('Gebruik alleen PDF, DOCX, PPTX, XLSX, TXT, CSV, JPG, PNG, WEBP, MP4, WEBM of MOV.')
+  }
  }
  return files
 }
@@ -100,7 +124,7 @@ async function uploadWorkPhotos(
  const key=target.type==='briefing'?'briefing_id':target.type==='instruction'?'personal_instruction_id':'task_id'
  const {count,error:countError}=await s.from('work_attachments').select('id',{count:'exact',head:true}).eq(key,target.id)
  check(countError)
- if((count??0)+files.length>5) throw new Error('Per item kun je maximaal 5 foto’s of video’s bewaren.')
+ if((count??0)+files.length>10) throw new Error('Per briefing kun je maximaal 10 bijlagen bewaren.')
 
  const uploaded:string[]=[]
  try{

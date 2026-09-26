@@ -2,12 +2,14 @@ import { getCurrentUser } from '@/lib/actions/auth'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/crew-server'
 import { setAccountStatus } from '@/lib/actions/uptilldawn'
+import { deletePersonnel } from '@/lib/actions/personnel'
 import { nlRole, nlStatus } from '@/lib/ui-nl'
 
 export const dynamic = 'force-dynamic'
 
 export default async function Page() {
-  if (!(await getCurrentUser())?.isAdmin) redirect('/')
+  const current=await getCurrentUser()
+  if (!current?.isAdmin) redirect('/')
   const s = await createClient()
   const { data, error } = await s.rpc('upt_admin_personnel_details')
 
@@ -24,8 +26,7 @@ export default async function Page() {
       <div key={p.id} className="rounded-2xl border p-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-start">
           {photos.get(p.id) && <a href={photos.get(p.id)} target="_blank" rel="noreferrer" className="h-20 w-20 shrink-0 overflow-hidden rounded-xl border">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photos.get(p.id)} alt="" className="h-full w-full object-cover"/>
+            {/* eslint-disable-next-line @next/next/no-img-element */}<img src={photos.get(p.id)} alt="" className="h-full w-full object-cover"/>
           </a>}
           <div className="min-w-0 flex-1">
             <b>{p.full_name || 'Naam ontbreekt'}</b>
@@ -42,19 +43,19 @@ export default async function Page() {
               </dl>
             </details>
           </div>
-          <form action={setAccountStatus} className="flex flex-wrap gap-2">
-            <input type="hidden" name="user_id" value={p.id}/>
-            <select name="status" defaultValue={p.approved ? 'approved' : 'pending'} className="rounded-lg border bg-background p-2">
-              <option value="pending">In afwachting</option>
-              <option value="approved">Goedgekeurd</option>
-            </select>
-            <select name="role" defaultValue={p.role} className="rounded-lg border bg-background p-2">
-              <option value="staff">Personeel</option>
-              <option value="responsible_lead">Verantwoordelijke</option>
-              <option value="admin">Beheerder</option>
-            </select>
-            <button className="rounded-lg bg-violet-600 px-4">Opslaan</button>
-          </form>
+          <div className="flex flex-col gap-2">
+            <form action={setAccountStatus} className="flex flex-wrap gap-2">
+              <input type="hidden" name="user_id" value={p.id}/>
+              <select name="status" defaultValue={p.approved ? 'approved' : 'pending'} className="rounded-lg border bg-background p-2"><option value="pending">In afwachting</option><option value="approved">Goedgekeurd</option></select>
+              <select name="role" defaultValue={p.role} className="rounded-lg border bg-background p-2"><option value="staff">Personeel</option><option value="responsible_lead">Verantwoordelijke</option><option value="admin">Beheerder</option></select>
+              <button className="rounded-lg bg-violet-600 px-4">Opslaan</button>
+            </form>
+            {p.id!==current.id&&<form action={deletePersonnel} className="self-start">
+              <input type="hidden" name="user_id" value={p.id}/>
+              <button className="rounded-lg border border-red-500/60 px-4 py-2 font-semibold text-red-500">Definitief verwijderen</button>
+              <p className="mt-1 max-w-sm text-xs text-muted-foreground">Verwijdert account, persoonsgegevens, toewijzingen en gekoppelde gebruikersdata. Deze actie is definitief.</p>
+            </form>}
+          </div>
         </div>
       </div>)}</div>
   </main>

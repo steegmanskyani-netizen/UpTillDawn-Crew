@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "npm:@supabase/supabase-js@2.106.2"
 import webpush from "npm:web-push@3.6.7"
+import { safeNotificationLink, safePushEndpoint } from "./security.ts"
 
 type PushConfig={
   vapid_public_key:string
@@ -19,34 +20,6 @@ const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{
   status,
   headers:{"content-type":"application/json; charset=utf-8","cache-control":"no-store"},
 })
-
-function safePushEndpoint(value:string){
-  try{
-    const url=new URL(value)
-    if(url.protocol!=="https:"||url.username||url.password)return false
-    const host=url.hostname.replace(/^\[|\]$/g,"").toLowerCase()
-    if(!host||host==="localhost"||host.endsWith(".localhost")||host.endsWith(".local")||host.endsWith(".internal"))return false
-    if(/^\d{1,3}(?:\.\d{1,3}){3}$/.test(host)){
-      const parts=host.split(".").map(Number)
-      if(parts.some(part=>part<0||part>255))return false
-      const [a,b]=parts
-      if(a===0||a===10||a===127||a>=224||(a===169&&b===254)||(a===172&&b>=16&&b<=31)||(a===192&&b===168))return false
-    }
-    if(host.includes(":")){
-      if(host==="::"||host==="::1"||/^f[cd]/.test(host)||/^fe[89ab]/.test(host))return false
-    }
-    return true
-  }catch{return false}
-}
-
-function safeNotificationLink(value:unknown){
-  return typeof value==="string"
-    && value.startsWith("/")
-    && !value.startsWith("//")
-    && !value.includes("\\")
-    ? value
-    : "/notifications"
-}
 
 Deno.serve(async(req)=>{
   if(req.method!=="POST")return json({error:"Method not allowed"},405)

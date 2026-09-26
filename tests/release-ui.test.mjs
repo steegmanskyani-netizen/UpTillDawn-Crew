@@ -574,6 +574,7 @@ test('installed PWA supports background updates and web push', async () => {
   const migration = await read('supabase/migrations/20260925062147_uptilldawn_web_push_pwa.sql')
   const timeoutCleanup = await read('supabase/migrations/20260925065915_uptilldawn_push_delivery_timeout_cleanup.sql')
   const edge = await read('supabase/functions/push-notification/index.ts')
+  const edgeSecurity = await read('supabase/functions/push-notification/security.ts')
 
   assert.match(manifest, /id:'\/'/)
   assert.match(manifest, /display:'standalone'/)
@@ -679,17 +680,21 @@ test('expired or missing auth also drops the local push endpoint', async () => {
 })
 
 
-test('push endpoints are HTTPS-only and private-network targets are rejected', async () => {
+test('push endpoints use shared literal-host hardening in app, database and Edge delivery', async () => {
   const subscriptionRoute = await read('app/api/push/subscription/route.ts')
+  const appSecurity = await read('lib/push-security.ts')
   const edge = await read('supabase/functions/push-notification/index.ts')
-  const migration = await read('supabase/migrations/20260925080357_uptilldawn_push_endpoint_hardening.sql')
+  const edgeSecurity = await read('supabase/functions/push-notification/security.ts')
+  const migration = await read('supabase/migrations/20260926081034_uptilldawn_push_endpoint_literal_hardening.sql')
 
-  assert.match(subscriptionRoute, /safePushEndpoint/)
-  assert.match(subscriptionRoute, /url\.protocol!=="https:"/)
-  assert.match(subscriptionRoute, /192&&b===168/)
+  assert.match(subscriptionRoute, /from "@\/lib\/push-security"/)
+  assert.match(appSecurity, /host\.includes\(":"\)/)
+  assert.match(appSecurity, /\^\\d\+\$/)
   assert.match(edge, /safePushEndpoint\(sub\.endpoint\)/)
   assert.match(edge, /remove unsafe endpoint/)
-  assert.match(migration, /not like 'https:\/\/%'/)
+  assert.match(edgeSecurity, /host\.includes\(":"\)/)
+  assert.match(migration, /push_endpoint_is_safe/)
+  assert.match(migration, /upt_save_push_subscription/)
 })
 
 
@@ -702,7 +707,7 @@ test('notification links cannot escape the app origin', async () => {
   assert.match(notifications, /safeLink && <Link href=\{safeLink\}/)
   assert.match(sw, /function safeLocalPath/)
   assert.match(sw, /!value\.startsWith\('\/\/'\)/)
-  assert.match(edge, /function safeNotificationLink/)
+  assert.match(edgeSecurity, /function safeNotificationLink/)
   assert.match(edge, /link:safeNotificationLink\(notification\.link\)/)
 })
 
@@ -821,14 +826,18 @@ test('God Mode has one dedicated login path and role UI writes remain RPC-only',
 })
 
 
-test('normal admin auth contains no public bootstrap credential', async () => {
+test('legacy info-admin bootstrap trigger, RPCs and password marker are fully retired', async () => {
   const auth = await read('lib/actions/auth.ts')
-  const migration = await read('supabase/migrations/20260925192448_uptilldawn_disable_info_admin_bootstrap.sql')
+  const migration = await read('supabase/migrations/20260926080311_uptilldawn_retire_info_admin_bootstrap_artifacts.sql')
   assert.doesNotMatch(auth, /info@uptilldawn\.be/)
   assert.doesNotMatch(auth, /password\s*===\s*['"]123['"]/)
   assert.doesNotMatch(auth, /upt_info_admin_bootstrap_open/)
-  assert.match(migration, /select false/)
-  assert.match(migration, /revoke all on function public\.upt_info_admin_bootstrap_open\(\) from public, anon, authenticated/i)
+  assert.doesNotMatch(auth, /upt_password_change_required/)
+  assert.doesNotMatch(auth, /upt_mark_password_changed/)
+  assert.match(migration, /drop trigger if exists upt_promote_confirmed_info_admin on auth\.users/i)
+  assert.match(migration, /drop function if exists public\.upt_promote_confirmed_info_admin\(\)/i)
+  assert.match(migration, /drop function if exists public\.upt_info_admin_bootstrap_open\(\)/i)
+  assert.match(migration, /drop table if exists upt_private\.password_change_required/i)
 })
 
 

@@ -187,9 +187,6 @@ export async function signIn(formData: FormData) {
         }
     }
 
-    const { data: passwordChangeRequired } = await supabase.rpc('upt_password_change_required')
-    if (passwordChangeRequired === true) redirect('/auth/reset-password?forced=1')
-
     redirect(requestedPortal === 'admin' ? '/admin' : '/')
 }
 
@@ -257,9 +254,6 @@ export async function updatePassword(formData: FormData) {
         console.error('[Auth]', { code: error.code, status: error.status })
         return { error: 'De aanvraag kon niet worden verwerkt. Probeer opnieuw.' }
     }
-
-    const { error: markerError } = await supabase.rpc('upt_mark_password_changed')
-    if (markerError) console.error('[Auth] Password bootstrap marker cleanup failed', { code: markerError.code })
 
     return { success: true, message: 'Wachtwoord is bijgewerkt.' }
 }

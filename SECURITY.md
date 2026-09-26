@@ -30,7 +30,7 @@ Private Storage uploads are constrained by bucket MIME/size limits, approved-acc
 
 ## Push endpoint safety
 
-Push registrations require HTTPS. The app and delivery Edge Function reject localhost and private/link-local literal network targets so Web Push cannot be repurposed as a basic outbound-request primitive. Notification clicks accept only local single-slash app paths.
+Push registrations require HTTPS provider hostnames. The app route, database save RPC and delivery Edge Function independently reject literal IPv4/IPv6 targets (including mapped IPv6 forms), URL credentials and local hostname suffixes. Notification clicks accept only local single-slash app paths.
 
 ## Push secrets
 
@@ -42,7 +42,7 @@ The Edit-mode access code is environment data. Its hash is stored in `upt_privat
 
 ## Legacy bootstrap closure
 
-The former public info-admin bootstrap flow is permanently disabled. Its status RPC returns false and browser roles cannot execute it. Normal login contains no hard-coded bootstrap credential.
+The former info-admin bootstrap is fully removed. The e-mail-confirmation promotion trigger, bootstrap/status and forced-password helper RPCs, and the private password-change marker table are absent. Normal login contains no bootstrap credential.
 
 ## Secrets never committed
 

@@ -52,8 +52,7 @@ BEGIN
       'upt_god_database_connect','upt_god_database_disconnect','upt_god_database_secret',
       'upt_god_login','upt_god_logout',
       'upt_god_repository_connect','upt_god_repository_disconnect','upt_god_repository_secret',
-      'upt_god_role_rules','upt_god_save_role_rules','upt_god_session_valid',
-      'upt_info_admin_bootstrap_open'
+      'upt_god_role_rules','upt_god_save_role_rules','upt_god_session_valid'
     ]);
 
   IF v_anon_rpcs IS NOT NULL THEN
@@ -91,6 +90,23 @@ BEGIN
 
   IF EXISTS (
     SELECT 1
+    FROM pg_trigger t
+    JOIN pg_class c ON c.oid=t.tgrelid
+    JOIN pg_namespace n ON n.oid=c.relnamespace
+    WHERE NOT t.tgisinternal
+      AND n.nspname='auth'
+      AND c.relname='users'
+      AND t.tgname='upt_promote_confirmed_info_admin'
+  ) OR to_regprocedure('public.upt_promote_confirmed_info_admin()') IS NOT NULL
+    OR to_regprocedure('public.upt_info_admin_bootstrap_open()') IS NOT NULL
+    OR to_regprocedure('public.upt_password_change_required()') IS NOT NULL
+    OR to_regprocedure('public.upt_mark_password_changed()') IS NOT NULL
+    OR to_regclass('upt_private.password_change_required') IS NOT NULL THEN
+    RAISE EXCEPTION 'FAIL legacy info-admin bootstrap artifact remains';
+  END IF;
+
+  IF EXISTS (
+    SELECT 1
     FROM information_schema.role_table_grants
     WHERE table_schema='public'
       AND grantee='authenticated'
@@ -105,4 +121,4 @@ BEGIN
   END IF;
 END $matrix$;
 
-SELECT 'PASS: public RLS/anon surface is locked down, only explicit token/bootstrap RPCs are anonymous, trigger functions are non-callable and RPC-only tables have no direct mutation grants' AS result;
+SELECT 'PASS: public RLS/anon surface is locked down, only explicit token-gated God Mode RPCs are anonymous, legacy bootstrap is absent, trigger functions are non-callable and RPC-only tables have no direct mutation grants' AS result;

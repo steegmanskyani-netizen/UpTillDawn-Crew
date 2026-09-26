@@ -2215,7 +2215,6 @@ export type Database = {
         }
         Returns: Json
       }
-      upt_info_admin_bootstrap_open: { Args: never; Returns: boolean }
       upt_is_admin: { Args: { uid?: string }; Returns: boolean }
       upt_is_approved: { Args: never; Returns: boolean }
       upt_is_responsible: {
@@ -2226,7 +2225,6 @@ export type Database = {
         Args: { p_notification: string }
         Returns: undefined
       }
-      upt_mark_password_changed: { Args: never; Returns: undefined }
       upt_moderate_message: {
         Args: { p_message: string; p_reason: string }
         Returns: undefined
@@ -2245,7 +2243,6 @@ export type Database = {
           profile_photo_url: string
         }[]
       }
-      upt_password_change_required: { Args: never; Returns: boolean }
       upt_private_chat_peers: {
         Args: never
         Returns: {

@@ -70,7 +70,7 @@ Subscriptions are user/device scoped. Database notification inserts asynchronous
 
 ## Database history
 
-The repository contains 122 ordered migration files matching the current production migration-history count at this baseline.
+The repository contains 124 ordered migration files matching the current production migration-history count at this baseline.
 
 
 ## QR attendance boundary

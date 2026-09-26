@@ -102,26 +102,15 @@ export async function signIn(formData: FormData) {
 
     const supabase = await createClient()
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-    })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error || !data.user) {
         if (error?.message.includes('Email not confirmed')) {
-            return {
-                error: 'Verifieer eerst je e-mailadres.',
-                code: 'email_not_confirmed',
-            }
+            return { error: 'Verifieer eerst je e-mailadres.', code: 'email_not_confirmed' }
         }
-
         if (error?.message.includes('Invalid login credentials')) {
-            return {
-                error: 'Onjuist e-mailadres of wachtwoord.',
-                code: 'invalid_credentials',
-            }
+            return { error: 'Onjuist e-mailadres of wachtwoord.', code: 'invalid_credentials' }
         }
-
         return { error: 'Aanmelden mislukt. Probeer opnieuw.' }
     }
 
@@ -134,57 +123,40 @@ export async function signIn(formData: FormData) {
     if (profileError || !profile) {
         console.error('[Auth] Profile lookup failed', { code: profileError?.code })
         await supabase.auth.signOut()
-        return {
-            error: 'Je profiel kon niet worden geladen. Probeer opnieuw.',
-            code: 'profile_error',
-        }
+        return { error: 'Je profiel kon niet worden geladen. Probeer opnieuw.', code: 'profile_error' }
     }
 
     const { data: isOwner } = await supabase.rpc('upt_current_is_owner')
 
     if (!profile.approved && !isOwner) {
         await supabase.auth.signOut()
-        return {
-            error: 'ACCOUNT NOG NIET GOEDGEKEURD',
-            code: 'account_not_approved',
-        }
+        return { error: 'ACCOUNT NOG NIET GOEDGEKEURD', code: 'account_not_approved' }
     }
 
     const role = profile.role
     const hasPermanentAdminAccess = role === 'admin' || isOwner === true
-
-    const allowed =
-        requestedPortal === 'admin'
-            ? hasPermanentAdminAccess
-            : requestedPortal === 'responsible'
-                ? role === 'responsible_lead' || hasPermanentAdminAccess
-                : role === 'staff' ||
-                  role === 'responsible_lead' ||
-                  hasPermanentAdminAccess
+    const allowed = requestedPortal === 'admin'
+        ? hasPermanentAdminAccess
+        : requestedPortal === 'responsible'
+            ? role === 'responsible_lead' || hasPermanentAdminAccess
+            : role === 'staff' || role === 'responsible_lead' || hasPermanentAdminAccess
 
     if (hasPermanentAdminAccess) {
-        const requestedRoleMode =
-            requestedPortal === 'admin'
-                ? 'admin'
-                : requestedPortal === 'responsible'
-                    ? 'responsible_lead'
-                    : 'staff'
+        const requestedRoleMode = requestedPortal === 'admin'
+            ? 'admin'
+            : requestedPortal === 'responsible'
+                ? 'responsible_lead'
+                : 'staff'
         const { data: roleMode, error: roleModeError } = await supabase.rpc('upt_set_admin_role_mode', { p_role: requestedRoleMode })
         if (roleModeError || roleMode !== requestedRoleMode) {
             await supabase.auth.signOut()
-            return {
-                error: 'De gekozen rolweergave kon niet worden geactiveerd.',
-                code: 'role_mode_error',
-            }
+            return { error: 'De gekozen rolweergave kon niet worden geactiveerd.', code: 'role_mode_error' }
         }
     }
 
     if (!allowed) {
         await supabase.auth.signOut()
-        return {
-            error: `Dit account heeft geen toegang tot het gekozen portaal.`,
-            code: 'wrong_portal',
-        }
+        return { error: 'Dit account heeft geen toegang tot het gekozen portaal.', code: 'wrong_portal' }
     }
 
     redirect(requestedPortal === 'admin' ? '/admin' : '/')
@@ -204,12 +176,8 @@ export async function signOut() {
 // ── Forgot Password ──────────────────────────────────────────
 
 export async function forgotPassword(formData: FormData) {
-    const email = (formData.get('email') as string)?.trim().toLowerCase()
-
-    if (!email) {
-        return { error: 'Vul je e-mailadres in.' }
-    }
-
+    const email = String(formData.get('email') || '').trim().toLowerCase()
+    if (!email) return { error: 'Vul je e-mailadres in.' }
 
     const origin = appOrigin()
     if (!origin) {
@@ -227,45 +195,59 @@ export async function forgotPassword(formData: FormData) {
         return { error: 'De aanvraag kon niet worden verwerkt. Probeer opnieuw.' }
     }
 
-    return {
-        success: true,
-        message: 'Als dit account bestaat, is een herstel-link naar het e-mailadres verstuurd.',
-    }
+    return { success: true, message: 'Als dit account bestaat, is een herstel-link naar het e-mailadres verstuurd.' }
 }
 
 // ── Update Password ──────────────────────────────────────────
 
 export async function updatePassword(formData: FormData) {
-    const password = formData.get('password') as string
-    const confirmPassword = formData.get('confirm_password') as string
+    const password = String(formData.get('password') || '')
+    const confirmPassword = String(formData.get('confirm_password') || '')
 
     if (password !== confirmPassword) {
         return { error: 'Wachtwoorden komen niet overeen.' }
     }
-
     if (password.length < 8) {
         return { error: 'Wachtwoord moet minstens 8 tekens bevatten.' }
     }
 
     const supabase = await createClient()
-    const { error } = await supabase.auth.updateUser({ password })
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    if (userError || !user) {
+        return { error: 'De herstel-link is ongeldig of verlopen. Vraag een nieuwe herstel-link aan.' }
+    }
 
+    const { error } = await supabase.auth.updateUser({ password })
     if (error) {
         console.error('[Auth]', { code: error.code, status: error.status })
         return { error: 'De aanvraag kon niet worden verwerkt. Probeer opnieuw.' }
     }
 
-    return { success: true, message: 'Wachtwoord is bijgewerkt.' }
+    // End the recovery/current session after changing the password. This forces
+    // a fresh credential login instead of leaving the recovery session active.
+    const { error: signOutError } = await supabase.auth.signOut({ scope: 'global' })
+    if (signOutError) {
+        console.error('[Auth] Password changed but global session revocation failed', {
+            code: signOutError.code,
+            status: signOutError.status,
+        })
+        // The password change itself succeeded. Clear the local session as a
+        // minimum fallback and require a fresh login on this device.
+        await supabase.auth.signOut({ scope: 'local' })
+    }
+
+    const cookieStore = await cookies()
+    cookieStore.delete('uptilldawn-admin-edit-mode')
+    cookieStore.delete('uptilldawn-admin-edit-role')
+
+    return { success: true, message: 'Wachtwoord is bijgewerkt. Log opnieuw in.' }
 }
 
 // ── Resend Verification Email ─────────────────────────────────
 
 export async function resendVerificationEmail(formData: FormData) {
-    const email = (formData.get('email') as string)?.trim().toLowerCase()
-
-    if (!email) {
-        return { error: 'Vul je e-mailadres in.' }
-    }
+    const email = String(formData.get('email') || '').trim().toLowerCase()
+    if (!email) return { error: 'Vul je e-mailadres in.' }
 
     const origin = appOrigin()
     if (!origin) {
@@ -292,16 +274,11 @@ export async function resendVerificationEmail(formData: FormData) {
 
 export async function getCurrentUser() {
     const supabase = await createClient()
-
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) return null
 
     const [{ data: profile, error }, { data: isOwner }] = await Promise.all([
-        supabase
-            .from('profiles')
-            .select('id,full_name,phone_number,profile_photo_url,approved,role')
-            .eq('id', user.id)
-            .single(),
+        supabase.from('profiles').select('id,full_name,phone_number,profile_photo_url,approved,role').eq('id', user.id).single(),
         supabase.rpc('upt_current_is_owner'),
     ])
     if (error || !profile || (!profile.approved && !isOwner)) return null
@@ -335,7 +312,6 @@ export async function getCurrentUser() {
         isEditMode: false,
     }
 }
-
 
 export async function verifyAdminSettingsCode() {
     return { ok: false, error: 'De oude PIN-editor is verwijderd. Gebruik God Mode.' }

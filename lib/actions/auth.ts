@@ -35,6 +35,14 @@ async function requestSecurityContext() {
     return { ip, approximateLocation, userAgent: h.get('user-agent') }
 }
 
+// The admin-login security migration can be newer than a checked-in generated
+// Supabase type snapshot. Keep this small compatibility wrapper isolated here;
+// regenerate crew-database.ts from the deployed schema when available.
+async function adminSecurityRpc<T>(supabase: Awaited<ReturnType<typeof createClient>>, fn: string, args: Record<string, unknown>) {
+    const rpc = supabase.rpc as unknown as (name: string, params: Record<string, unknown>) => Promise<{ data: T | null; error: { message?: string } | null }>
+    return rpc(fn, args)
+}
+
 // ── Sign Up ──────────────────────────────────────────────────
 export async function signUp(formData: FormData) {
     const email = String(formData.get('email') || '').trim().toLowerCase()
@@ -67,7 +75,7 @@ export async function signIn(formData: FormData) {
     const supabase = await createClient()
     const security = requestedPortal === 'admin' ? await requestSecurityContext() : null
     if (requestedPortal === 'admin') {
-        const { data: guard, error: guardError } = await supabase.rpc('upt_admin_login_guard', { p_login: email })
+        const { data: guard, error: guardError } = await adminSecurityRpc<{ allowed?: boolean }>(supabase, 'upt_admin_login_guard', { p_login: email })
         if (guardError) return { error: 'Aanmelden tijdelijk niet beschikbaar. Probeer opnieuw.', code: 'security_guard_error' }
         if (guard && guard.allowed === false) return { error: 'Te veel mislukte aanmeldpogingen. Probeer over 15 minuten opnieuw.', code: 'login_locked' }
     }
@@ -75,7 +83,7 @@ export async function signIn(formData: FormData) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error || !data.user) {
         if (requestedPortal === 'admin') {
-            await supabase.rpc('upt_admin_login_failure', { p_login: email, p_ip: security?.ip, p_location: security?.approximateLocation, p_user_agent: security?.userAgent })
+            await adminSecurityRpc(supabase, 'upt_admin_login_failure', { p_login: email, p_ip: security?.ip ?? null, p_location: security?.approximateLocation ?? null, p_user_agent: security?.userAgent ?? null })
         }
         if (error?.message.includes('Email not confirmed')) return { error: 'Verifieer eerst je e-mailadres.', code: 'email_not_confirmed' }
         if (error?.message.includes('Invalid login credentials')) return { error: 'Onjuist e-mailadres of wachtwoord.', code: 'invalid_credentials' }
@@ -91,7 +99,7 @@ export async function signIn(formData: FormData) {
     const hasPermanentAdminAccess = role === 'admin' || isOwner === true
     const allowed = requestedPortal === 'admin' ? hasPermanentAdminAccess : requestedPortal === 'responsible' ? role === 'responsible_lead' || hasPermanentAdminAccess : role === 'staff' || role === 'responsible_lead' || hasPermanentAdminAccess
     if (!allowed) {
-        if (requestedPortal === 'admin') await supabase.rpc('upt_admin_login_failure', { p_login: email, p_ip: security?.ip, p_location: security?.approximateLocation, p_user_agent: security?.userAgent })
+        if (requestedPortal === 'admin') await adminSecurityRpc(supabase, 'upt_admin_login_failure', { p_login: email, p_ip: security?.ip ?? null, p_location: security?.approximateLocation ?? null, p_user_agent: security?.userAgent ?? null })
         await supabase.auth.signOut()
         return { error: 'Dit account heeft geen toegang tot het gekozen portaal.', code: 'wrong_portal' }
     }
@@ -102,11 +110,11 @@ export async function signIn(formData: FormData) {
         if (roleModeError || roleMode !== requestedRoleMode) { await supabase.auth.signOut(); return { error: 'De gekozen rolweergave kon niet worden geactiveerd.', code: 'role_mode_error' } }
     }
 
-    if (requestedPortal === 'admin') await supabase.rpc('upt_admin_login_success', { p_login: email, p_ip: security?.ip, p_location: security?.approximateLocation, p_user_agent: security?.userAgent })
+    if (requestedPortal === 'admin') await adminSecurityRpc(supabase, 'upt_admin_login_success', { p_login: email, p_ip: security?.ip ?? null, p_location: security?.approximateLocation ?? null, p_user_agent: security?.userAgent ?? null })
     redirect(requestedPortal === 'admin' ? '/admin' : '/')
 }
 
-// ── Sign Out ─────────────────────────────────────────────────
+// ── Sign Out ──────────────────────────────────────────────────
 export async function signOut() {
     const supabase = await createClient(); await supabase.auth.signOut()
     const cookieStore = await cookies(); cookieStore.delete('uptilldawn-admin-edit-mode'); cookieStore.delete('uptilldawn-admin-edit-role'); redirect('/login')
@@ -141,4 +149,50 @@ export async function resendVerificationEmail(formData: FormData) {
     const supabase = await createClient(); const { error } = await supabase.auth.resend({ type: 'signup', email, options: { emailRedirectTo: `${origin}/auth/callback` } })
     if (error) return { error: 'De verificatiemail kon niet worden verstuurd. Probeer opnieuw.' }
     return { success: true, message: 'Verificatiemail opnieuw verstuurd.' }
+}
+
+// ── Get Current User with Profile ────────────────────────────
+export async function getCurrentUser() {
+    const supabase = await createClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) return null
+
+    const [{ data: profile, error }, { data: isOwner }] = await Promise.all([
+        supabase.from('profiles').select('id,full_name,phone_number,profile_photo_url,approved,role').eq('id', user.id).single(),
+        supabase.rpc('upt_current_is_owner'),
+    ])
+    if (error || !profile || (!profile.approved && !isOwner)) return null
+
+    const realRole = profile.role
+    const hasPermanentAdminAccess = realRole === 'admin' || isOwner === true
+    const { data: storedRole } = hasPermanentAdminAccess
+        ? await supabase.rpc('upt_current_effective_role')
+        : { data: realRole }
+    const effectiveRole = storedRole === 'responsible_lead'
+        ? 'responsible_lead'
+        : storedRole === 'staff'
+            ? 'staff'
+            : storedRole === 'admin'
+                ? 'admin'
+                : realRole
+    const roles = [effectiveRole === 'staff' ? 'employee' : effectiveRole]
+
+    return {
+        ...profile,
+        approved: profile.approved || isOwner === true,
+        role: effectiveRole,
+        realRole,
+        roleMode: effectiveRole,
+        id: user.id,
+        email: user.email ?? '',
+        roles,
+        isAdmin: effectiveRole === 'admin',
+        realIsAdmin: hasPermanentAdminAccess,
+        isOwner: isOwner === true,
+        isEditMode: false,
+    }
+}
+
+export async function verifyAdminSettingsCode() {
+    return { ok: false, error: 'De oude PIN-editor is verwijderd. Gebruik God Mode.' }
 }
